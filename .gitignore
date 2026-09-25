@@ -1,0 +1,11 @@
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editors
+.vs/
+.idea/
+.vscode/
+
+# Unity-specific rules live in game/.gitignore
