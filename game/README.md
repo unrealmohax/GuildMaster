@@ -13,13 +13,13 @@
 
 ## Репозиторий
 
-Ещё не инициализирован:
+Репозиторий — в корне `GuildMaster/` (вместе с `docs/` и `TechJob/`), пока только локальный. Git LFS включён для картинок, звука, моделей и шрифтов (см. `.gitattributes`).
+
+Чтобы отправить на сервер: создать пустой репозиторий (GitHub и т.п.), затем в корне `GuildMaster/`:
 
 ```bash
-git init
-git lfs install
-git add .
-git commit -m "Initial commit"
+git remote add origin <адрес репозитория>
+git push -u origin main
 ```
 
 `Library/`, `Logs/`, `UserSettings/`, `*.sln`, `*.csproj` исключены в `.gitignore`.
