@@ -56,7 +56,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Коммит начинается с метки в квадратных скобках:
   - `[GM-XX]` — задачи кода (`[GM-01] Simulation tick loop`);
   - `[Docs]` — документация (`docs/`, `CLAUDE.md`);
-  - `[TechSpec-XX]` — технические задания (`TechJob/`), `XX` — номер ТЗ (`[TechSpec-09] Requirement floor`).
+  - `[TechSpec-XX]` — технические задания (`TechJob/`), `XX` — номер ТЗ (`[TechSpec-09] Requirement floor`);
+    правка сразу нескольких ТЗ — диапазоном (`[TechSpec-01-17] Add GM task numbers and branch names`).
 - **Соавторство в коммитах не указывать** — без строки `Co-Authored-By`.
 - Удалённый репозиторий — `origin` = `https://github.com/unrealmohax/GuildMaster.git`. Пуш — только по просьбе.
 
