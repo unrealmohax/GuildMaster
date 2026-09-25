@@ -8,4 +8,10 @@ desktop.ini
 .idea/
 .vscode/
 
+# Claude Code: only shared skills, agents and permissions go to git
+.claude/*
+!.claude/agents/
+!.claude/skills/
+!.claude/settings.json
+
 # Unity-specific rules live in game/.gitignore

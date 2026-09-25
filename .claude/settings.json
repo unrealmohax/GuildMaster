@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(xargs:*)",
+      "Bash(awk:*)",
+      "Bash(sed -n:*)",
+      "Bash(sort:*)",
+      "Bash(uniq:*)",
+      "Bash(cut:*)",
+      "Bash(tr:*)",
+      "Bash(diff:*)",
+      "Bash(git:*)",
+      "PowerShell(git *)",
+      "PowerShell(Test-Path *)",
+      "PowerShell(Get-ChildItem *)",
+      "PowerShell(Get-Content *)",
+      "mcp__UnityMCP",
+      "Edit(docs/**)",
+      "Edit(TechJob/**)",
+      "Edit(CLAUDE.md)",
+      "Edit(game/Assets/_Project/ClaudeSandbox/**)"
+    ],
+    "ask": [
+      "Edit(game/Assets/**)",
+      "Edit(game/ProjectSettings/**)",
+      "Edit(game/Packages/**)"
+    ]
+  }
+}
