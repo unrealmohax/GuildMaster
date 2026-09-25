@@ -1,4 +1,8 @@
-# ТЗ 13. Обращения и дилеммы
+# GM-13. Обращения и дилеммы
+
+| Задача | Ветка | Метки коммитов |
+|---|---|---|
+| **GM-13** | `GM-13_dilemmas` | `[GM-13]` — код, `[TechSpec-13]` — правки этого ТЗ |
 
 Дизайн: [dilemmas.md](../docs/mechanics/dilemmas.md). Числа: [numbers.md](../docs/content/numbers.md) + допущения ниже (идут в `BalanceSettings.Dilemmas`).
 

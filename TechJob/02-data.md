@@ -1,4 +1,8 @@
-# ТЗ 02. Данные (ScriptableObject)
+# GM-02. Данные (ScriptableObject)
+
+| Задача | Ветка | Метки коммитов |
+|---|---|---|
+| **GM-02** | `GM-02_data` | `[GM-02]` — код, `[TechSpec-02]` — правки этого ТЗ |
 
 Дизайн: [prototype.md → Производство](../docs/prototype.md#производство). Числа: [numbers.md](../docs/content/numbers.md).
 

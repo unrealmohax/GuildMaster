@@ -1,4 +1,8 @@
-# ТЗ 11. Постройки и персонал
+# GM-11. Постройки и персонал
+
+| Задача | Ветка | Метки коммитов |
+|---|---|---|
+| **GM-11** | `GM-11_buildings_staff` | `[GM-11]` — код, `[TechSpec-11]` — правки этого ТЗ |
 
 Дизайн: [buildings.md](../docs/mechanics/buildings.md), [staff.md](../docs/mechanics/staff.md). Числа: [numbers.md → Постройки](../docs/content/numbers.md#постройки), [→ Персонал](../docs/content/numbers.md#персонал-зарплата-в-месяц).
 

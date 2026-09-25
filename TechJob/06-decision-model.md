@@ -1,4 +1,8 @@
-# ТЗ 06. Модель решений авантюриста
+# GM-06. Модель решений авантюриста
+
+| Задача | Ветка | Метки коммитов |
+|---|---|---|
+| **GM-06** | `GM-06_decision_model` | `[GM-06]` — код, `[TechSpec-06]` — правки этого ТЗ |
 
 Дизайн: [decision-model.md](../docs/mechanics/decision-model.md), [trait-effects.md](../docs/mechanics/trait-effects.md). Числа: [numbers.md → Модель решений](../docs/content/numbers.md#модель-решений).
 

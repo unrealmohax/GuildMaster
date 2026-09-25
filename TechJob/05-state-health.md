@@ -1,4 +1,8 @@
-# ТЗ 05. Состояние и здоровье
+# GM-05. Состояние и здоровье
+
+| Задача | Ветка | Метки коммитов |
+|---|---|---|
+| **GM-05** | `GM-05_state_health` | `[GM-05]` — код, `[TechSpec-05]` — правки этого ТЗ |
 
 Дизайн: [state.md](../docs/mechanics/state.md), [health.md](../docs/mechanics/health.md), [economy.md](../docs/mechanics/economy.md). Числа: [numbers.md → Состояние](../docs/content/numbers.md#состояние-шкалы-0100), [→ Здоровье](../docs/content/numbers.md#здоровье), [→ Расходы](../docs/content/numbers.md#расходы-авантюриста-из-своего-кошелька).
 

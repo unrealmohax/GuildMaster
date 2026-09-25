@@ -1,4 +1,8 @@
-# ТЗ 03. Время
+# GM-03. Время
+
+| Задача | Ветка | Метки коммитов |
+|---|---|---|
+| **GM-03** | `GM-03_time` | `[GM-03]` — код, `[TechSpec-03]` — правки этого ТЗ |
 
 Дизайн: [time.md](../docs/mechanics/time.md), [core-loop.md](../docs/core-loop.md). Числа: [numbers.md → Время](../docs/content/numbers.md#время).
 

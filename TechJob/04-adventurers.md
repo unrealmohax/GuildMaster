@@ -1,4 +1,8 @@
-# ТЗ 04. Авантюристы
+# GM-04. Авантюристы
+
+| Задача | Ветка | Метки коммитов |
+|---|---|---|
+| **GM-04** | `GM-04_adventurers` | `[GM-04]` — код, `[TechSpec-04]` — правки этого ТЗ |
 
 Дизайн: [adventurers.md](../docs/mechanics/adventurers.md), [archetypes.md](../docs/mechanics/archetypes.md), [traits.md](../docs/mechanics/traits.md), [trait-effects.md](../docs/mechanics/trait-effects.md), [lifecycle.md](../docs/mechanics/lifecycle.md). Числа: [numbers.md → Авантюристы](../docs/content/numbers.md#авантюристы).
 
