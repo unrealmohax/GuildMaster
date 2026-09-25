@@ -58,7 +58,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - `[Docs]` — документация (`docs/`, `CLAUDE.md`);
   - `[TechSpec-XX]` — технические задания (`TechJob/`), `XX` — номер ТЗ (`[TechSpec-09] Requirement floor`).
 - **Соавторство в коммитах не указывать** — без строки `Co-Authored-By`.
-- Удалённого репозитория пока нет; пуш — только по просьбе и только после того, как он будет подключён.
+- Удалённый репозиторий — `origin` = `https://github.com/unrealmohax/GuildMaster.git`. Пуш — только по просьбе.
 
 ## Карта репозитория
 
