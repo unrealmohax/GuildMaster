@@ -42,6 +42,6 @@
 ### `Editor/StateProbe.cs` — состояние и здоровье из меню (GM-05)
 
 Меню **GuildMaster → Sandbox → State**: `Light Wound First`, `Heavy Wound First`, `Stress +50 First` — первому в гильдии,
-командой (как это будет вызывать ТЗ 09), в Play Mode; `Preview 90 Days` — 90 дней для зёрен 1–3 без Play Mode
+командой (как это будет вызывать ТЗ 11), в Play Mode; `Preview 90 Days` — 90 дней для зёрен 1–3 без Play Mode
 (симуляция в памяти, кандидаты принимаются): счётчики событий систем состояния и состояние каждого в конце.
 Пишет через `Debug.Log` — в MCP читать `read_console` с `types: ["all"]`.

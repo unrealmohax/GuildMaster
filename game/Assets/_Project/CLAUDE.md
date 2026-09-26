@@ -5,6 +5,21 @@
 `TechJob/04-adventurers.md` (GM-04, авантюристы), `TechJob/05-state-health.md` (GM-05, состояние и здоровье);
 этот файл описывает, как они реализованы.
 
+## Комментарии в коде: без ссылок на документацию
+
+Код (и комментарии, и `[Tooltip]`/`[Header]`, и сообщения тестов) понятен сам, без `docs/` и `TechJob/`
+(решение 2026-09-27):
+
+- **Нет номеров и ссылок**: ни `ТЗ NN`, ни `GM-NN`, ни `TechSpec`, ни имён документов (`numbers.md`, `quests.md`…),
+  ни разделов («→ «Генерация»»), ни дат решений, ни пометок ❔ 💡 ✅.
+- **Комментарий говорит, что делает код и почему**, своими словами: «Общежития пока нет — все живут в городе»,
+  а не «Общежитие — ТЗ 13».
+- **Будущее не упоминается.** Не «до ТЗ 13 — заглушка», а что есть сейчас: «построек пока нет — `NoInfirmary`».
+  Кто вызывает — «вызывающая система», а не номер задачи.
+- Исключение — генератор данных в песочнице: он переносит данные из документов, имя документа-источника там — часть
+  описания того, что он делает.
+- Связь кода с ТЗ — в этом файле и в самих ТЗ, не в коде.
+
 ## Где что лежит
 
 ```
@@ -33,7 +48,7 @@ _Project/
 │   │   │                службы StateService, StressEvents, WalletService, системы ActivitySystem, StateSystem
 │   │   ├── Health/      Condition, HealthService, HealthSystem, IInfirmary (+ заглушка NoInfirmary)
 │   │   └── World/       WorldState, IdGenerator
-│   ├── UI/          GuildMaster.UI        — UiRoot (экраны — ТЗ 15)
+│   ├── UI/          GuildMaster.UI        — UiRoot (экраны — ТЗ 14)
 │   ├── Bootstrap/   GuildMaster.Bootstrap — GameRunner
 │   └── Debugging/   GuildMaster.Debugging — HeadlessRun, окно GuildMaster → Run Headless…,
 │                    Validation/ (DataValidator, меню GuildMaster → Validate Data), EditorAssets
@@ -78,7 +93,7 @@ _Project/
   событий не даёт (стартовое состояние готовит сценарий старта).
 - **Ритм дня.** `TimeSystem` публикует `DayStarted` (сутки, 00:00), `MorningStarted`, `DaytimeStarted` (дневная фаза,
   09:00), `EveningStarted`, `NightStarted`, `MonthStarted`. `ctx.Rhythm` (`DayRhythm`, он же `Simulation.Rhythm`
-  и `ISimulationClient.Rhythm`): `PhaseAt(час)`; для GM-06/09 — `IsCampHour` (группа в пути стоит с `campHour`
+  и `ISimulationClient.Rhythm`): `PhaseAt(час)`; для GM-08/11 — `IsCampHour` (группа в пути стоит с `campHour`
   до утра, раунды тоже), `MarchEnd(старт, часов)` — конец пути с ночлегами, `CampEnd`, `CanStartQuest`
   (с начала утра до `latestDepartureHour` **включительно**), `NextQuestStart`. Часы читаются из `BalanceSettings.Time`
   при каждом вызове. Час H — такт, в котором мир стоит на H:00 и тратит час H:00–H+1:00.
@@ -99,12 +114,12 @@ _Project/
   `Chance()` всегда тратит одно число. Алгоритм закреплён тестом на эталонные числа PCG32.
 - **Автопауза.** `AutopauseSystem` смотрит события такта: тип есть в `AutopauseRules.Default` и его вид
   (`AutopauseKind`) включён в `World.Autopause` — запоминает событие в `World.Autopause.Triggers` (для окна
-  «Перейти», GM-15; чистится в начале следующего такта) и вызывает `ctx.RequestPause()`; `GameRunner` после такта
+  «Перейти», GM-14; чистится в начале следующего такта) и вызывает `ctx.RequestPause()`; `GameRunner` после такта
   забирает флаг `ConsumePauseRequest()` и ставит паузу. **Новое событие с автопаузой — одна строка
   `{ SimEventType.Тип, AutopauseKind.Вид }` в `AutopauseRules`.** Переключатели — команда `SetAutopauseCommand`
   (пишет `AutopauseChanged`), по умолчанию все включены. Сейчас в правилах — раскрытия (`AxisRevealed`, `TraitRevealed`
   → `TraitRevealed`) и уход из гильдии (`AdventurerLeft` → `MemberLeftGuild`); остальные события таблицы ТЗ 03
-  появятся в ТЗ 09, 10, 13.
+  появятся в ТЗ 09, 11, 13, 17.
 
 ## Авантюристы (GM-04)
 
@@ -116,8 +131,8 @@ _Project/
 - **`Adventurer`**: базовые параметры по `StatId` (`Stats`, `GetStat`), оси (`Axes`, `RevealedAxes`), черты
   (`TraitInstance`: `TraitId`, `Revealed`, `PartnerId`, `AcquiredAtHours`, `AffectedStat` — параметр Калеки), ранг гильдии
   и `RankPoints` (дробные: частичный успех × 0,5), `PromotionReadyAtHours`, `ArchetypeId` + `PowerScore`, `State`
-  (`AdventurerState`, GM-05), `Housing` (пока всегда `City`, Общежитие — GM-11),
-  `JoinedAtHours`, счётчики заданий. Группа (GM-07), память (GM-13) — не заведены.
+  (`AdventurerState`, GM-05), `Housing` (пока всегда `City`, Общежитие — GM-13),
+  `JoinedAtHours`, счётчики заданий. Группа (GM-12), память (GM-17) — не заведены.
 - **Эффективные параметры** — `AdventurerStats`: `Permanent` = база × постоянные модификаторы (Калека), не ниже
   естественного минимума; `Effective` = `Permanent` × временные (лёгкая рана, усталость выше 70 — GM-05). Новый модификатор —
   строка в `PermanentModifiers` / `TemporaryModifiers`.
@@ -126,7 +141,7 @@ _Project/
   параметров (рост, черты вызывают сами) и в `AdventurerSystem` раз в сутки (00:00); смена — `ArchetypeChanged` без автопаузы.
 - **Оси** — `AxisMath`: полюс, `Strength`, `Multiplier`/`ArrowMultiplier` (сила влияния эффекта полюса),
   `IsExtreme` (≥ 70), `IsNeutral` (< 30).
-- **Рост** — `Growth`: `Train`, `PickTrainingStat`, `ApplyQuestExperience` (оси передаёт вызывающий, GM-09),
+- **Рост** — `Growth`: `Train`, `PickTrainingStat`, `ApplyQuestExperience` (оси передаёт вызывающий, GM-11),
   `ApplyHardQuestComposure`, `ApplyGroupQuestCohesion`, `AddBonus`; `TrainingGain`/`QuestExperienceGain` — чистые.
   Хладнокровие и Слаженность не тренируются и опыта задания не получают.
 - **Ранг гильдии** — `GuildRanks`: `AddPoints`, `IsReadyForPromotion`, `Promote` (очки → 0, `RankPromoted`),
@@ -143,7 +158,7 @@ _Project/
   `ArchetypeDefinition.generationWeight`) → уровень → параметры → оси → черты (с партнёром — только если есть подходящий
   в гильдии) → кошелёк, ранг G, город → архетип → стартовое состояние (GM-05, последние броски). Порядок бросков не менять без причины. Старт — `StartScenario`.
 - **Кандидаты** — `RecruitSystem`: утром (`morningHour`) раз в сутки шанс `CandidateChance` (заглушки: репутация
-  стартовая до ТЗ 10, распоряжений нет до ТЗ 12), ожидание `candidateWaitDays`, `CandidateArrived` / `CandidateLeft`;
+  стартовая до ТЗ 10, распоряжений нет до ТЗ 16), ожидание `candidateWaitDays`, `CandidateArrived` / `CandidateLeft`;
   команды `AcceptCandidateCommand` (черта с партнёром появляется и у партнёра, если он ещё может её взять) и
   `RejectCandidateCommand`. Уход из гильдии — `AdventurerLifecycle.Retire` (событие публикует вызывающая система).
 - **Реестр только из чисел** (`DataRegistry.HasDefinitions == false`, `TestData`) — симуляция без людей: старт и приток
@@ -160,7 +175,7 @@ _Project/
   `PaidInfirmaryToday` (сбрасывается в 00:00). Вопросы: `HasHeavyWound`, `HasLightWound`, `IsOnQuest`, `TryGetCondition`.
   Старт — `StateService.InitializeNew` в конце генератора: усталость 10, стресс 10–30, довольство 50, лояльность 40–60.
 - **Занятие** — `Activity`: `Resting`, `Sleeping`, `Tavern`, `Training`, `Infirmary`, `Binge`, `OnQuestTravel/Round/Camp`.
-  До ТЗ 06 его ставит **`ActivitySystem`** (шаг 5) по расписанию-заглушке, первое подходящее: на задании — не трогает;
+  До ТЗ 08 его ставит **`ActivitySystem`** (шаг 5) по расписанию-заглушке, первое подходящее: на задании — не трогает;
   запой — `Binge`, «сел и не смог подняться» — `Resting` весь срок; ночь — `Sleeping`; койка — `Infirmary`; тяжёлая рана —
   `Resting`; Пьяница, пропускающий день, — `Tavern` с утра; вечер — `Tavern`, утро и день — `Resting`. Там же расходы
   занятия раз в сутки (выпивка 2–5 при стрессе > 30 или Пьянице, еда в таверне — если кошелёк ≥ расходов на неделю;
@@ -170,36 +185,36 @@ _Project/
   жильё), довольство к цели (`StateRules.ContentmentTarget`) на 1, лояльность к довольству на 0,1, сброс учёта суток,
   срыв (стресс > 80, 10%), конец спада Потерявшего товарища (30 дней → раскрытие, «сломался» / «ожесточился», черта
   снимается); в начале месяца — проверка ухода (лояльность < 25, 20%, Семейный × 1,5 → `AdventurerLifecycle.Retire`,
-  `AdventurerLeft` [В] с автопаузой, причина `LeaveCause.LowLoyalty`). Люди на задании не срываются и не уходят (ТЗ 09).
+  `AdventurerLeft` [В] с автопаузой, причина `LeaveCause.LowLoyalty`). Люди на задании не срываются и не уходят (ТЗ 11).
 - **`HealthSystem`** (шаг 7): в 00:00 — койки Лазарета (тяжёлые раны первыми, затем кто раньше ранен), затем у каждой
   раны срок −1 × множитель (Лазарет — 1 / 0,7 × скорость Лекаря, без него — 1 / 1,5), зажила — `WoundHealed`. Тяжёлая
   рана без койки — один бросок на осложнение в первые сутки лечения (+7 дней, стресс +10, `WoundComplicated`).
   Лазарет — **`IInfirmary`** в конструкторе системы; по умолчанию `NoInfirmary` (коек нет, решение 2026-09-26),
-  тесты подменяют (`FakeInfirmary`), ТЗ 11 даст настоящий.
+  тесты подменяют (`FakeInfirmary`), ТЗ 13 даст настоящий.
 - **Черты на состояние** — `StateRates.Multiplier(человек, показатель, рост/падение, данные, PartyContext)` читает эффекты
   `StateRate` из данных: у осей — по формуле оси, у особых черт — полностью. Трус — стресс быстрее, Кошмары — усталость
   × 1,3, Потерявший товарища — снятие стресса × 0,5, Преданный / Наёмник — лояльность, Одиночка / Командный — только
-  с `PartyContext.InGroup` / `Solo` (его передаст ТЗ 07/09; вне задания `None`). `PayContentmentSensitivity` (Жадный × 2)
+  с `PartyContext.InGroup` / `Solo` (его передаст ТЗ 12/11; вне задания `None`). `PayContentmentSensitivity` (Жадный × 2)
   — к вкладу комиссии. Остальное по `TraitHook` — в своих местах: Железные нервы и партнёр Влюблённого — `StressEvents`,
   Семейный — `WalletService` и проверка ухода, Пьяница — `ActivitySystem`, Ветеран — вид срыва и раскрытие, Проверенный —
   `TraitService`.
 - **Службы для следующих ТЗ** (все требуют `SimContext`): `StateService.AddStress` / `AddFatigue` (× черты),
-  `ChangeContentment` / `ChangeLoyalty` (разово, без множителей — дилеммы ТЗ 13), `StartBreakdown` (срыв Ветерана после
-  тяжёлого задания — ТЗ 09); `StressEvents.RoundFailed` (лестница провалов), `ComradeWounded`, `AdventurerDied`
+  `ChangeContentment` / `ChangeLoyalty` (разово, без множителей — дилеммы ТЗ 17), `StartBreakdown` (срыв Ветерана после
+  тяжёлого задания — ТЗ 11); `StressEvents.RoundFailed` (лестница провалов), `ComradeWounded`, `AdventurerDied`
   (стресс +25 / друг +40 / Влюблённый +60, Железные нервы × 0,5, другу и партнёру — «Потерявший товарища»);
   `HealthService.Wound` (своя рана — стресс; лёгкие не складываются; вторая тяжёлая — `Maim`, черта «Калека»);
   `WalletService.Pay`, `ReceiveIncome(IncomeKind.Reward/Loot)` (Семейный 30% домой, долг — 20% доли награды, доли вниз),
   `TakeLoan`. Долг погибшего или пропавшего списывает `AdventurerLifecycle.Retire`.
-- **Запреты и вопросы для ТЗ 06, 09**: `StateRules.CanTakeQuests` (тяжёлая рана, усталость > 90, срыв),
+- **Запреты и вопросы для ТЗ 08, 11**: `StateRules.CanTakeQuests` (тяжёлая рана, усталость > 90, срыв),
   `IsTooTiredForQuests`, `WalletService.IsBelowWeeklyExpenses` / `MoneyMotiveMultiplier` (мотив «Деньги» × 2),
   `AdventurerStats.Effective` (лёгкая рана × 0,85, усталость > 70 × 0,8).
 - **Лояльность словами** — `StateRules.LoyaltyWordIndex` (границы `loyaltyWordThresholds`, на границе — верхний интервал)
   и `LoyaltyWord(лояльность, пол, …)`; ❔ тексты пока в коде (`LoyaltyWordsMale` / `Female`).
-- **Заглушки** (решение 2026-09-26): платы гильдии не зачисляются в казну (ТЗ 10, места помечены `// ТЗ 10`), комиссия —
-  `Economy.defaultCommission`, Лазарета нет, причина ухода — без мотивов. Без заданий (ТЗ 09) доходов нет: за 2–3 недели
+- **Заглушки** (решение 2026-09-26): платы гильдии не зачисляются в казну (таверна — ТЗ 09, Общежитие, двор, Лазарет — ТЗ 13; места в коде — с комментарием «казны пока нет»), комиссия —
+  `Economy.defaultCommission`, Лазарета нет, причина ухода — без мотивов. Без заданий (ТЗ 11) доходов нет: за 2–3 недели
   кошельки пустеют, довольство падает к 25, лояльность — к 25 (ровно на пороге ухода «ниже 25» — никто не уходит).
 - **События** (`SimEventType`, новые — в конец): `AdventurerWounded`, `WoundComplicated`, `WoundHealed`, `Breakdown`,
-  `DrunkardSkippedDay`, `WalletEmptied`, `AdventurerLeft`, `GrievingEnded`. Строки ленты — GM-14.
+  `DrunkardSkippedDay`, `WalletEmptied`, `AdventurerLeft`, `GrievingEnded`. Строки ленты — GM-07.
 
 ## Мир меняется только командами
 
@@ -222,15 +237,15 @@ _Project/
 - **Перечисления, записанные в ассетах** (`StatId`, `AxisId`, `TraitHook`, `RevealTrigger`, `DilemmaEffectKind`…),
   хранятся числами: новые значения — только в конец, существующие не переставлять.
 - **Кодовые id правил**: особые правила черт — `TraitHook`, триггеры раскрытия — `RevealTrigger`, триггеры дилемм —
-  `DilemmaTrigger`. Данные говорят «какое правило», код реализует его в своей системе (ТЗ 04, 09, 13).
-- **Тексты**: подстановки `{имя}`, `{место:р}`, род `[м|ж]`, `[его|её]@имя` (ТЗ 14). Словарь меток —
+  `DilemmaTrigger`. Данные говорят «какое правило», код реализует его в своей системе (ТЗ 04, 11, 17).
+- **Тексты**: подстановки `{имя}`, `{место:р}`, род `[м|ж]`, `[его|её]@имя` (ТЗ 07). Словарь меток —
   `TextPlaceholders`. У имён, мест, врагов, построек, распоряжений — `NounForms` (6 падежей); заполнен пока
-  только именительный и род (`GrammaticalGender`), остальное и падежи в шаблонах — GM-14. Скобка рода у названий — `[м|ж|ср|мн]@постройка` (решение 2026-09-26). Ключи ленты (`quest.departed`, `reveal.risk.negative`…)
+  только именительный и род (`GrammaticalGender`), остальное и падежи в шаблонах — GM-07. Скобка рода у названий — `[м|ж|ср|мн]@постройка` (решение 2026-09-26). Ключи ленты (`quest.departed`, `reveal.risk.negative`…)
   — строки; определения ссылаются на них полями `…FeedKey`.
 - **Валидатор** — GuildMaster → Validate Data (`DataValidator.Validate(config)`): обход сериализуемых полей
   отражением (пустые ссылки, кроме `[OptionalReference]`; `[Range]`/`[Min]`; `IntRange`/`FloatRange` с min > max),
   дубли id, связи (постройка ↔ должность, ключи ленты, шансы исходов в сумме 1…), разметка текстов.
-  Ошибка — данные битые; предупреждение — подозрительно (сейчас 17: скобки рода без человека в предложении — GM-14).
+  Ошибка — данные битые; предупреждение — подозрительно (сейчас 17: скобки рода без человека в предложении — GM-07).
   Консоль MCP видит итоговую строку только в `read_console` с `types: ["all"]`; полный отчёт — вывод теста
   `DataValidatorTests.RealConfig_HasNoErrors`.
 - **Ассеты заполняет генератор в песочнице** (GuildMaster → Sandbox → Generate Game Data); он перезаписывает
