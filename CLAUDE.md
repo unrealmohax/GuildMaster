@@ -113,6 +113,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   Но `Debug.LogWarning`/`LogError` с объектом-контекстом (`Debug.LogWarning(текст, ассет)`) не видны ни с каким
   фильтром — полный отчёт в таких случаях читать через вывод теста (`run_tests` с `include_details`).
 - `manage_asset move` может вернуть ошибку, хотя перенос прошёл — проверять по диску и Build Settings.
+- **Play Mode не крутит кадры, пока окно Unity не в фокусе** (GM-03): `runInBackground` в проекте выключен,
+  `EditorApplication.QueuePlayerLoopUpdate` в Play Mode не помогает. **Обход:** GuildMaster → Sandbox → Time →
+  Toggle Run In Background на время проверки; в редакторе это меняет `PlayerSettings` в памяти — выключить
+  до выхода из Play Mode и сверить `ProjectSettings.asset` на диске.
+- Вход в Play Mode сразу после перекомпиляции может оборваться («disconnected while awaiting command_result») —
+  проверить `mcpforunity://editor/state` и повторить.
 
 ## Claude-хозяйство: `.claude/`
 

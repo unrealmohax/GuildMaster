@@ -1,7 +1,8 @@
 # Код игры: архитектура
 
 Правила работы — в корневом `CLAUDE.md`. Здесь — устройство кода игры. Задания — `TechJob/01-architecture.md`
-(GM-01, архитектура), `TechJob/02-data.md` (GM-02, данные); этот файл описывает, как они реализованы.
+(GM-01, архитектура), `TechJob/02-data.md` (GM-02, данные), `TechJob/03-time.md` (GM-03, время); этот файл описывает,
+как они реализованы.
 
 ## Где что лежит
 
@@ -18,7 +19,8 @@ _Project/
 │   │   └── Common/          Definition (id + displayName), NounForms (6 падежей), IntRange, FloatRange
 │   ├── Core/        GuildMaster.Core      — симуляция на обычном C#
 │   │   ├── Simulation/  Simulation, SimContext, ISimSystem, DataRegistry, ISimulationClient, SimulationSystems
-│   │   ├── Time/        GameTime, Calendar, TimeSystem
+│   │   ├── Time/        GameTime, Calendar, TimeSystem, DayPhase, DayRhythm (фазы, ночлег, выход), GameClock (пауза, скорости)
+│   │   ├── Autopause/   AutopauseSystem, AutopauseRules (событие → вид), AutopauseKind, AutopauseState, SetAutopauseCommand
 │   │   ├── Random/      Rng (PCG32), RngService (потоки), StableHash
 │   │   ├── Events/      SimEvent, SimEventType, EventImportance, EventBus
 │   │   ├── Commands/    ICommand, CommandQueue, CommandSystem
@@ -29,7 +31,8 @@ _Project/
 │                    Validation/ (DataValidator, меню GuildMaster → Validate Data), EditorAssets
 ├── Data/            GameConfig, BalanceSettings, StatCatalog + папки Axes, Traits, Archetypes, QuestTypes,
 │                    Encounters, Buildings, Staff, Decrees, Dilemmas, Text (FeedTemplates, NameList, OrderTextTemplates)
-├── ClaudeSandbox/   песочница Claude; Editor/GameDataGenerator — генератор ассетов данных (см. её README)
+├── ClaudeSandbox/   песочница Claude; Editor/GameDataGenerator — генератор ассетов данных, Editor/TimeProbe — время
+│                    в Play Mode из меню (см. её README)
 ├── Prefabs/UI/
 ├── Scenes/Main.unity  — единственная сцена: Main Camera, Global Light 2D, UI (Canvas + UiRoot), EventSystem, GameRunner
 └── Tests/EditMode/  GuildMaster.Tests
@@ -42,23 +45,37 @@ _Project/
 | `GuildMaster.Data` | — | Только определения и числа, без логики |
 | `GuildMaster.Core` | Data | Без MonoBehaviour, сцен, `UnityEngine.Random`, `Time`, `DateTime.Now`, `Stopwatch` |
 | `GuildMaster.UI` | Core, Data, UnityEngine.UI, Unity.TextMeshPro | Читает мир, отправляет команды |
-| `GuildMaster.Bootstrap` | Core, Data, UI | Создаёт симуляцию, крутит такты |
+| `GuildMaster.Bootstrap` | Core, Data, UI, Unity.InputSystem | Создаёт симуляцию, крутит такты, горячие клавиши |
 | `GuildMaster.Debugging` | Core, Data, UI | Отладка; Editor-код — под `#if UNITY_EDITOR` |
 | `GuildMaster.Tests` | Core, Data, Debugging | EditMode; видит internal Core (`InternalsVisibleTo`) |
 
 Правила проверяются тестами `ArchitectureTests`: ссылки asmdef, отсутствие Unity-объектов в Core,
-поиск запрещённых API в исходниках Core, отсутствие публичных сеттеров у `WorldState`.
+поиск запрещённых API в исходниках Core, отсутствие публичных сеттеров у `WorldState` и его частей (публичные
+методы частей мира — только вопросы `Is…`/`Has…`/`Get…`/`TryGet…`; новую часть мира — добавить в список теста).
 
 ## Такт
 
 `Simulation.Tick()` — один игровой час: системы из списка по порядку, затем `TickCompleted(события)` и очистка шины,
 затем `StateChanged`. Порядок систем — в `SimulationSystems` (комментарий со всеми 16 шагами из ТЗ 01);
-новая система встаёт на своё место в `CreateDefault()`. Сейчас реализованы шаги 1–2: `CommandSystem`, `TimeSystem`.
+новая система встаёт на своё место в `CreateDefault()`. Сейчас реализованы шаги 1–2 и 16: `CommandSystem`,
+`TimeSystem`, `AutopauseSystem` (всегда последняя). Тесты, которые добавляют системы в конец `CreateDefault()`,
+ставят их после автопаузы — для проверки случайности это неважно.
 
 - **Время.** `GameTime.TotalHours` — часы от 00:00 дня 1 месяца 1 года 1 (не от старта игры). Старт —
   `TotalHours = StartHour` (06:00). Календарь — `Calendar` по `BalanceSettings.Time`. `TimeSystem` сначала
   двигает час, потом публикует события, поэтому первое событие игры — 07:00, а 06:00 первого дня
   событий не даёт (стартовое состояние готовит сценарий старта).
+- **Ритм дня.** `TimeSystem` публикует `DayStarted` (сутки, 00:00), `MorningStarted`, `DaytimeStarted` (дневная фаза,
+  09:00), `EveningStarted`, `NightStarted`, `MonthStarted`. `ctx.Rhythm` (`DayRhythm`, он же `Simulation.Rhythm`
+  и `ISimulationClient.Rhythm`): `PhaseAt(час)`; для GM-06/09 — `IsCampHour` (группа в пути стоит с `campHour`
+  до утра, раунды тоже), `MarchEnd(старт, часов)` — конец пути с ночлегами, `CampEnd`, `CanStartQuest`
+  (с начала утра до `latestDepartureHour` **включительно**), `NextQuestStart`. Часы читаются из `BalanceSettings.Time`
+  при каждом вызове. Час H — такт, в котором мир стоит на H:00 и тратит час H:00–H+1:00.
+- **Пауза и скорость.** `GameClock` (Core, не часть мира и на результат не влияет): пауза, скорость — номер
+  в `speedMultipliers`, отладочная ×`debugSpeedMultiplier` — только если создан с `debugSpeedAllowed`
+  (`GameRunner` передаёт `Debug.isDebugBuild`: редактор или Development Build). `TakeTicks(секунды кадра)` —
+  сколько тактов сделать, не больше `maxTicksPerFrame`. Выбор скорости снимает паузу. `GameRunner` владеет
+  часами (`GameRunner.Clock`), читает горячие клавиши (Input System: Пробел, 1/2/3) и пишет смену скорости в консоль.
 - **Команды.** UI вызывает `ISimulationClient.Send(команда)`; `CommandSystem` применяет очередь в начале такта,
   до сдвига времени. На паузе `GameRunner` вызывает `Simulation.ApplyCommandsNow()` — тот же поток случайных
   чисел и то же время, поэтому мир совпадает с применением в следующем такте. События таких команд уходят
@@ -69,8 +86,12 @@ _Project/
 - **Случайность.** В системе — только `ctx.Rng`: это поток с зерном `хеш(мастер-зерно, имя системы)`.
   Имя системы (`ISimSystem.Name`) поэтому менять нельзя без причины — сдвинутся все броски.
   `Chance()` всегда тратит одно число. Алгоритм закреплён тестом на эталонные числа PCG32.
-- **Автопауза.** Система вызывает `ctx.RequestPause()`; `GameRunner` после такта забирает флаг
-  `ConsumePauseRequest()` и ставит паузу.
+- **Автопауза.** `AutopauseSystem` смотрит события такта: тип есть в `AutopauseRules.Default` и его вид
+  (`AutopauseKind`) включён в `World.Autopause` — запоминает событие в `World.Autopause.Triggers` (для окна
+  «Перейти», GM-15; чистится в начале следующего такта) и вызывает `ctx.RequestPause()`; `GameRunner` после такта
+  забирает флаг `ConsumePauseRequest()` и ставит паузу. **Новое событие с автопаузой — одна строка
+  `{ SimEventType.Тип, AutopauseKind.Вид }` в `AutopauseRules`.** Переключатели — команда `SetAutopauseCommand`
+  (пишет `AutopauseChanged`), по умолчанию все включены. Пока в правилах пусто — событий из таблицы ТЗ 03 ещё нет.
 
 ## Мир меняется только командами
 
@@ -109,8 +130,9 @@ _Project/
 
 ## Тесты
 
-`Tests/EditMode`: `RngTests`, `TimeTests`, `SimulationTests`, `DeterminismTests`, `ArchitectureTests`,
-`DataTests.cs` (`DataValidatorTests`, `DataRegistryTests`, `BalanceRuntimeTests`).
+`Tests/EditMode`: `RngTests`, `TimeTests`, `DayRhythmTests`, `GameClockTests`, `AutopauseTests`, `SimulationTests`,
+`DeterminismTests`, `ArchitectureTests`, `DataTests.cs` (`DataValidatorTests`, `DataRegistryTests`, `BalanceRuntimeTests`).
+Числа баланса в тесте меняются `GameData.Edit(data.Balance, "time.dayHour", p => p.intValue = 10)`.
 Помощники — `TestSupport.cs`: `TestData` (BalanceSettings без ассета), `NoiseSystem`, `TraceCommand`,
 `SimulationLog.Record` (лог событий прогона строкой); `DataTests.cs`: `GameData` — реальный `GameConfig`
 и копии ассетов в памяти для порчи (`Copy`, `Edit` через `SerializedObject`). Запуск — Test Runner или MCP `run_tests`.
