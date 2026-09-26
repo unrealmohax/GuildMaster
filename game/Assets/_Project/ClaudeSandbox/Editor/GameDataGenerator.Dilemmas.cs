@@ -4,8 +4,8 @@ using GuildMaster.Data;
 
 namespace GuildMaster.ClaudeSandbox
 {
-    // Дилеммы прототипа (dilemmas.md, ТЗ 13). Суммы и сдвиги — из таблиц ТЗ 13.
-    // {сумма} в тексте варианта — сумма его эффекта (Treasury, GiveLoan, PayWeekAndTreatment); считает GM-13.
+    // Дилеммы прототипа. Суммы и сдвиги — из таблиц дилемм.
+    // {сумма} в тексте варианта — сумма его эффекта (Treasury, GiveLoan, PayWeekAndTreatment); её подставляет игра.
     public static partial class GameDataGenerator
     {
         private static readonly string[] DilemmaIds =

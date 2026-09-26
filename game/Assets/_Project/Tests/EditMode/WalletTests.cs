@@ -6,7 +6,7 @@ using NUnit.Framework;
 
 namespace GuildMaster.Tests
 {
-    /// <summary>Кошелёк: суточные расходы, таверна, пустой кошелёк, доходы, долг (ТЗ 05 → «Кошелёк»).</summary>
+    /// <summary>Кошелёк: суточные расходы, таверна, пустой кошелёк, доходы, долг.</summary>
     public sealed class WalletTests
     {
         private StateWorld world;

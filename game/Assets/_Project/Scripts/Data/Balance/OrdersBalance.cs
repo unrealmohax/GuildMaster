@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace GuildMaster.Data
 {
-    /// <summary>Раздел <c>Orders</c>: поток заказов, доска, Регистратор (numbers.md → Поток заказов, ТЗ 08).</summary>
+    /// <summary>Раздел <c>Orders</c>: поток заказов, доска, Регистратор.</summary>
     [Serializable]
     public sealed class OrdersBalance
     {

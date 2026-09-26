@@ -3,7 +3,7 @@ using NUnit.Framework;
 
 namespace GuildMaster.Tests
 {
-    /// <summary>Пауза и скорости (ТЗ 03 → «Скорости и пауза»).</summary>
+    /// <summary>Пауза и скорости.</summary>
     public sealed class GameClockTests
     {
         [Test]

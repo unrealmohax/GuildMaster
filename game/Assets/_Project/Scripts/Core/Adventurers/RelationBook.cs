@@ -5,7 +5,7 @@ using GuildMaster.Data;
 namespace GuildMaster.Core
 {
     /// <summary>
-    /// Часть мира: отношения между людьми (ТЗ 04 → «Отношения»). Пара симметрична: <c>(a, b)</c> и <c>(b, a)</c> — одна запись.
+    /// Часть мира: отношения между людьми. Пара симметрична: <c>(a, b)</c> и <c>(b, a)</c> — одна запись.
     /// Нет записи — отношения 0 и ни одного совместного задания. Менять — <see cref="RelationService"/>.
     /// </summary>
     public sealed class RelationBook
@@ -64,7 +64,7 @@ namespace GuildMaster.Core
         public int GetOther(int id) => id == A ? B : id == B ? A : throw new ArgumentException($"{id} is not in relation {A}–{B}");
     }
 
-    /// <summary>Метки отношений (ТЗ 04). Пороги — <see cref="AdventurersBalance"/>.</summary>
+    /// <summary>Метки отношений. Пороги — <see cref="AdventurersBalance"/>.</summary>
     [Flags]
     public enum RelationLabels
     {

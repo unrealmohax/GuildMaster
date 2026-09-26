@@ -5,7 +5,7 @@ using UnityEngine;
 namespace GuildMaster.Data
 {
     /// <summary>
-    /// Один эффект полюса оси или особой черты (ТЗ 02). Какие поля читаются — зависит от <see cref="Kind"/>:
+    /// Один эффект полюса оси или особой черты. Какие поля читаются — зависит от <see cref="Kind"/>:
     /// <list type="bullet">
     /// <item><c>MotiveWeight</c> — <see cref="Motive"/>, <see cref="Arrow"/>;</item>
     /// <item><c>StateRate</c> — <see cref="StateStat"/>, <see cref="Direction"/>, <see cref="Arrow"/> или явный множитель в <see cref="Value"/> (если стрелки нет);</item>
@@ -15,7 +15,7 @@ namespace GuildMaster.Data
     /// <item><c>PartyPreference</c> — <see cref="PartyPreference"/>;</item>
     /// <item><c>ProfileMultiplier</c> — множитель в <see cref="Value"/> к одному параметру из <see cref="Stats"/> (выбирается при появлении черты).</item>
     /// </list>
-    /// У осей сила эффекта растёт от центра к полюсу (формула — ТЗ 04).
+    /// У осей сила эффекта растёт от центра к полюсу (формула — AxisMath).
     /// </summary>
     [Serializable]
     public sealed class TraitEffect

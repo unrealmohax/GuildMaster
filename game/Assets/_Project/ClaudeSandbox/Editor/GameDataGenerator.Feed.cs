@@ -4,8 +4,8 @@ using GuildMaster.Data;
 
 namespace GuildMaster.ClaudeSandbox
 {
-    // Шаблоны лент: docs/content/event-feed.md один в один (падежи и род — GM-14),
-    // кроме правок, утверждённых 2026-09-26 (💡 в event-feed.md), и строк «💡 новое» из списка ТЗ 14.
+    // Шаблоны лент: docs/content/event-feed.md один в один (падежи и род пока не расставлены),
+    // кроме утверждённых правок (помечены «Правка») и новых строк для систем, у которых строк не было.
     public static partial class GameDataGenerator
     {
         private const FeedImportance O = FeedImportance.Normal;
@@ -110,7 +110,7 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Quest("quest.loss.time", O, None, "Потеряли день"));
             t.Add(Quest("quest.loss.stress", O, None, "У костра почти не говорили"));
             t.Add(Quest("quest.loss.bonus", Z, None, "О премии можно забыть"));
-            // 💡 правка 2026-09-26: «тетива / щит / клинок» — три варианта одной строки.
+            // Правка: «тетива / щит / клинок» — три варианта одной строки.
             t.Add(Quest("quest.loss.gear", Z, None,
                 "У {имя} лопнула тетива. Чинить за свой счёт",
                 "У {имя} треснул щит. Чинить за свой счёт",
@@ -177,7 +177,7 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Quest("quest.returned.success", O, None, "{группа} вернулась. Задание выполнено"));
             t.Add(Quest("quest.returned.partial", Z, None, "Задание выполнено, но премии не будет. {имя} хромает"));
             t.Add(Quest("quest.returned.fail", Z, None, "{группа} вернулась ни с чем"));
-            // 💡 правка 2026-09-26: [числа ушедших] → {всего}.
+            // Правка: [числа ушедших] → {всего}.
             t.Add(Quest("quest.returned.catastrophe", V, None, "Вернулись {число} из {всего}. Задание провалено"));
 
             t.Add(Quest("quest.loot.handedIn", O, None, "Добычу сдали Скупщику"));
@@ -230,13 +230,13 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("guild.decree.prohibition", Z, None, "Трактирщик убрал бочки в погреб. {имя} смотрел[|а] на это долго"));
 
             t.Add(Guild("guild.building.started", O, None, "Начали строить {постройка}"));
-            // Правка 2026-09-26: род постройки из данных — «Общежитие готово».
+            // Правка: род постройки из данных — «Общежитие готово».
             t.Add(Guild("guild.building.ready", Z, None, "{постройка} готов[|а|о|ы]@постройка"));
 
-            // 💡 правка 2026-09-26: «…» → {доход}, {расход}.
+            // Правка: «…» → {доход}, {расход}.
             t.Add(Guild("guild.month.summary", Z, None, "Прошёл месяц. Заработано {доход}, потрачено {расход}, погибших — {число}"));
 
-            // ===== 💡 Новое: строки для систем без строк в event-feed.md (ТЗ 14), тексты — предложение =====
+            // ===== Новое: строки для систем без строк в event-feed.md, тексты — предложение =====
 
             t.Add(Guild("guild.candidate.arrived", O, None, "{имя} просится в гильдию. Ждёт ответа у ворот"));
             t.Add(Guild("guild.candidate.left", O, None, "{имя} не дождал[ся|ась] ответа и ушёл[|ла]"));
@@ -295,7 +295,7 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Reveal("reveal.trait.rival", "{имя} и {напарник} — это уже не спор, а соперничество"));
             t.Add(Reveal("reveal.trait.lover", "{имя} просит ставить [его|её] в одну группу с {напарник}"));
             t.Add(Reveal("reveal.trait.nightmares", "{имя} отказал[ся|ась] от задания. Похожего на то, после которого не спит"));
-            // 💡 правка 2026-09-26: строка Калеки — по варианту на снижаемую характеристику.
+            // Правка: строка Калеки — по варианту на снижаемую характеристику.
             t.Add(Reveal("reveal.trait.maimed", IfStat(StatId.Strength), "{имя} больше не сможет держать щит как раньше"));
             t.Add(Reveal("reveal.trait.maimed", IfStat(StatId.Endurance), "{имя} больше не выдержит долгий переход, как раньше"));
             t.Add(Reveal("reveal.trait.maimed", IfStat(StatId.Agility), "{имя} больше не сможет бегать как раньше"));

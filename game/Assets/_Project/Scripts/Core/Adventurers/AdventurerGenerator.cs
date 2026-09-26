@@ -20,8 +20,8 @@ namespace GuildMaster.Core
     }
 
     /// <summary>
-    /// Генерация авантюриста (ТЗ 04 → «Генерация», решения 2026-09-26): пол, имя, возраст → тип → уровень → параметры →
-    /// оси → черты → кошелёк, ранг, жильё → архетип → стартовое состояние (ТЗ 05). Случайность — только переданный поток
+    /// Генерация авантюриста: пол, имя, возраст → тип → уровень → параметры →
+    /// оси → черты → кошелёк, ранг, жильё → архетип → стартовое состояние. Случайность — только переданный поток
     /// той системы, что генерирует (<see cref="RecruitSystem"/>, <see cref="StartScenario"/>). Порядок бросков не менять без причины — сдвинутся составы.
     /// </summary>
     internal static class AdventurerGenerator
@@ -40,7 +40,7 @@ namespace GuildMaster.Core
             adventurer.Name = PickName(rng, data.Names, adventurer.Gender, namesInUse);
             adventurer.Age = rng.RangeInclusive(balance.Age.Min, balance.Age.Max);
 
-            // 2. Тип — по весам определений (временные шансы, решение 2026-09-26).
+            // 2. Тип — по весам определений (временные шансы).
             ArchetypeDefinition type = PickType(rng, data);
 
             // 3. Уровень: у Новичка всегда слабый; на старте — не выше startMaxLevel.
@@ -62,7 +62,7 @@ namespace GuildMaster.Core
                 for (int i = 0; i < count; i++) AddBirthTrait(rng, data, world, adventurer, now, allowPartner: true);
             }
 
-            // 7. Кошелёк, ранг, жильё: Общежития на старте нет — город (вместимость — ТЗ 11).
+            // 7. Кошелёк, ранг, жильё: Общежития на старте нет — город.
             adventurer.State.Wallet = rng.RangeInclusive(balance.Wallet.Min, balance.Wallet.Max);
             adventurer.GuildRank = GuildRank.G;
             adventurer.Housing = Housing.City;
@@ -71,7 +71,7 @@ namespace GuildMaster.Core
             // 8. Архетип и ранг характеристик.
             ArchetypeService.Initialize(adventurer, data);
 
-            // 9. Состояние (ТЗ 05): стресс и лояльность — последними бросками генератора, броски шагов 1–7 не сдвигаются.
+            // 9. Состояние: стресс и лояльность — последними бросками генератора, броски шагов 1–7 не сдвигаются.
             StateService.InitializeNew(rng, adventurer.State, data.Balance.State);
             return new GeneratedAdventurer(adventurer, type, level.Level);
         }
@@ -112,7 +112,7 @@ namespace GuildMaster.Core
             return false;
         }
 
-        /// <summary>Ранг F на старте (❔): основные и вспомогательные параметры типа +<c>rankFBoost</c>, у Мастера на все руки — все 14.</summary>
+        /// <summary>Ранг F на старте: основные и вспомогательные параметры типа +<c>rankFBoost</c>, у Мастера на все руки — все 14.</summary>
         public static void ApplyRankF(DataRegistry data, GeneratedAdventurer generated)
         {
             AdventurersBalance balance = data.Balance.Adventurers;
@@ -185,9 +185,9 @@ namespace GuildMaster.Core
         }
 
         /// <summary>
-        /// Параметры по типу и уровню (numbers.md → Генерация): у роли основные и вспомогательные выше прочих; у Мастера на все
+        /// Параметры по типу и уровню: у роли основные и вспомогательные выше прочих; у Мастера на все
         /// руки все 14 из своего диапазона; у Новичка всё низкое, 1–2 параметра (не Слаженность) — чуть выше.
-        /// Слаженность 20–60 у всех, кроме Щита (как вспомогательный) и Мастера (решение 2026-09-26). Естественный минимум — 10.
+        /// Слаженность 20–60 у всех, кроме Щита (как вспомогательный) и Мастера. Естественный минимум — 10.
         /// </summary>
         private static void GenerateStats(Rng rng, AdventurersBalance balance, ArchetypeDefinition type, GenerationLevel level, Adventurer adventurer)
         {

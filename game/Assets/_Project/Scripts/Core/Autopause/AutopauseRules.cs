@@ -3,8 +3,8 @@ using System.Collections.Generic;
 namespace GuildMaster.Core
 {
     /// <summary>
-    /// Какие события ставят автопаузу и под каким переключателем (ТЗ 03, таблица «Автопауза»).
-    /// Система, которая заводит такое событие в своём ТЗ, добавляет сюда одну строку
+    /// Какие события ставят автопаузу и под каким переключателем.
+    /// Система, которая заводит такое событие, добавляет сюда одну строку
     /// <c>{ SimEventType.Тип, AutopauseKind.Вид },</c>. Одному виду может соответствовать несколько событий.
     /// </summary>
     public static class AutopauseRules
@@ -16,7 +16,6 @@ namespace GuildMaster.Core
                 { SimEventType.TraitRevealed, AutopauseKind.TraitRevealed },
                 { SimEventType.AdventurerLeft, AutopauseKind.MemberLeftGuild },
 
-                // Ждут: ТЗ 09 (гибель, бегство, катастрофа, отступление), 10 (увольнение, банкротство), 13 (обращение).
             };
     }
 }

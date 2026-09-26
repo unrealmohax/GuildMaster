@@ -7,7 +7,7 @@ using NUnit.Framework;
 
 namespace GuildMaster.Tests
 {
-    /// <summary>Раны и лечение (ТЗ 05 → «Здоровье»; Лазарет — заглушка до ТЗ 11, в тестах — подмена).</summary>
+    /// <summary>Раны и лечение (Лазарета в игре нет, в тестах — подмена).</summary>
     public sealed class HealthTests
     {
         private StateWorld world;

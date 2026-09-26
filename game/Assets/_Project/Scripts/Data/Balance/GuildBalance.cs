@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace GuildMaster.Data
 {
-    /// <summary>Раздел <c>Guild</c>: старт, репутация, приток людей (numbers.md → Гильдия).</summary>
+    /// <summary>Раздел <c>Guild</c>: старт, репутация, приток людей.</summary>
     [Serializable]
     public sealed class GuildBalance
     {

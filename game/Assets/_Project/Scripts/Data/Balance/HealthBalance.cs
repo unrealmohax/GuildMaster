@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace GuildMaster.Data
 {
-    /// <summary>Раздел <c>Health</c>: раны и лечение (numbers.md → Здоровье, ТЗ 05). Увечье — эффект черты «Калека».</summary>
+    /// <summary>Раздел <c>Health</c>: раны и лечение. Увечье — эффект черты «Калека».</summary>
     [Serializable]
     public sealed class HealthBalance
     {

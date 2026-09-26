@@ -6,7 +6,7 @@ using NUnit.Framework;
 
 namespace GuildMaster.Tests
 {
-    /// <summary>Эффекты черт на состояние (ТЗ 05 → «Заглушки до следующих ТЗ», решение 2026-09-26) и стресс от событий.</summary>
+    /// <summary>Эффекты черт на состояние и стресс от событий.</summary>
     public sealed class StateTraitTests
     {
         private StateWorld world;
@@ -194,7 +194,7 @@ namespace GuildMaster.Tests
         }
     }
 
-    /// <summary>Детерминизм и скорость с системами состояния (критерии ТЗ 01 на GM-05).</summary>
+    /// <summary>Детерминизм и скорость с системами состояния.</summary>
     public sealed class StateDeterminismTests
     {
         private PeopleData data;
@@ -236,7 +236,7 @@ namespace GuildMaster.Tests
                     {
                         SimulationRun.Days(sim, 1);
                         if (day % 10 != 0) continue;
-                        // Раны и стресс «от заданий» — как их будет вызывать ТЗ 09.
+                        // Раны и стресс «от заданий» — службами напрямую, как их вызывало бы задание.
                         SimulationRun.Do(sim, ctx =>
                         {
                             IReadOnlyList<Adventurer> active = ctx.World.Adventurers.Active;
@@ -270,7 +270,7 @@ namespace GuildMaster.Tests
                     foreach (Candidate candidate in sim.World.Adventurers.Candidates.ToList())
                         sim.Send(new AcceptCandidateCommand(candidate.Adventurer.Id));
 
-                    // Раны «от заданий», как их будет вызывать ТЗ 09: иначе без заданий состояние стоит на месте.
+                    // Раны «от заданий», как их вызывало бы задание: иначе без заданий состояние стоит на месте.
                     if (day % 10 == 0)
                     {
                         SimulationRun.Do(sim, ctx => HealthService.Wound(ctx, ctx.Rng.Pick(ctx.World.Adventurers.Active),
@@ -303,7 +303,7 @@ namespace GuildMaster.Tests
             Assert.That(s.Wallet, Is.GreaterThanOrEqualTo(0), who);
             Assert.That(s.DebtToGuild, Is.GreaterThanOrEqualTo(0), who);
             Assert.IsTrue(!s.IsWalletEmpty || s.Wallet == 0, $"{who}: флаг «кошелёк пуст» при деньгах");
-            Assert.IsFalse(s.InInfirmary, $"{who}: Лазарета до ТЗ 11 нет");
+            Assert.IsFalse(s.InInfirmary, $"{who}: Лазарета нет");
             Assert.That(s.Conditions.Count(c => c.Kind == ConditionKind.LightWound), Is.LessThanOrEqualTo(1), $"{who}: лёгкие не складываются");
             Assert.That(s.Conditions.Count(c => c.Kind == ConditionKind.HeavyWound), Is.LessThanOrEqualTo(1), $"{who}: вторая тяжёлая — увечье");
             Assert.IsTrue(s.Conditions.All(c => c.RemainingDays > 0f), $"{who}: зажившая рана осталась");

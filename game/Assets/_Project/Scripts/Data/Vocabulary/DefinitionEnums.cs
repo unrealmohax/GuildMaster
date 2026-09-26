@@ -3,7 +3,7 @@ namespace GuildMaster.Data
     // Кодовые id правил, которые делает код. Значения записаны в ассетах числами:
     // новые — только в конец своей группы, существующие не менять.
 
-    /// <summary>Категория особой черты: не больше одной черты из категории (ТЗ 04).</summary>
+    /// <summary>Категория особой черты: не больше одной черты из категории.</summary>
     public enum TraitCategory
     {
         Past = 0,
@@ -13,7 +13,7 @@ namespace GuildMaster.Data
         Acquired = 4,
     }
 
-    /// <summary>Особые правила черт, которые делает код (ТЗ 04). Числа — <see cref="TraitsBalance"/>.</summary>
+    /// <summary>Особые правила черт, которые делает код. Числа — <see cref="TraitsBalance"/>.</summary>
     public enum TraitHook
     {
         /// <summary>Ветеран: после задания с провалом раунда — шанс срыва в запой.</summary>
@@ -42,7 +42,7 @@ namespace GuildMaster.Data
         TestedOnAcquire = 12,
     }
 
-    /// <summary>Триггер раскрытия полюса оси или черты (ТЗ 04). Код вызывает раскрытие в своём месте.</summary>
+    /// <summary>Триггер раскрытия полюса оси или черты. Код вызывает раскрытие в своём месте.</summary>
     public enum RevealTrigger
     {
         None = 0,
@@ -77,7 +77,7 @@ namespace GuildMaster.Data
         GrievingAfterDecline = 30,
     }
 
-    /// <summary>Вид архетипа (ТЗ 04).</summary>
+    /// <summary>Вид архетипа.</summary>
     public enum ArchetypeKind
     {
         Role = 0,
@@ -131,7 +131,7 @@ namespace GuildMaster.Data
         Staff = 1,
     }
 
-    /// <summary>Код триггера дилеммы (ТЗ 13).</summary>
+    /// <summary>Код триггера дилеммы.</summary>
     public enum DilemmaTrigger
     {
         LoanRequest = 1,
@@ -192,7 +192,7 @@ namespace GuildMaster.Data
         ContentmentIfRecentDeath = 17,
     }
 
-    /// <summary>Флаги памяти человека для цепочек (ТЗ 04, 13).</summary>
+    /// <summary>Флаги памяти человека для цепочек.</summary>
     public enum MemoryFlag
     {
         TookLoan = 0,
@@ -218,7 +218,7 @@ namespace GuildMaster.Data
         Important = 2,
     }
 
-    /// <summary>Условие шаблона ленты (ТЗ 14).</summary>
+    /// <summary>Условие шаблона ленты.</summary>
     public enum FeedConditionKind
     {
         Solo = 0,

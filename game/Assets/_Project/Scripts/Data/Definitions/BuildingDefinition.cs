@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace GuildMaster.Data
 {
-    /// <summary>Постройка гильдии (numbers.md → Постройки, ТЗ 11).</summary>
+    /// <summary>Постройка гильдии.</summary>
     [CreateAssetMenu(menuName = "GuildMaster/Building", fileName = "Building")]
     public sealed class BuildingDefinition : Definition
     {

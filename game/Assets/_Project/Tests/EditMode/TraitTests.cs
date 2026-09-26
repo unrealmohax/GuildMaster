@@ -6,7 +6,7 @@ using NUnit.Framework;
 
 namespace GuildMaster.Tests
 {
-    /// <summary>Особые черты и раскрытие (ТЗ 04 → «Особые черты», «Раскрытие осей»; решения 2026-09-26).</summary>
+    /// <summary>Особые черты и раскрытие осей.</summary>
     public sealed class TraitTests
     {
         private PeopleData data;

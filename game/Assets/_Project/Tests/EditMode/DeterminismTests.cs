@@ -8,7 +8,7 @@ using NUnit.Framework;
 namespace GuildMaster.Tests
 {
     /// <summary>
-    /// Критерий ТЗ 01: то же зерно + те же команды в те же такты = тот же мир (побайтно одинаковый лог).
+    /// Детерминизм: то же зерно + те же команды в те же такты = тот же мир (побайтно одинаковый лог).
     /// </summary>
     public sealed class DeterminismTests
     {

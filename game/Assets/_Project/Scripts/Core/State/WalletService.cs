@@ -6,18 +6,18 @@ namespace GuildMaster.Core
     /// <summary>Откуда деньги в кошельке: от вида зависит, что уходит домой и в счёт долга.</summary>
     public enum IncomeKind
     {
-        /// <summary>Доля награды за задание (ТЗ 09): Семейный отсылает часть домой, из неё гасится долг.</summary>
+        /// <summary>Доля награды за задание: Семейный отсылает часть домой, из неё гасится долг.</summary>
         Reward,
 
-        /// <summary>Доля добычи (ТЗ 09): Семейный отсылает часть домой.</summary>
+        /// <summary>Доля добычи: Семейный отсылает часть домой.</summary>
         Loot,
     }
 
     /// <summary>
-    /// Личные деньги (ТЗ 05 → «Кошелёк»). Кошелёк целочисленный: доли (Семейный, долг) округляются вниз,
+    /// Личные деньги. Кошелёк целочисленный: доли (Семейный, долг) округляются вниз,
     /// цены из <see cref="ExpensesBalance"/> — до целого. Не хватает — платит сколько может, остаток не списывается,
-    /// ставится флаг «кошелёк пуст». До ТЗ 10 платы гильдии (Общежитие, двор, Лазарет, таверна) в казну не зачисляются —
-    /// только списываются из кошелька (решение 2026-09-26).
+    /// ставится флаг «кошелёк пуст». Платы гильдии (Общежитие, двор, Лазарет, таверна) в казну не зачисляются (казны пока нет) —
+    /// только списываются из кошелька.
     /// </summary>
     public static class WalletService
     {
@@ -35,7 +35,7 @@ namespace GuildMaster.Core
                 ctx.Events.Publish(SimEventType.WalletEmptied, EventImportance.Notable, adventurer.Id)
                     .With("unpaid", amount - paid);
             }
-            // ТЗ 10: платы гильдии — в казну.
+            // Платы гильдии в казну не идут: казны пока нет.
             return paid;
         }
 
@@ -55,13 +55,13 @@ namespace GuildMaster.Core
             int debt = kind == IncomeKind.Reward ? Math.Min(state.DebtToGuild, Share(amount, ctx.Data.Balance.State.DebtRepaymentShare)) : 0;
 
             int kept = amount - home - debt;
-            state.DebtToGuild -= debt;   // ТЗ 10: погашение долга — в казну
+            state.DebtToGuild -= debt;   // казны пока нет
             state.Wallet += kept;
             if (state.Wallet > 0) state.IsWalletEmpty = false;
             return kept;
         }
 
-        /// <summary>Гильдия дала в долг (дилемма «Просьба в долг», ТЗ 13): кошелёк и долг растут на сумму.</summary>
+        /// <summary>Гильдия дала в долг (дилемма «Просьба в долг»): кошелёк и долг растут на сумму.</summary>
         public static void TakeLoan(SimContext ctx, Adventurer adventurer, int amount)
         {
             if (amount < 0) throw new ArgumentOutOfRangeException(nameof(amount));
@@ -84,17 +84,17 @@ namespace GuildMaster.Core
             + Coins(adventurer.Housing == Housing.Dorm ? expenses.DormHousing : expenses.CityHousing);
 
         /// <summary>
-        /// ❔ «Расходы на неделю»: <c>reserveDays</c> × (обычная еда + жильё). От неё — еда в таверне (кошелёк не меньше)
+        /// «Расходы на неделю»: <c>reserveDays</c> × (обычная еда + жильё). От неё — еда в таверне (кошелёк не меньше)
         /// и мотив «Деньги» (кошелёк меньше).
         /// </summary>
         public static int WeeklyExpenses(Adventurer adventurer, ExpensesBalance expenses) =>
             expenses.ReserveDays * DailyLivingCost(adventurer, ateInTavern: false, expenses);
 
-        /// <summary>Кошелёк меньше расходов на неделю — мотив «Деньги» × <c>lowWalletMoneyMultiplier</c> (ТЗ 06).</summary>
+        /// <summary>Кошелёк меньше расходов на неделю — мотив «Деньги» × <c>lowWalletMoneyMultiplier</c>.</summary>
         public static bool IsBelowWeeklyExpenses(Adventurer adventurer, ExpensesBalance expenses) =>
             adventurer.State.Wallet < WeeklyExpenses(adventurer, expenses);
 
-        /// <summary>Множитель мотива «Деньги» от кошелька (ТЗ 06 → «Состояние»): 2 или 1.</summary>
+        /// <summary>Множитель мотива «Деньги» от кошелька: 2 или 1.</summary>
         public static float MoneyMotiveMultiplier(Adventurer adventurer, BalanceSettings balance) =>
             IsBelowWeeklyExpenses(adventurer, balance.Expenses) ? balance.State.LowWalletMoneyMultiplier : 1f;
 

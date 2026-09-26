@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace GuildMaster.Data
 {
-    /// <summary>Случайное событие в пути: засада, звери (ТЗ 09). Шансы события — <see cref="TravelBalance"/>.</summary>
+    /// <summary>Случайное событие в пути: засада, звери. Шансы события — <see cref="TravelBalance"/>.</summary>
     [CreateAssetMenu(menuName = "GuildMaster/Random Event", fileName = "RandomEvent")]
     public sealed class RandomEventDefinition : EncounterDefinition
     {

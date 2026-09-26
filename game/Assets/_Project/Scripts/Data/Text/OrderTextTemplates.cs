@@ -5,7 +5,7 @@ using UnityEngine;
 namespace GuildMaster.Data
 {
     /// <summary>
-    /// Тексты заказов (ТЗ 08): заказчики, места, враги и грузы по типам, шаблоны описаний, намёки по осям.
+    /// Тексты заказов: заказчики, места, враги и грузы по типам, шаблоны описаний, намёки по осям.
     /// Подстановки — как в ленте (<see cref="TextPlaceholders"/>).
     /// </summary>
     [CreateAssetMenu(menuName = "GuildMaster/Order Text Templates", fileName = "OrderTextTemplates")]

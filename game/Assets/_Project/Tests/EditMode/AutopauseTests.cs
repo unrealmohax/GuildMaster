@@ -6,7 +6,7 @@ using NUnit.Framework;
 namespace GuildMaster.Tests
 {
     /// <summary>
-    /// Автопауза (ТЗ 03). Событий из таблицы ещё нет — механизм проверяется на отладочном событии,
+    /// Автопауза. Механизм проверяется на отладочном событии,
     /// которое тест сопоставляет с видом автопаузы.
     /// </summary>
     public sealed class AutopauseTests

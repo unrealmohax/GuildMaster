@@ -4,8 +4,8 @@ using UnityEngine;
 namespace GuildMaster.Data
 {
     /// <summary>
-    /// Раздел <c>Decisions</c>: выбор, стрелки, множители состояния, формулы ценности (numbers.md → Модель решений, ТЗ 06),
-    /// оценка напарника и постоянные группы (ТЗ 07). Ошибки оценки риска — эффекты черт.
+    /// Раздел <c>Decisions</c>: выбор, стрелки, множители состояния, формулы ценности,
+    /// оценка напарника и постоянные группы. Ошибки оценки риска — эффекты черт.
     /// </summary>
     [Serializable]
     public sealed class DecisionsBalance
@@ -80,7 +80,7 @@ namespace GuildMaster.Data
         [Tooltip("Днём в таверну — только Пьяница или стресс выше")]
         [SerializeField, Range(0f, 100f)] private float daytimeTavernStress = 60f;
 
-        [Header("Оценка напарника (ТЗ 07)")]
+        [Header("Оценка напарника")]
         [Tooltip("Прирост воспринимаемого перекрытия ×")]
         [SerializeField] private float partnerOverlapGainWeight = 3f;
 
@@ -92,7 +92,7 @@ namespace GuildMaster.Data
         [Tooltip("− |разница рангов| ×")]
         [SerializeField] private float partnerRankDifferencePenalty = 0.2f;
 
-        [Header("Постоянные группы (ТЗ 07)")]
+        [Header("Постоянные группы")]
         [Tooltip("Складываются после стольких совместных успехов")]
         [SerializeField, Min(1)] private int permanentPartySuccesses = 3;
 

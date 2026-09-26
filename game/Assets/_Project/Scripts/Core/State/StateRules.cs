@@ -4,7 +4,7 @@ using GuildMaster.Data;
 namespace GuildMaster.Core
 {
     /// <summary>
-    /// Чистые правила состояния (ТЗ 05): изменение за час по занятию, цель довольства, запреты, слова лояльности.
+    /// Чистые правила состояния: изменение за час по занятию, цель довольства, запреты, слова лояльности.
     /// Мир не меняют. Числа — <see cref="StateBalance"/>, <see cref="ExpensesBalance"/>, <see cref="TraitsBalance"/>.
     /// </summary>
     public static class StateRules
@@ -32,7 +32,7 @@ namespace GuildMaster.Core
             }
         }
 
-        /// <summary>Стресс за час занятия, до множителей черт. На задании — «само по себе», события — отдельно (ТЗ 09).</summary>
+        /// <summary>Стресс за час занятия, до множителей черт. На задании — «само по себе», события — отдельно.</summary>
         public static float StressPerHour(Activity activity, StateBalance state)
         {
             switch (activity)
@@ -54,21 +54,21 @@ namespace GuildMaster.Core
         public static bool IsFatigueLowersProfile(AdventurerState state, StateBalance balance) =>
             state.Fatigue > balance.FatigueProfileThreshold;
 
-        /// <summary>Усталость выше <c>fatigueQuestBanThreshold</c> (90): нельзя брать задания (запрет модели решений, ТЗ 06).</summary>
+        /// <summary>Усталость выше <c>fatigueQuestBanThreshold</c> (90): нельзя брать задания (запрет модели решений).</summary>
         public static bool IsTooTiredForQuests(AdventurerState state, StateBalance balance) =>
             state.Fatigue > balance.FatigueQuestBanThreshold;
 
         /// <summary>
-        /// Запреты ТЗ 05 для модели решений (ТЗ 06 → «Шаг 1»): нельзя брать задания при тяжёлой ране, усталости выше 90
+        /// Запреты на задания: нельзя брать задания при тяжёлой ране, усталости выше 90
         /// и во время срыва (запой, отказ труса, «сел и не смог подняться»).
         /// </summary>
         public static bool CanTakeQuests(AdventurerState state, StateBalance balance) =>
             !state.HasHeavyWound() && !IsTooTiredForQuests(state, balance) && state.Breakdown == BreakdownKind.None;
 
         /// <summary>
-        /// Цель довольства: <c>contentmentBase</c> + условия (numbers.md → Довольство), 0..100.
+        /// Цель довольства: <c>contentmentBase</c> + условия, 0..100.
         /// Жильё, еда в таверне за прошедшие сутки, пустой кошелёк, комиссия гильдии (× чувствительность черт),
-        /// стресс выше 70. Распоряжений до ТЗ 12 нет.
+        /// стресс выше 70. Распоряжения не учитываются.
         /// </summary>
         public static float ContentmentTarget(Adventurer adventurer, float commission, DataRegistry data)
         {
@@ -95,7 +95,7 @@ namespace GuildMaster.Core
         }
 
         /// <summary>
-        /// Слова лояльности в карточке (ТЗ 05 → «Отображение»): номер интервала по <c>loyaltyWordThresholds</c>,
+        /// Слова лояльности в карточке: номер интервала по <c>loyaltyWordThresholds</c>,
         /// 0 — ниже первой границы. Тексты — <see cref="LoyaltyWord"/>.
         /// </summary>
         public static int LoyaltyWordIndex(float loyalty, StateBalance balance)
@@ -109,7 +109,7 @@ namespace GuildMaster.Core
             return index;
         }
 
-        /// <summary>❔ Слова для примерной лояльности (ТЗ 05): от «подумывает уйти» до «предан гильдии», мужской род.</summary>
+        /// <summary>Слова для примерной лояльности: от «подумывает уйти» до «предан гильдии», мужской род.</summary>
         public static readonly string[] LoyaltyWordsMale =
         {
             "Кажется, подумывает уйти",

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace GuildMaster.Data
 {
-    /// <summary>Раздел <c>Expenses</c>: расходы авантюриста из своего кошелька (numbers.md → Расходы авантюриста, ТЗ 05).</summary>
+    /// <summary>Раздел <c>Expenses</c>: расходы авантюриста из своего кошелька.</summary>
     [Serializable]
     public sealed class ExpensesBalance
     {

@@ -4,12 +4,12 @@ using GuildMaster.Data;
 namespace GuildMaster.Core
 {
     /// <summary>
-    /// Оси характера (ТЗ 04 → «Оси характера»): полюс, крайний и нейтральный полюс, сила влияния эффекта полюса.
+    /// Оси характера: полюс, крайний и нейтральный полюс, сила влияния эффекта полюса.
     /// Пороги — <see cref="AdventurersBalance"/>, множители стрелок — <see cref="DecisionsBalance.ArrowMultiplier"/>.
     /// </summary>
     public static class AxisMath
     {
-        /// <summary>Край шкалы оси: значения −100..+100 (TechJob/README → «Общие соглашения»).</summary>
+        /// <summary>Край шкалы оси: значения −100..+100.</summary>
         public const float Limit = 100f;
 
         /// <summary>Полюс, к которому склоняется значение. 0 считается положительным — у нуля сила влияния всё равно 0.</summary>

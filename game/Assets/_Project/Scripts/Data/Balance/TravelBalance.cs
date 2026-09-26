@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace GuildMaster.Data
 {
-    /// <summary>Раздел <c>Travel</c>: путь, события в пути, находки (numbers.md → Длительность, Случайные события, ТЗ 09).</summary>
+    /// <summary>Раздел <c>Travel</c>: путь, события в пути, находки.</summary>
     [Serializable]
     public sealed class TravelBalance
     {

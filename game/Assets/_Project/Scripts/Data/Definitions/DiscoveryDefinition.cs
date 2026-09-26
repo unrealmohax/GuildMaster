@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace GuildMaster.Data
 {
-    /// <summary>Находка: пещера (ТЗ 09). Шанс находки — <see cref="TravelBalance"/>.</summary>
+    /// <summary>Находка: пещера. Шанс находки — <see cref="TravelBalance"/>.</summary>
     [CreateAssetMenu(menuName = "GuildMaster/Discovery", fileName = "Discovery")]
     public sealed class DiscoveryDefinition : EncounterDefinition
     {
@@ -12,7 +12,7 @@ namespace GuildMaster.Data
         [Tooltip("Награда группе за сообщение Регистратору — доля награды задания")]
         [SerializeField, Range(0f, 1f)] private float reportRewardShare;
 
-        [Tooltip("Название событийного задания для игрока (ТЗ 08)")]
+        [Tooltip("Название событийного задания для игрока")]
         [SerializeField] private string eventQuestTitle;
 
         [SerializeField] private string foundFeedKey;

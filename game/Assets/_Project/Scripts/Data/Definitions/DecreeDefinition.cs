@@ -3,11 +3,11 @@ using UnityEngine;
 
 namespace GuildMaster.Data
 {
-    /// <summary>Распоряжение (laws.md, ТЗ 12). Цены и множители эффекта — <see cref="DecreesBalance"/>.</summary>
+    /// <summary>Распоряжение. Цены и множители эффекта — <see cref="DecreesBalance"/>.</summary>
     [CreateAssetMenu(menuName = "GuildMaster/Decree", fileName = "Decree")]
     public sealed class DecreeDefinition : Definition
     {
-        [Tooltip("Номер закона в laws.md")]
+        [Tooltip("Номер закона в общем списке законов игры")]
         [SerializeField, Min(1)] private int lawNumber = 1;
 
         [Tooltip("Падежные формы названия для {распоряжение}")]

@@ -1,6 +1,6 @@
 namespace GuildMaster.Core
 {
-    /// <summary>Включить или выключить вид автопаузы (настройки на экране «Время», ТЗ 15).</summary>
+    /// <summary>Включить или выключить вид автопаузы (настройки на экране «Время»).</summary>
     public sealed class SetAutopauseCommand : ICommand
     {
         public SetAutopauseCommand(AutopauseKind kind, bool enabled)

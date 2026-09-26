@@ -4,7 +4,7 @@ using UnityEngine;
 namespace GuildMaster.Data
 {
     /// <summary>
-    /// Раздел <c>Economy</c>: комиссия, доход таверны, банкротство (numbers.md → Награды, Банкротство, ТЗ 10).
+    /// Раздел <c>Economy</c>: комиссия, доход таверны, банкротство.
     /// Доходы от Общежития, Лазарета и двора — те же суммы, что расходы авантюристов (<see cref="ExpensesBalance"/>).
     /// </summary>
     [Serializable]

@@ -5,7 +5,7 @@ using UnityEngine;
 namespace GuildMaster.Data
 {
     /// <summary>
-    /// Шаблоны строк лент (docs/content/event-feed.md, ТЗ 14). По ключу может быть несколько шаблонов
+    /// Шаблоны строк лент. По ключу может быть несколько шаблонов
     /// с разными условиями; выбирается самый конкретный из подходящих, затем случайный вариант.
     /// </summary>
     [CreateAssetMenu(menuName = "GuildMaster/Feed Template Set", fileName = "FeedTemplates")]

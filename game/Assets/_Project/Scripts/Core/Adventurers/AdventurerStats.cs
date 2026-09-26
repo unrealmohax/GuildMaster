@@ -4,11 +4,11 @@ using GuildMaster.Data;
 namespace GuildMaster.Core
 {
     /// <summary>
-    /// Эффективные значения параметров (ТЗ 04 → «Параметры»): базовое × модификаторы.
+    /// Эффективные значения параметров: базовое × модификаторы.
     /// <list type="bullet">
     /// <item><b>Постоянные</b> модификаторы (Калека −30%) не опускают параметр ниже естественного минимума (10) и входят
-    /// в расчёт архетипа (решение 2026-09-26).</item>
-    /// <item><b>Временные</b> (лёгкая рана, усталость выше 70 — ТЗ 05; паника — ТЗ 09) могут опустить ниже 10 и в архетип не входят.</item>
+    /// в расчёт архетипа.</item>
+    /// <item><b>Временные</b> (лёгкая рана, усталость выше 70, паника) могут опустить ниже 10 и в архетип не входят.</item>
     /// </list>
     /// Новый модификатор — одна строка в <see cref="PermanentModifiers"/> или <see cref="TemporaryModifiers"/>.
     /// </summary>
@@ -56,11 +56,11 @@ namespace GuildMaster.Core
             return product;
         }
 
-        /// <summary>❔ Лёгкая рана (ТЗ 05): весь профиль × <c>lightWoundProfileMultiplier</c> (0,85).</summary>
+        /// <summary>Лёгкая рана: весь профиль × <c>lightWoundProfileMultiplier</c> (0,85).</summary>
         private static float LightWoundMultiplier(Adventurer adventurer, StatId stat, DataRegistry data) =>
             adventurer.State.HasLightWound() ? data.Balance.Health.LightWoundProfileMultiplier : 1f;
 
-        /// <summary>Усталость выше <c>fatigueProfileThreshold</c> (ТЗ 05): весь профиль × <c>fatigueProfileMultiplier</c> (0,8).</summary>
+        /// <summary>Усталость выше <c>fatigueProfileThreshold</c>: весь профиль × <c>fatigueProfileMultiplier</c> (0,8).</summary>
         private static float FatigueMultiplier(Adventurer adventurer, StatId stat, DataRegistry data) =>
             StateRules.IsFatigueLowersProfile(adventurer.State, data.Balance.State) ? data.Balance.State.FatigueProfileMultiplier : 1f;
 

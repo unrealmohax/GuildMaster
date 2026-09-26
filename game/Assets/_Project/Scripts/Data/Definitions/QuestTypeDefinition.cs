@@ -5,7 +5,7 @@ using UnityEngine;
 namespace GuildMaster.Data
 {
     /// <summary>
-    /// Тип задания (quests.md → Генерация заказов, ТЗ 08, 09). Значения осей по рангам — <see cref="RanksBalance"/>;
+    /// Тип задания. Значения осей по рангам — <see cref="RanksBalance"/>;
     /// оси, которых нет в шаблоне, получают минимальный порог требований.
     /// </summary>
     [CreateAssetMenu(menuName = "GuildMaster/Quest Type", fileName = "QuestType")]
@@ -26,7 +26,7 @@ namespace GuildMaster.Data
         [Tooltip("Потолки по осям: значение группы выше — раунд провален (в прототипе пусто)")]
         [SerializeField] private List<StatCeiling> statCeilings = new List<StatCeiling>();
 
-        [Tooltip("Вес типа при генерации заказа (ТЗ 08)")]
+        [Tooltip("Вес типа при генерации заказа")]
         [SerializeField, Min(0f)] private float generationWeight = 1f;
 
         [Tooltip("Ключ строк ленты: раунд удался")]

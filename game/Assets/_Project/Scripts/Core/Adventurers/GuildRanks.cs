@@ -3,8 +3,8 @@ using GuildMaster.Data;
 namespace GuildMaster.Core
 {
     /// <summary>
-    /// Ранг гильдии (ТЗ 04 → «Ранг гильдии»): очки, порог <c>pointsToNext</c>, готовность к повышению, повышение.
-    /// Очки за задания и само задание на повышение — ТЗ 09.
+    /// Ранг гильдии: очки, порог <c>pointsToNext</c>, готовность к повышению, повышение.
+    /// Очки начисляет вызывающая система.
     /// </summary>
     public static class GuildRanks
     {
@@ -32,7 +32,7 @@ namespace GuildMaster.Core
             adventurer.RankPoints += points;
         }
 
-        /// <summary>Задание на повышение выполнено: ранг +1, ❔ очки обнуляются. На последнем ранге — false.</summary>
+        /// <summary>Задание на повышение выполнено: ранг +1, очки обнуляются. На последнем ранге — false.</summary>
         public static bool Promote(SimContext ctx, Adventurer adventurer)
         {
             RanksBalance ranks = ctx.Data.Balance.Ranks;

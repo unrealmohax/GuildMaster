@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace GuildMaster.Data
 {
-    /// <summary>Раздел <c>Rounds</c>: расчёт раунда, синергии, лестница провалов (numbers.md → Расчёт раунда, ТЗ 09).</summary>
+    /// <summary>Раздел <c>Rounds</c>: расчёт раунда, синергии, лестница провалов.</summary>
     [Serializable]
     public sealed class RoundsBalance
     {

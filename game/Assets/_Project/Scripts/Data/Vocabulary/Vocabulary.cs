@@ -1,6 +1,6 @@
 namespace GuildMaster.Data
 {
-    // Словарь кодовых имён — TechJob/README.md. Значения перечислений записаны в ассетах числами:
+    // Словарь кодовых имён игры. Значения перечислений записаны в ассетах числами:
     // новые значения — только в конец, существующие не менять и не переставлять.
 
     /// <summary>14 параметров человека: 8 характеристик и 6 навыков. Индекс массива параметров.</summary>
@@ -41,7 +41,7 @@ namespace GuildMaster.Data
         Positive = 1,
     }
 
-    /// <summary>Шесть мотивов модели решений (ТЗ 06).</summary>
+    /// <summary>Шесть мотивов модели решений.</summary>
     public enum Motive
     {
         Money = 0,
@@ -62,7 +62,7 @@ namespace GuildMaster.Data
         C = 4,
     }
 
-    /// <summary>Падеж для подстановок в тексты (ТЗ 14).</summary>
+    /// <summary>Падеж для подстановок в тексты.</summary>
     public enum GrammaticalCase
     {
         Nominative = 0,
@@ -73,7 +73,7 @@ namespace GuildMaster.Data
         Prepositional = 5,
     }
 
-    /// <summary>Род названия для скобок <c>[м|ж|ср|мн]@метка</c> (ТЗ 14). Не задан — ошибка валидатора.</summary>
+    /// <summary>Род названия для скобок <c>[м|ж|ср|мн]@метка</c>. Не задан — ошибка валидатора.</summary>
     public enum GrammaticalGender
     {
         Unspecified = 0,

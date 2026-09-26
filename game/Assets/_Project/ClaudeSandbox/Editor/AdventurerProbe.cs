@@ -11,7 +11,7 @@ using UnityEngine;
 namespace GuildMaster.ClaudeSandbox
 {
     /// <summary>
-    /// Песочница (GM-04, состояние — GM-05). Люди гильдии в консоль и ответ кандидату из меню — для проверки через MCP
+    /// Песочница. Люди гильдии в консоль и ответ кандидату из меню — для проверки через MCP
     /// (<c>execute_menu_item</c>, <c>read_console</c> с <c>types: ["all"]</c>). Меню: GuildMaster → Sandbox → Adventurers.
     /// </summary>
     public static class AdventurerProbe
@@ -100,7 +100,7 @@ namespace GuildMaster.ClaudeSandbox
             text.Append("    ").Append(DescribeState(a, data)).Append('\n');
         }
 
-        /// <summary>Состояние (GM-05) одной строкой: занятие, шкалы, лояльность словами, деньги, флаги, раны.</summary>
+        /// <summary>Состояние одной строкой: занятие, шкалы, лояльность словами, деньги, флаги, раны.</summary>
         internal static string DescribeState(Adventurer a, DataRegistry data)
         {
             AdventurerState s = a.State;

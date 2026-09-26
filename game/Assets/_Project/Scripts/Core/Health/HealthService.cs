@@ -3,14 +3,14 @@ using GuildMaster.Data;
 namespace GuildMaster.Core
 {
     /// <summary>
-    /// Раны (ТЗ 05 → «Здоровье»). Ранить — <see cref="Wound"/> (задания ТЗ 09, драка при срыве), увечье — <see cref="Maim"/>.
+    /// Раны. Ранить — <see cref="Wound"/> (задания, драка при срыве), увечье — <see cref="Maim"/>.
     /// Срок раны — поток вызывающей системы. Лечение и осложнения — <see cref="HealthSystem"/>.
     /// </summary>
     public static class HealthService
     {
         /// <summary>
         /// Ранить: своя рана — стресс +10 (лёгкая) / +20 (тяжёлая) × черты. Несколько лёгких ран не складываются —
-        /// остаётся самая длинная. ❔ Вторая тяжёлая при уже тяжёлой становится увечьем (черта «Калека», если её можно дать).
+        /// остаётся самая длинная. Вторая тяжёлая при уже тяжёлой становится увечьем (черта «Калека», если её можно дать).
         /// Событие: лёгкая — [З], тяжёлая — [В]. Возвращает рану, которая теперь у человека.
         /// </summary>
         public static Condition Wound(SimContext ctx, Adventurer adventurer, ConditionKind kind, PartyContext party = PartyContext.None)

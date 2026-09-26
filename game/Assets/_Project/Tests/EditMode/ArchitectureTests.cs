@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace GuildMaster.Tests
 {
-    /// <summary>Правила сборок из ТЗ 01, проверенные машиной.</summary>
+    /// <summary>Правила зависимостей между сборками, проверенные машиной.</summary>
     public sealed class ArchitectureTests
     {
         private static readonly string ScriptsPath = Path.Combine(Application.dataPath, "_Project", "Scripts");

@@ -6,7 +6,7 @@ using UnityEngine;
 namespace GuildMaster.ClaudeSandbox
 {
     /// <summary>
-    /// Песочница (GM-03). Пауза, скорости и состояние времени в Play Mode из меню — для проверки через MCP
+    /// Песочница. Пауза, скорости и состояние времени в Play Mode из меню — для проверки через MCP
     /// (<c>execute_menu_item</c>), где горячие клавиши не нажать. Меню: GuildMaster → Sandbox → Time.
     /// </summary>
     public static class TimeProbe

@@ -5,10 +5,10 @@ using GuildMaster.Data;
 namespace GuildMaster.Core
 {
     /// <summary>
-    /// Шаг 13 такта: кандидаты в авантюристы (ТЗ 04 → «Приход новых людей»). Каждый такт — уход кандидатов без ответа
+    /// Шаг 13 такта: кандидаты в авантюристы. Каждый такт — уход кандидатов без ответа
     /// (через <c>candidateWaitDays</c>); раз в сутки, утром (начало утра — время прихода), шанс нового кандидата,
     /// если людей вместе с ожидающими меньше <c>maxAdventurers</c>. Ответ игрока — <see cref="AcceptCandidateCommand"/>,
-    /// <see cref="RejectCandidateCommand"/>. Строки ленты — ТЗ 14.
+    /// <see cref="RejectCandidateCommand"/>.
     /// </summary>
     public sealed class RecruitSystem : ISimSystem
     {
@@ -29,13 +29,13 @@ namespace GuildMaster.Core
 
         /// <summary>
         /// Шанс кандидата в сутки: <c>influxBaseChance + репутация × influxChancePerReputation</c> × распоряжение.
-        /// До ТЗ 10 репутация — стартовая, до ТЗ 12 распоряжений нет (решение 2026-09-26).
+        /// Репутация — стартовая, множитель распоряжений — 1.
         /// </summary>
         public static float CandidateChance(DataRegistry data)
         {
             GuildBalance guild = data.Balance.Guild;
-            float reputation = guild.StartReputation;   // ТЗ 10: репутация гильдии из мира
-            const float decreeMultiplier = 1f;          // ТЗ 12: × influx распоряжения «Еда и жильё для новичков»
+            float reputation = guild.StartReputation;   // репутации в мире пока нет — стартовая
+            const float decreeMultiplier = 1f;          // распоряжений пока нет
             return (guild.InfluxBaseChance + reputation * guild.InfluxChancePerReputation) * decreeMultiplier;
         }
 
@@ -93,7 +93,7 @@ namespace GuildMaster.Core
             Adventurer adventurer = candidate.Adventurer;
             roster.RemoveCandidate(candidate);
             adventurer.JoinedAtHours = ctx.World.Time.TotalHours;
-            adventurer.Housing = Housing.City; // ТЗ 11: Общежитие, если есть свободное место
+            adventurer.Housing = Housing.City; // Общежития пока нет
             LinkPartners(ctx, adventurer);
             roster.AddActive(adventurer);
 

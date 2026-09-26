@@ -3,7 +3,7 @@ using GuildMaster.Data;
 namespace GuildMaster.Core
 {
     /// <summary>
-    /// Шаг 13 такта, перед <see cref="RecruitSystem"/> (решение 2026-09-26). Раз в сутки, в 00:00: пересчёт архетипа
+    /// Шаг 13 такта, перед <see cref="RecruitSystem"/>. Раз в сутки, в 00:00: пересчёт архетипа
     /// у всех в гильдии и раскрытие нейтральных осей через <c>neutralRevealDays</c> в гильдии («уравновешен»).
     /// Случайных чисел не тратит.
     /// </summary>

@@ -8,7 +8,6 @@ namespace GuildMaster.Debugging
 {
     /// <summary>
     /// GuildMaster → Run Headless…: прогон симуляции без сцены и интерфейса.
-    /// Поля «сценарий старта», «бот», «уровень лога», «число прогонов», лог и сводка — ТЗ 16.
     /// </summary>
     public sealed class HeadlessRunWindow : EditorWindow
     {

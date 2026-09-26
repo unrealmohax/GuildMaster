@@ -7,7 +7,7 @@ using GuildMaster.Data;
 namespace GuildMaster.Tests
 {
     /// <summary>
-    /// Мир для тестов состояния и здоровья (GM-05): реальные определения, числа по умолчанию, системы по умолчанию,
+    /// Мир для тестов состояния и здоровья: реальные определения, числа по умолчанию, системы по умолчанию,
     /// стартовая шестёрка сразу уходит в архив — в гильдии только люди, которых тест добавил сам.
     /// </summary>
     internal sealed class StateWorld : IDisposable
@@ -98,7 +98,7 @@ namespace GuildMaster.Tests
             sigmas * (float)Math.Sqrt(trials * chance * (1f - chance));
     }
 
-    /// <summary>Лазарет для тестов (до ТЗ 11 его нет): койки, Лекарь, скорость.</summary>
+    /// <summary>Лазарет для тестов (в игре построек нет): койки, Лекарь, скорость.</summary>
     internal sealed class FakeInfirmary : IInfirmary
     {
         public FakeInfirmary(int beds, bool hasMedic = true, float speed = 1f)

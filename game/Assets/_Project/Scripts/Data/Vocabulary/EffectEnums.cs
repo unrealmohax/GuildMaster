@@ -12,7 +12,7 @@ namespace GuildMaster.Data
         StrongUp = 2,
     }
 
-    /// <summary>Вид эффекта черты (ТЗ 02 → TraitEffect).</summary>
+    /// <summary>Вид эффекта черты (<see cref="TraitEffect"/>).</summary>
     public enum EffectKind
     {
         /// <summary>Вес мотива: мотив + стрелка.</summary>
@@ -60,7 +60,7 @@ namespace GuildMaster.Data
         Decay = 1,
     }
 
-    /// <summary>Реакция в момент напряжения (ТЗ 09).</summary>
+    /// <summary>Реакция в момент напряжения.</summary>
     public enum TensionKind
     {
         Panic = 0,

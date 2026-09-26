@@ -1,10 +1,10 @@
 namespace GuildMaster.Core
 {
     /// <summary>
-    /// Уход из гильдии (ТЗ 04 → «Уход»): человек переходит из активных в архив и остаётся там для отчёта месяца и лент.
-    /// Когда и почему уходят — системы ТЗ 05 (ежемесячная проверка), 09 (гибель, бегство), 13 (изгнание); событие
+    /// Уход из гильдии: человек переходит из активных в архив и остаётся там для отчёта месяца и лент.
+    /// Когда и почему уходят, решает вызывающая система; событие
     /// со своим типом и автопаузой публикуют они. Отношения и черты партнёров не трогаются.
-    /// Долг гильдии погибшего или пропавшего списывается (ТЗ 05; закон о долгах — вне прототипа).
+    /// Долг гильдии погибшего или пропавшего списывается (закон о долгах — вне прототипа).
     /// </summary>
     public static class AdventurerLifecycle
     {
@@ -14,7 +14,7 @@ namespace GuildMaster.Core
             adventurer.LeftAtHours = ctx.World.Time.TotalHours;
             adventurer.LeaveReason = reason;
             adventurer.State.InInfirmary = false;
-            if (reason == LeaveReason.Died || reason == LeaveReason.Disappeared) adventurer.State.DebtToGuild = 0; // ТЗ 10: убыток казны
+            if (reason == LeaveReason.Died || reason == LeaveReason.Disappeared) adventurer.State.DebtToGuild = 0; // долг пропадает
         }
     }
 }

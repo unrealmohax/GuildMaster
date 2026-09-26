@@ -6,7 +6,7 @@ using GuildMaster.Data;
 namespace GuildMaster.Debugging
 {
     /// <summary>
-    /// Прогон симуляции без интерфейса, так быстро, как получится. Лог, сводка и бот игрока — ТЗ 16.
+    /// Прогон симуляции без интерфейса, так быстро, как получится.
     /// </summary>
     public static class HeadlessRun
     {

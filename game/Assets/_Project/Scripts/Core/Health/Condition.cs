@@ -1,7 +1,7 @@
 namespace GuildMaster.Core
 {
     /// <summary>
-    /// Вид раны (ТЗ 05 → «Состояния»). Осложнение — свойство тяжёлой раны (<see cref="Condition.IsComplicated"/>: +7 дней,
+    /// Вид раны. Осложнение — свойство тяжёлой раны (<see cref="Condition.IsComplicated"/>: +7 дней,
     /// стресс), увечье — черта «Калека». Болезней в прототипе нет.
     /// </summary>
     public enum ConditionKind

@@ -5,8 +5,8 @@ using GuildMaster.Data;
 namespace GuildMaster.Core
 {
     /// <summary>
-    /// Изменение показателей состояния (ТЗ 05). Рост и падение стресса и усталости умножаются на эффекты черт
-    /// (<see cref="StateRates"/>); разовые изменения довольства и лояльности (дилеммы, ТЗ 13; Проверенный) — сразу, минуя цель.
+    /// Изменение показателей состояния. Рост и падение стресса и усталости умножаются на эффекты черт
+    /// (<see cref="StateRates"/>); разовые изменения довольства и лояльности (дилеммы; Проверенный) — сразу, минуя цель.
     /// Всё обрезается до 0..100. Суточные сдвиги и срывы делает <see cref="StateSystem"/>.
     /// </summary>
     public static class StateService
@@ -50,8 +50,8 @@ namespace GuildMaster.Core
         /// <summary>
         /// Начать срыв этого вида: стресс <c>stressAfterBreakdown</c> (−30), событие [В] без автопаузы. Запой, отказ и
         /// «сел и не смог подняться» длятся свои дни. Драка — сразу: отношения <c>brawlRelation</c> со случайным человеком
-        /// в гильдии (не на задании) и ❔ один бросок <c>brawlWoundChance</c> — лёгкая рана у обоих. Случайность — поток вызывающего.
-        /// Вызывают <see cref="StateSystem"/> (раз в сутки при стрессе выше 80) и ТЗ 09 (срыв Ветерана после тяжёлого задания).
+        /// в гильдии (не на задании) и один бросок <c>brawlWoundChance</c> — лёгкая рана у обоих. Случайность — поток вызывающего.
+        /// Вызывают <see cref="StateSystem"/> (раз в сутки при стрессе выше 80) и задания (срыв Ветерана после тяжёлого задания).
         /// Ветеран войны раскрывается первым срывом.
         /// </summary>
         public static SimEvent StartBreakdown(SimContext ctx, Adventurer adventurer, BreakdownKind kind)
@@ -110,7 +110,7 @@ namespace GuildMaster.Core
         }
 
         /// <summary>
-        /// Вид срыва по чертам (ТЗ 05, первое подходящее): Пьяница или Ветеран — запой; Безрассудный (ось ≥ 30) — драка;
+        /// Вид срыва по чертам (первое подходящее): Пьяница или Ветеран — запой; Безрассудный (ось ≥ 30) — драка;
         /// Трус (≤ −30) — отказ от заданий; остальные — «сел и не смог подняться».
         /// </summary>
         public static BreakdownKind BreakdownKindOf(Adventurer adventurer, DataRegistry data)
@@ -126,7 +126,7 @@ namespace GuildMaster.Core
             return BreakdownKind.Collapse;
         }
 
-        /// <summary>Стартовые показатели нового человека (❔ numbers.md): усталость 10, стресс 10–30, довольство 50, лояльность 40–60.</summary>
+        /// <summary>Стартовые показатели нового человека: усталость 10, стресс 10–30, довольство 50, лояльность 40–60.</summary>
         internal static void InitializeNew(Rng rng, AdventurerState state, StateBalance balance)
         {
             state.Fatigue = StateRules.Clamp(balance.StartFatigue);

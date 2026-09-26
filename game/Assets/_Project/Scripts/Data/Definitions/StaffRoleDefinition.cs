@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace GuildMaster.Data
 {
-    /// <summary>Должность персонала (staff.md, ТЗ 11). Формулы зарплаты и эффекта уровня — <see cref="StaffBalance"/>.</summary>
+    /// <summary>Должность персонала. Формулы зарплаты и эффекта уровня — <see cref="StaffBalance"/>.</summary>
     [CreateAssetMenu(menuName = "GuildMaster/Staff Role", fileName = "StaffRole")]
     public sealed class StaffRoleDefinition : Definition
     {

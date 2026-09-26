@@ -5,14 +5,14 @@ using GuildMaster.Data;
 namespace GuildMaster.Core
 {
     /// <summary>
-    /// Правила сочетания особых черт (ТЗ 04 → «Особые черты: правила»): 0–<c>maxSpecialTraits</c> черт, не больше одной
-    /// из категории (строго, решение 2026-09-26), без несовместимых пар. Чистые проверки, мир не меняют.
+    /// Правила сочетания особых черт: 0–<c>maxSpecialTraits</c> черт, не больше одной
+    /// из категории (строго), без несовместимых пар. Чистые проверки, мир не меняют.
     /// </summary>
     public static class TraitRules
     {
         /// <summary>
         /// Постоянная черта (Калека): приобретённая, снижает параметр навсегда (эффект <c>ProfileMultiplier</c>).
-        /// Не вытесняется другими приобретёнными, сама их не вытесняет, правило категорий на неё не действует (решение 2026-09-26).
+        /// Не вытесняется другими приобретёнными, сама их не вытесняет, правило категорий на неё не действует.
         /// </summary>
         public static bool IsPermanent(SpecialTraitDefinition trait)
         {
@@ -98,8 +98,8 @@ namespace GuildMaster.Core
     }
 
     /// <summary>
-    /// Появление и снятие особых черт в игре (ТЗ 04). Когда черта появляется (увечье, гибель друга, проверка месяца) —
-    /// решают системы ТЗ 05, 09; их эффекты в чужих системах (паника, бегство, таверна, стресс, лояльность) — там же.
+    /// Появление и снятие особых черт в игре. Когда черта появляется (увечье, гибель друга, проверка месяца) —
+    /// решают вызывающие системы; их эффекты в чужих системах (паника, бегство, таверна, стресс, лояльность) — там же.
     /// Здесь: правила сочетания и замены, партнёр, выбор параметра Калеки, раскрытие «сразу при появлении»,
     /// лояльность и Слаженность Проверенного.
     /// </summary>
@@ -132,7 +132,7 @@ namespace GuildMaster.Core
 
             if (trait.RevealTrigger == RevealTrigger.OnAcquire) RevealService.Reveal(ctx, adventurer, instance, trait);
 
-            // ❔ Проверенный: лояльность +10 (ТЗ 05), Слаженность +5.
+            // Проверенный: лояльность +10, Слаженность +5.
             if (trait.HasHook(TraitHook.TestedOnAcquire))
             {
                 StateService.ChangeLoyalty(ctx, adventurer, ctx.Data.Balance.Traits.TestedLoyaltyBonus);
@@ -143,7 +143,7 @@ namespace GuildMaster.Core
             return true;
         }
 
-        /// <summary>Снять черту (например, когда пройдёт срок Потерявшего товарища — ТЗ 05). false — черты нет.</summary>
+        /// <summary>Снять черту (например, когда пройдёт срок Потерявшего товарища). false — черты нет.</summary>
         public static bool TryRemove(SimContext ctx, Adventurer adventurer, string traitId)
         {
             if (!adventurer.TryGetTrait(traitId, out TraitInstance instance)) return false;

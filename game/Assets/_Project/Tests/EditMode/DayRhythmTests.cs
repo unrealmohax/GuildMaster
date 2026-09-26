@@ -6,7 +6,7 @@ using NUnit.Framework;
 
 namespace GuildMaster.Tests
 {
-    /// <summary>Фазы дня, ночлег в пути и время выхода на задание (ТЗ 03 → «Ритм дня»).</summary>
+    /// <summary>Фазы дня, ночлег в пути и время выхода на задание.</summary>
     public sealed class DayRhythmTests
     {
         [Test]

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace GuildMaster.Data
 {
-    /// <summary>Архетип (archetypes.md, ТЗ 04). Оценка роли и пороги Новичка и Мастера на все руки — <see cref="AdventurersBalance"/>.</summary>
+    /// <summary>Архетип. Оценка роли и пороги Новичка и Мастера на все руки — <see cref="AdventurersBalance"/>.</summary>
     [CreateAssetMenu(menuName = "GuildMaster/Archetype", fileName = "Archetype")]
     public sealed class ArchetypeDefinition : Definition
     {
@@ -19,7 +19,7 @@ namespace GuildMaster.Data
         [Tooltip("Вспомогательные параметры (1–2) — у роли")]
         [SerializeField] private List<StatId> secondaryStats = new List<StatId>();
 
-        [Tooltip("Вес типа при генерации авантюриста (ТЗ 04): Новичок — чаще всех, Мастер на все руки — реже всех")]
+        [Tooltip("Вес типа при генерации авантюриста: Новичок — чаще всех, Мастер на все руки — реже всех")]
         [SerializeField, Min(0f)] private float generationWeight = 1f;
 
         public string DisplayNameFemale => string.IsNullOrEmpty(displayNameFemale) ? DisplayName : displayNameFemale;

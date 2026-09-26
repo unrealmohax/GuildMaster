@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace GuildMaster.Data
 {
-    /// <summary>Описание 14 параметров и порядок осей диаграммы задания (adventurers.md, quests.md).</summary>
+    /// <summary>Описание 14 параметров и порядок осей диаграммы задания.</summary>
     [CreateAssetMenu(menuName = "GuildMaster/Stat Catalog", fileName = "StatCatalog")]
     public sealed class StatCatalog : ScriptableObject
     {

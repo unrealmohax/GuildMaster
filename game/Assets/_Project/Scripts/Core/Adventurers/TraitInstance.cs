@@ -2,7 +2,7 @@ using GuildMaster.Data;
 
 namespace GuildMaster.Core
 {
-    /// <summary>Особая черта у человека (ТЗ 04). Правила появления и замены — <see cref="TraitService"/>.</summary>
+    /// <summary>Особая черта у человека. Правила появления и замены — <see cref="TraitService"/>.</summary>
     public sealed class TraitInstance
     {
         internal TraitInstance(string traitId, long acquiredAtHours, int partnerId, StatId? affectedStat)

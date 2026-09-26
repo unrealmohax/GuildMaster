@@ -6,7 +6,7 @@ using NUnit.Framework;
 
 namespace GuildMaster.Tests
 {
-    /// <summary>Показатели состояния: занятия, усталость, стресс и срывы, довольство, лояльность, уход (ТЗ 05).</summary>
+    /// <summary>Показатели состояния: занятия, усталость, стресс и срывы, довольство, лояльность, уход.</summary>
     public sealed class StateTests
     {
         private StateWorld world;

@@ -5,8 +5,8 @@ using GuildMaster.Data;
 namespace GuildMaster.Core
 {
     /// <summary>
-    /// Рост параметров (ТЗ 04 → «Рост», numbers.md → Рост). Функции для следующих систем: кто и когда тренируется — ТЗ 06,
-    /// опыт заданий — ТЗ 09. После любого изменения архетип пересчитывается сразу.
+    /// Рост параметров: тренировка и опыт заданий. Кто, когда и что тренирует, какой опыт даёт задание —
+    /// решает вызывающая система. После любого изменения архетип пересчитывается сразу.
     /// <list type="bullet">
     /// <item>Замедление к 99: прибавка × <c>(1 − значение/100)</c> (для значения от 99 — как у 99).</item>
     /// <item>Характеристика растёт в <c>characteristicSlowdown</c> (3) раза медленнее навыка.</item>
@@ -46,9 +46,9 @@ namespace GuildMaster.Core
         }
 
         /// <summary>
-        /// ❔ Что тренирует человек на дворе: основной параметр текущего архетипа (случайно один из двух);
+        /// Что тренирует человек на дворе: основной параметр текущего архетипа (случайно один из двух);
         /// у Новичка и Мастера на все руки — один из двух самых высоких. Хладнокровие и Слаженность не тренируются.
-        /// Случайность — из потока системы, которая вызывает (ТЗ 06).
+        /// Случайность — из потока системы, которая вызывает.
         /// </summary>
         public static StatId PickTrainingStat(Adventurer adventurer, DataRegistry data, Rng rng)
         {
@@ -65,7 +65,7 @@ namespace GuildMaster.Core
         }
 
         /// <summary>
-        /// Опыт задания по осям <paramref name="axes"/> (какие оси — решает ТЗ 09). <paramref name="multiplier"/> — например,
+        /// Опыт задания по осям <paramref name="axes"/> (какие оси — решает вызывающий). <paramref name="multiplier"/> — например,
         /// Соперник на совместном задании × <c>rivalExperienceMultiplier</c>.
         /// </summary>
         public static void ApplyQuestExperience(SimContext ctx, Adventurer adventurer, IReadOnlyList<StatId> axes, bool success, float multiplier = 1f)

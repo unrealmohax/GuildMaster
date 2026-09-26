@@ -7,7 +7,7 @@ using NUnit.Framework;
 
 namespace GuildMaster.Tests
 {
-    /// <summary>Кандидаты в авантюристы (ТЗ 04 → «Приход новых людей»).</summary>
+    /// <summary>Кандидаты в авантюристы.</summary>
     public sealed class RecruitTests
     {
         private PeopleData data;
@@ -21,7 +21,7 @@ namespace GuildMaster.Tests
         [Test]
         public void CandidateChance_IsBasePlusStartReputation()
         {
-            // До ТЗ 10 репутация — стартовая (5): 3% + 5 × 0,3% = 4,5%.
+            // Репутация — стартовая (5): 3% + 5 × 0,3% = 4,5%.
             Assert.That(RecruitSystem.CandidateChance(data.Registry), Is.EqualTo(0.045f).Within(1e-6f));
         }
 
@@ -165,7 +165,7 @@ namespace GuildMaster.Tests
         }
     }
 
-    /// <summary>Детерминизм и скорость с людьми (критерии ТЗ 01 на реальных данных).</summary>
+    /// <summary>Детерминизм и скорость с людьми.</summary>
     public sealed class PeopleDeterminismTests
     {
         private PeopleData data;

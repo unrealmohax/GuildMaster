@@ -4,7 +4,7 @@ using UnityEngine;
 namespace GuildMaster.Data
 {
     /// <summary>
-    /// Раздел <c>Traits</c>: числа особых правил черт (<see cref="TraitHook"/>) и их появления (ТЗ 04).
+    /// Раздел <c>Traits</c>: числа особых правил черт (<see cref="TraitHook"/>) и их появления.
     /// Числа, которые черта задаёт стрелкой или долей, — в эффектах самой черты.
     /// </summary>
     [Serializable]

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace GuildMaster.Data
 {
-    /// <summary>Раздел <c>Growth</c>: рост параметров (numbers.md → Рост, ТЗ 04).</summary>
+    /// <summary>Раздел <c>Growth</c>: рост параметров.</summary>
     [Serializable]
     public sealed class GrowthBalance
     {

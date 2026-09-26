@@ -4,7 +4,7 @@ using UnityEngine;
 namespace GuildMaster.Data
 {
     /// <summary>
-    /// Раздел <c>Dilemmas</c>: общие правила обращений и числа триггеров (ТЗ 13).
+    /// Раздел <c>Dilemmas</c>: общие правила обращений и числа триггеров.
     /// Суммы и сдвиги вариантов — в эффектах вариантов <see cref="DilemmaDefinition"/>.
     /// </summary>
     [Serializable]

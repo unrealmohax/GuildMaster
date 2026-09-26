@@ -3,19 +3,19 @@ using GuildMaster.Data;
 namespace GuildMaster.Core
 {
     /// <summary>
-    /// Шаг 5 такта: занятия людей в гильдии и их расходы. До ТЗ 06 занятие задаёт расписание-заглушка по фазам дня
-    /// (решение 2026-09-26), первое подходящее:
+    /// Шаг 5 такта: занятия людей в гильдии и их расходы. Занятие задаёт расписание по фазам дня,
+    /// первое подходящее:
     /// <list type="number">
-    /// <item>на задании — не трогает (ТЗ 09);</item>
+    /// <item>на задании — не трогает;</item>
     /// <item>срыв: запой — <see cref="Activity.Binge"/>, «сел и не смог подняться» — <see cref="Activity.Resting"/>, весь срок;</item>
     /// <item>ночь — <see cref="Activity.Sleeping"/>;</item>
     /// <item>койка в Лазарете — <see cref="Activity.Infirmary"/>; тяжёлая рана — <see cref="Activity.Resting"/>;</item>
     /// <item>Пьяница, пропускающий день, — <see cref="Activity.Tavern"/> с утра;</item>
     /// <item>вечер — <see cref="Activity.Tavern"/>, утро и день — <see cref="Activity.Resting"/>.</item>
     /// </list>
-    /// Расходы занятия — раз в сутки, в первый его час: таверна — выпивка 2–5 (❔ если стресс выше 30 или Пьяница) и еда
+    /// Расходы занятия — раз в сутки, в первый его час: таверна — выпивка 2–5 (если стресс выше 30 или Пьяница) и еда
     /// в таверне (если кошелёк не меньше расходов на неделю; платится в 00:00); запой — выпивка <c>bingeDrinkPerDay</c>;
-    /// Лазарет — <c>infirmary</c>. Утром Пьяница может пропустить день (❔ 10%, при стрессе выше 50 — 20%).
+    /// Лазарет — <c>infirmary</c>. Утром Пьяница может пропустить день (10%, при стрессе выше 50 — 20%).
     /// </summary>
     public sealed class ActivitySystem : ISimSystem
     {
@@ -101,7 +101,7 @@ namespace GuildMaster.Core
                     if (!state.PaidInfirmaryToday)
                     {
                         state.PaidInfirmaryToday = true;
-                        WalletService.Pay(ctx, adventurer, WalletService.Coins(expenses.Infirmary)); // ❔ ТЗ 10: недостачу покрывает гильдия
+                        WalletService.Pay(ctx, adventurer, WalletService.Coins(expenses.Infirmary)); // недостача не списывается
                     }
                     break;
             }

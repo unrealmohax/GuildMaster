@@ -9,8 +9,8 @@ using UnityEngine;
 namespace GuildMaster.ClaudeSandbox
 {
     /// <summary>
-    /// Песочница. Заводит и заполняет ассеты данных прототипа (GM-02) по документам: numbers.md, trait-effects.md,
-    /// archetypes.md, quests.md, event-feed.md, ТЗ 04–14. Меню: GuildMaster → Sandbox → Generate Game Data.
+    /// Песочница. Заводит и заполняет ассеты данных прототипа по документам: numbers.md, trait-effects.md,
+    /// archetypes.md, quests.md, event-feed.md. Меню: GuildMaster → Sandbox → Generate Game Data.
     /// <para>
     /// Перезаписывает определения и тексты целиком (правки, сделанные руками в этих ассетах, пропадут).
     /// BalanceSettings не перезаписывает: только сохраняет на диск новые разделы с числами по умолчанию из кода.
@@ -121,7 +121,7 @@ namespace GuildMaster.ClaudeSandbox
         private static StatInfo Stat(StatId stat, string name, string description) =>
             Make<StatInfo>(("stat", stat), ("displayName", name), ("description", description), ("isSkill", !Vocabulary.IsCharacteristic(stat)));
 
-        // ---------- Оси (trait-effects.md → Базовые оси) ----------
+        // ---------- Оси ----------
 
         private static void FillAxes(Dictionary<AxisId, AxisDefinition> axes)
         {
@@ -190,7 +190,7 @@ namespace GuildMaster.ClaudeSandbox
             Make<AxisPoleDefinition>(("name", name), ("nameFemale", nameFemale), ("effects", effects.ToList()),
                 ("revealTrigger", trigger), ("revealFeedKey", feedKey));
 
-        // ---------- Особые черты (trait-effects.md, ТЗ 04) ----------
+        // ---------- Особые черты ----------
 
         private static readonly string[] TraitIds =
         {
@@ -282,7 +282,7 @@ namespace GuildMaster.ClaudeSandbox
         private static TraitEffect Profile(float multiplier, params StatId[] stats) =>
             Make<TraitEffect>(("kind", EffectKind.ProfileMultiplier), ("value", multiplier), ("stats", stats.ToList()));
 
-        // ---------- Архетипы (archetypes.md) ----------
+        // ---------- Архетипы ----------
 
         private static readonly string[] ArchetypeIds = { "Shield", "Fighter", "Marksman", "Scout", "Medic", "JackOfAllTrades", "Novice" };
 
@@ -302,7 +302,7 @@ namespace GuildMaster.ClaudeSandbox
             Other(a["Novice"], "Новичок", ArchetypeKind.Novice, 45f, "Роль ещё не сложилась");
         }
 
-        // Временные веса типа при генерации (решение 2026-09-26): Новичок 45, роли по 10, Мастер на все руки 5; потом — от уровня и репутации гильдии.
+        // Временные веса типа при генерации: Новичок 45, роли по 10, Мастер на все руки 5; потом — от уровня и репутации гильдии.
         private static void Role(ArchetypeDefinition asset, string name, string nameFemale, float weight, string description, StatId[] main, params StatId[] secondary)
         {
             Def(asset, asset.name, name);
@@ -325,7 +325,7 @@ namespace GuildMaster.ClaudeSandbox
             Set(asset, "generationWeight", weight);
         }
 
-        // ---------- Типы заданий (quests.md → Генерация заказов, numbers.md, ТЗ 08) ----------
+        // ---------- Типы заданий ----------
 
         private static readonly string[] QuestTypeIds = { "Hunt", "Extermination", "Escort", "Delivery" };
 
@@ -354,7 +354,7 @@ namespace GuildMaster.ClaudeSandbox
             Set(asset, "roundFailFeedKey", "quest.round.fail." + feedSuffix);
         }
 
-        // ---------- События в пути и находка (ТЗ 09) ----------
+        // ---------- События в пути и находка ----------
 
         private static void FillEncounters(RandomEventDefinition ambush, RandomEventDefinition beasts, DiscoveryDefinition cave)
         {
@@ -419,7 +419,7 @@ namespace GuildMaster.ClaudeSandbox
         private static OutcomeChance Outcome(OutcomeKind kind, float chance, int count = 1, bool turnsBack = false, FloatRange loot = default) =>
             Make<OutcomeChance>(("kind", kind), ("chance", chance), ("count", count), ("turnsBack", turnsBack), ("lootShareOfReward", loot));
 
-        // ---------- Постройки и персонал (numbers.md → Постройки, Персонал; ТЗ 11) ----------
+        // ---------- Постройки и персонал ----------
 
         private static readonly string[] BuildingIds = { "GuildHall", "Tavern", "Dormitory", "Infirmary", "TrainingYard" };
         private static readonly string[] StaffIds = { "Registrar", "Innkeeper", "Healer" };
@@ -467,7 +467,7 @@ namespace GuildMaster.ClaudeSandbox
             Set(asset, "hiredAtStart", atStart);
         }
 
-        // ---------- Распоряжения (laws.md, ТЗ 12) ----------
+        // ---------- Распоряжения ----------
 
         private static readonly string[] DecreeIds = { "FreeLodgingForNewcomers", "GroupOnlyFromRank", "InjuryCompensation", "Prohibition" };
 

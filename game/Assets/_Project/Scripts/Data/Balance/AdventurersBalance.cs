@@ -5,8 +5,8 @@ using UnityEngine;
 namespace GuildMaster.Data
 {
     /// <summary>
-    /// Раздел <c>Adventurers</c>: генерация, архетип, оси, особые черты, старт, отношения, раскрытие
-    /// (numbers.md → Генерация, ТЗ 04). Шанс типа при генерации — <see cref="ArchetypeDefinition.GenerationWeight"/>.
+    /// Раздел <c>Adventurers</c>: генерация, архетип, оси, особые черты, старт, отношения, раскрытие.
+    /// Шанс типа при генерации — <see cref="ArchetypeDefinition.GenerationWeight"/>.
     /// </summary>
     [Serializable]
     public sealed class AdventurersBalance
@@ -26,7 +26,7 @@ namespace GuildMaster.Data
             new GenerationLevel(AdventurerLevel.Strong, 0.15f, new IntRange(30, 50), new IntRange(25, 45), new IntRange(70, 85), new IntRange(50, 60), new IntRange(45, 60)),
         };
 
-        [Tooltip("Стартовые люди — не выше этого уровня (prototype.md: «параметры низкие и средние»)")]
+        [Tooltip("Стартовые люди — не выше этого уровня: параметры низкие и средние")]
         [SerializeField] private AdventurerLevel startMaxLevel = AdventurerLevel.Medium;
 
         [Tooltip("Новичок (всегда слабый): характеристики")]

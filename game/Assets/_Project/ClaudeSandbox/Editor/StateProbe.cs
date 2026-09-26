@@ -12,8 +12,8 @@ using UnityEngine;
 namespace GuildMaster.ClaudeSandbox
 {
     /// <summary>
-    /// Песочница (GM-05). Состояние и здоровье из меню GuildMaster → Sandbox → State: раны и стресс первому в гильдии
-    /// в Play Mode (командой — как их будет вызывать ТЗ 09) и прогон 90 дней без Play Mode для зёрен 1–3
+    /// Песочница. Состояние и здоровье из меню GuildMaster → Sandbox → State: раны и стресс первому в гильдии
+    /// в Play Mode (командой, как их вызывало бы задание) и прогон 90 дней без Play Mode для зёрен 1–3
     /// (симуляция в памяти, кандидаты принимаются, сцена не трогается). Пишет через <c>Debug.Log</c>.
     /// </summary>
     public static class StateProbe

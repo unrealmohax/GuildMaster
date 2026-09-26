@@ -4,7 +4,7 @@ using GuildMaster.Data;
 namespace GuildMaster.Core
 {
     /// <summary>
-    /// Шаг 6 такта: показатели состояния (ТЗ 05).
+    /// Шаг 6 такта: показатели состояния.
     /// <list type="bullet">
     /// <item>Каждый час — усталость и стресс по занятию × эффекты черт.</item>
     /// <item>Раз в сутки (00:00), по каждому в гильдии: расходы на жизнь за прошедшие сутки (еда, жильё); довольство — к цели
@@ -12,7 +12,7 @@ namespace GuildMaster.Core
     /// (шанс 10%, вид — по чертам); конец спада «Потерявшего товарища».</item>
     /// <item>В начале месяца — проверка ухода: лояльность ниже 25 — шанс 20% (Семейный × 1,5). Уход — [В], автопауза.</item>
     /// </list>
-    /// Люди на задании в суточных срывах и проверке ухода не участвуют (срыв на задании — ТЗ 09).
+    /// Люди на задании в суточных срывах и проверке ухода не участвуют.
     /// </summary>
     public sealed class StateSystem : ISimSystem
     {
@@ -23,13 +23,13 @@ namespace GuildMaster.Core
             IReadOnlyList<Adventurer> active = ctx.World.Adventurers.Active;
             foreach (Adventurer adventurer in active)
             {
-                StateService.ApplyHour(ctx, adventurer, PartyContext.None); // ТЗ 07/09: состав группы на задании
+                StateService.ApplyHour(ctx, adventurer, PartyContext.None); // вне задания
             }
 
             GameTime time = ctx.World.Time;
             if (time.Hour != 0) return;
 
-            // До ТЗ 10 комиссия гильдии — по умолчанию (решение 2026-09-26).
+            // Казны пока нет: комиссия гильдии — по умолчанию.
             float commission = ctx.Data.Balance.Economy.DefaultCommission;
             foreach (Adventurer adventurer in new List<Adventurer>(active))
             {
@@ -83,7 +83,7 @@ namespace GuildMaster.Core
             TraitService.TryRemove(ctx, adventurer, grieving.TraitId);
         }
 
-        /// <summary>Ежемесячная проверка ухода. Причина до ТЗ 06 — «низкая лояльность», без разбора мотивов.</summary>
+        /// <summary>Ежемесячная проверка ухода. Причина — «низкая лояльность».</summary>
         private static void CheckLeaving(SimContext ctx)
         {
             StateBalance balance = ctx.Data.Balance.State;
@@ -105,7 +105,7 @@ namespace GuildMaster.Core
         }
     }
 
-    /// <summary>Почему человек ушёл сам (ТЗ 05; разбор мотивов — ТЗ 06).</summary>
+    /// <summary>Почему человек ушёл сам.</summary>
     public enum LeaveCause
     {
         LowLoyalty,

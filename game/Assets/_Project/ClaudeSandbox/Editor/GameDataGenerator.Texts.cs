@@ -4,8 +4,8 @@ using GuildMaster.Data;
 
 namespace GuildMaster.ClaudeSandbox
 {
-    // 💡 Новое (ТЗ 02 «новое», ТЗ 08): имена, названия групп, тексты заказов и намёки — предложение Claude, правит автор.
-    // Заполнен только именительный падеж; остальные формы — GM-14.
+    // Новые данные, которых нет в документах: имена, названия групп, тексты заказов и намёки — предложение Claude, правит автор.
+    // Заполнен только именительный падеж; остальные формы не заполнены.
     public static partial class GameDataGenerator
     {
         private static void FillNames(NameList names)

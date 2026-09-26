@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace GuildMaster.Data
 {
-    /// <summary>Раздел <c>Ranks</c>: требования, награды и очки по рангам G–C (numbers.md → Требования, Награды, Ранг гильдии).</summary>
+    /// <summary>Раздел <c>Ranks</c>: требования, награды и очки по рангам G–C.</summary>
     [Serializable]
     public sealed class RanksBalance
     {

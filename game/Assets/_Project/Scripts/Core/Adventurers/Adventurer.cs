@@ -9,14 +9,14 @@ namespace GuildMaster.Core
         Female,
     }
 
-    /// <summary>Где живёт человек (ТЗ 04). Общежитие — ТЗ 11: пока его нет, все живут в городе.</summary>
+    /// <summary>Где живёт человек: город или Общежитие. Общежития пока нет — все живут в городе.</summary>
     public enum Housing
     {
         City,
         Dorm,
     }
 
-    /// <summary>Почему человек в архиве. Уходы вызывают системы ТЗ 05 (уход), 09 (гибель, бегство), 13 (изгнание).</summary>
+    /// <summary>Почему человек в архиве.</summary>
     public enum LeaveReason
     {
         None,
@@ -27,10 +27,10 @@ namespace GuildMaster.Core
     }
 
     /// <summary>
-    /// Авантюрист (ТЗ 04 → «Модель данных»). Часть мира: снаружи Core только чтение, менять — системами и службами Core
+    /// Авантюрист. Часть мира: снаружи Core только чтение, менять — системами и службами Core
     /// (<see cref="Growth"/>, <see cref="TraitService"/>, <see cref="RevealService"/>, <see cref="GuildRanks"/>…).
     /// Параметры — базовые значения по <see cref="StatId"/>; эффективные — <see cref="AdventurerStats"/>.
-    /// Поля чужих ТЗ (группа — 07, память — 13) заводятся в своих задачах; занятие — в <see cref="AdventurerState"/> (заглушка GM-05).
+    /// Занятие — в <see cref="AdventurerState"/>.
     /// </summary>
     public sealed class Adventurer
     {
@@ -65,7 +65,7 @@ namespace GuildMaster.Core
 
         public GuildRank GuildRank { get; internal set; }
 
-        /// <summary>Очки ранга. Дробные: Частичный успех даёт очки × 0,5 (ТЗ 09).</summary>
+        /// <summary>Очки ранга. Дробные: Частичный успех даёт очки × 0,5.</summary>
         public float RankPoints { get; internal set; }
 
         /// <summary>С какого момента доступно задание на повышение (после провала — через <c>promotionRetryDays</c>).</summary>
@@ -77,7 +77,7 @@ namespace GuildMaster.Core
         /// <summary>Ранг характеристик — оценка лучшей роли (у Мастера на все руки — среднее всех 14).</summary>
         public float PowerScore { get; internal set; }
 
-        /// <summary>Показатели состояния, раны, занятие (ТЗ 05).</summary>
+        /// <summary>Показатели состояния, раны, занятие.</summary>
         public AdventurerState State { get; } = new AdventurerState();
 
         public Housing Housing { get; internal set; }

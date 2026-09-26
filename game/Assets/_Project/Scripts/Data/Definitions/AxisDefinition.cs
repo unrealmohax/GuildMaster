@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace GuildMaster.Data
 {
-    /// <summary>Ось характера и эффекты двух её полюсов (trait-effects.md, ТЗ 04).</summary>
+    /// <summary>Ось характера и эффекты двух её полюсов.</summary>
     [CreateAssetMenu(menuName = "GuildMaster/Axis", fileName = "Axis")]
     public sealed class AxisDefinition : Definition
     {
@@ -30,7 +30,7 @@ namespace GuildMaster.Data
 
         [SerializeField] private List<TraitEffect> effects = new List<TraitEffect>();
 
-        [Tooltip("Когда полюс раскрывается (ТЗ 04)")]
+        [Tooltip("Когда полюс раскрывается")]
         [SerializeField] private RevealTrigger revealTrigger;
 
         [Tooltip("Ключ строки раскрытия в FeedTemplateSet")]

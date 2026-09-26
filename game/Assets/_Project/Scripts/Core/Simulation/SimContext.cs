@@ -17,7 +17,7 @@ namespace GuildMaster.Core
         public DataRegistry Data { get; }
         public Calendar Calendar { get; }
 
-        /// <summary>Фазы дня, ночлег в пути, время выхода на задание (ТЗ 03).</summary>
+        /// <summary>Фазы дня, ночлег в пути, время выхода на задание.</summary>
         public DayRhythm Rhythm { get; }
 
         public EventBus Events { get; }
@@ -32,7 +32,7 @@ namespace GuildMaster.Core
 
         internal bool PauseRequested { get; set; }
 
-        /// <summary>Поставить игру на паузу после такта (AutopauseSystem, ТЗ 03).</summary>
+        /// <summary>Поставить игру на паузу после такта (AutopauseSystem).</summary>
         public void RequestPause() => PauseRequested = true;
     }
 }

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace GuildMaster.Data
 {
-    /// <summary>Раздел <c>Staff</c>: кандидаты, зарплата, переговоры, эффект уровня (numbers.md → Персонал, ТЗ 11). Базовые зарплаты — в должностях.</summary>
+    /// <summary>Раздел <c>Staff</c>: кандидаты, зарплата, переговоры, эффект уровня. Базовые зарплаты — в должностях.</summary>
     [Serializable]
     public sealed class StaffBalance
     {

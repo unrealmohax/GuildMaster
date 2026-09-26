@@ -6,7 +6,7 @@ using NUnit.Framework;
 
 namespace GuildMaster.Tests
 {
-    /// <summary>Рост параметров (ТЗ 04 → «Рост», numbers.md → Рост).</summary>
+    /// <summary>Рост параметров.</summary>
     public sealed class GrowthTests
     {
         private PeopleData data;
@@ -157,7 +157,7 @@ namespace GuildMaster.Tests
         }
     }
 
-    /// <summary>Ранг гильдии (ТЗ 04 → «Ранг гильдии»).</summary>
+    /// <summary>Ранг гильдии.</summary>
     public sealed class GuildRankTests
     {
         private PeopleData data;
@@ -194,7 +194,7 @@ namespace GuildMaster.Tests
 
             SimulationRun.Do(simulation, ctx => Assert.IsTrue(GuildRanks.Promote(ctx, adventurer)));
             Assert.AreEqual(GuildRank.F, adventurer.GuildRank);
-            Assert.AreEqual(0f, adventurer.RankPoints, "❔ после повышения очки обнуляются");
+            Assert.AreEqual(0f, adventurer.RankPoints, "после повышения очки обнуляются");
             Assert.AreEqual(25, GuildRanks.PointsToNext(adventurer, ranks));
             Assert.AreEqual(EventImportance.Notable, simulation.Events.Events.Last(e => e.Type == SimEventType.RankPromoted).Importance);
         }
@@ -216,7 +216,7 @@ namespace GuildMaster.Tests
         }
     }
 
-    /// <summary>Отношения (ТЗ 04 → «Отношения»).</summary>
+    /// <summary>Отношения.</summary>
     public sealed class RelationTests
     {
         private PeopleData data;

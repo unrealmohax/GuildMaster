@@ -9,7 +9,7 @@ using Object = UnityEngine.Object;
 namespace GuildMaster.Debugging
 {
     /// <summary>
-    /// Проверка данных из <see cref="GameConfig"/> (ТЗ 02): пустые ссылки, дубли id, значения вне диапазонов,
+    /// Проверка данных из <see cref="GameConfig"/>: пустые ссылки, дубли id, значения вне диапазонов,
     /// шаблоны текстов с неизвестными подстановками, связи между определениями.
     /// Меню — GuildMaster → Validate Data (<c>DataValidatorMenu</c>).
     /// </summary>
@@ -18,7 +18,7 @@ namespace GuildMaster.Debugging
         private static readonly Regex IdFormat = new Regex("^[A-Za-z][A-Za-z0-9_]*$");
         private const float ChanceSumTolerance = 0.001f;
 
-        /// <summary>Сколько определений каждого вида в прототипе (таблица ТЗ 02). Другое число — предупреждение.</summary>
+        /// <summary>Сколько определений каждого вида в прототипе. Другое число — предупреждение.</summary>
         private static readonly Dictionary<Type, int> PrototypeCounts = new Dictionary<Type, int>
         {
             [typeof(AxisDefinition)] = 6,
@@ -556,7 +556,7 @@ namespace GuildMaster.Debugging
             private void CheckNameList(NameList names, string path, IReadOnlyList<NounForms> list)
             {
                 const int minNames = 60;
-                if (list.Count < minNames) report.Warning(names, path, $"имён {list.Count}, по ТЗ — {minNames}+");
+                if (list.Count < minNames) report.Warning(names, path, $"имён {list.Count}, нужно {minNames}+");
                 CheckNouns(names, path, list);
                 foreach (IGrouping<string, NounForms> duplicate in list.Where(n => n != null).GroupBy(n => n.Nominative).Where(g => g.Count() > 1))
                 {

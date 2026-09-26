@@ -12,8 +12,8 @@ namespace GuildMaster.Core
         private readonly List<AutopauseTrigger> triggers = new List<AutopauseTrigger>();
 
         /// <summary>
-        /// События, из-за которых встала пауза в конце последнего такта, в порядке публикации (для окна автопаузы,
-        /// ТЗ 15). Пусто — последний такт закончился без автопаузы.
+        /// События, из-за которых встала пауза в конце последнего такта, в порядке публикации (для окна автопаузы).
+        /// Пусто — последний такт закончился без автопаузы.
         /// </summary>
         public IReadOnlyList<AutopauseTrigger> Triggers => triggers;
 

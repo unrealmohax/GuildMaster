@@ -1,33 +1,33 @@
 namespace GuildMaster.Core
 {
     /// <summary>
-    /// Вид автопаузы — переключатель в настройках (ТЗ 03 → «Автопауза», экран «Время» ТЗ 15).
+    /// Вид автопаузы — переключатель в настройках (экран «Время»).
     /// Какие события к нему относятся — <see cref="AutopauseRules"/>.
     /// </summary>
     public enum AutopauseKind
     {
-        /// <summary>Гибель авантюриста (ТЗ 09).</summary>
+        /// <summary>Гибель авантюриста.</summary>
         AdventurerDied,
 
-        /// <summary>Бегство авантюриста (ТЗ 09).</summary>
+        /// <summary>Бегство авантюриста.</summary>
         AdventurerFled,
 
-        /// <summary>Катастрофа на задании (ТЗ 09).</summary>
+        /// <summary>Катастрофа на задании.</summary>
         QuestCatastrophe,
 
-        /// <summary>Отступление группы (ТЗ 09).</summary>
+        /// <summary>Отступление группы.</summary>
         PartyRetreated,
 
-        /// <summary>Раскрытие скрытой черты (ТЗ 04).</summary>
+        /// <summary>Раскрытие скрытой черты.</summary>
         TraitRevealed,
 
-        /// <summary>Уход авантюриста или сотрудника из гильдии (ТЗ 05, 10).</summary>
+        /// <summary>Уход авантюриста или сотрудника из гильдии.</summary>
         MemberLeftGuild,
 
-        /// <summary>Начало банкротства (ТЗ 10).</summary>
+        /// <summary>Начало банкротства.</summary>
         BankruptcyStarted,
 
-        /// <summary>Новое обращение — дилемма (ТЗ 13).</summary>
+        /// <summary>Новое обращение — дилемма.</summary>
         DilemmaReceived,
     }
 }

@@ -8,7 +8,7 @@ using NUnit.Framework;
 
 namespace GuildMaster.Tests
 {
-    /// <summary>Генерация авантюристов (ТЗ 04 → «Генерация»).</summary>
+    /// <summary>Генерация авантюристов.</summary>
     public sealed class AdventurerGenerationTests
     {
         private const int People = 1000;
@@ -53,7 +53,7 @@ namespace GuildMaster.Tests
                 float chance = type.GenerationWeight / totalWeight;
                 report.AppendLine($"{type.Id}: chance {chance:P0}, type {typeShare:P1}, archetype {archetypeShare:P1}, match {match:P1}");
 
-                // Решение 2026-09-26: роли ≈ 99,8%, Мастер — 100%, Новичок ≈ 95%.
+                // Ожидаемое совпадение: роли ≈ 99,8%, Мастер — 100%, Новичок ≈ 95%.
                 float minMatch = type.Kind == ArchetypeKind.JackOfAllTrades ? 1f : type.Kind == ArchetypeKind.Role ? 0.98f : 0.9f;
                 Assert.That(match, Is.GreaterThanOrEqualTo(minMatch), $"{type.Id}: рассчитанный архетип совпадает с типом\n{report}");
                 Assert.That(typeShare, Is.EqualTo(chance).Within(0.05f), $"{type.Id}: доля типа\n{report}");
@@ -124,7 +124,7 @@ namespace GuildMaster.Tests
         }
     }
 
-    /// <summary>Архетип и ранг характеристик (ТЗ 04, пример Щита из adventurers.md).</summary>
+    /// <summary>Архетип и ранг характеристик (эталонный Щит).</summary>
     public sealed class ArchetypeTests
     {
         private PeopleData data;
@@ -135,7 +135,7 @@ namespace GuildMaster.Tests
         [TearDown]
         public void TearDown() => data.Dispose();
 
-        /// <summary>Щит из adventurers.md: Выносливость 85, Сила 70, Хладнокровие 60, Слаженность 55, Реакция 30, остальные 25.</summary>
+        /// <summary>Эталонный Щит: Выносливость 85, Сила 70, Хладнокровие 60, Слаженность 55, Реакция 30, остальные 25.</summary>
         private static float[] ShieldExample()
         {
             float[] values = Enumerable.Repeat(25f, Vocabulary.StatCount).ToArray();
@@ -238,7 +238,7 @@ namespace GuildMaster.Tests
         }
     }
 
-    /// <summary>Стартовая шестёрка (ТЗ 04 → «Старт», решения 2026-09-26).</summary>
+    /// <summary>Стартовая шестёрка.</summary>
     public sealed class StartScenarioTests
     {
         private PeopleData data;

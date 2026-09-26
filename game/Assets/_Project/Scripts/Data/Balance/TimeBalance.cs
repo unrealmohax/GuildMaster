@@ -5,7 +5,7 @@ using UnityEngine;
 namespace GuildMaster.Data
 {
     /// <summary>
-    /// Раздел <c>Time</c>: календарь и ритм дня (numbers.md → Время, ТЗ 03).
+    /// Раздел <c>Time</c>: календарь и ритм дня.
     /// </summary>
     [Serializable]
     public sealed class TimeBalance

@@ -5,18 +5,18 @@ using UnityEngine;
 namespace GuildMaster.Data
 {
     /// <summary>
-    /// Обращение-дилемма (dilemmas.md, ТЗ 13). Числа вариантов — в эффектах вариантов; срок ответа, лимит открытых,
+    /// Обращение-дилемма. Числа вариантов — в эффектах вариантов; срок ответа, лимит открытых,
     /// час проверки и числа триггеров — <see cref="DilemmasBalance"/>.
     /// </summary>
     [CreateAssetMenu(menuName = "GuildMaster/Dilemma", fileName = "Dilemma")]
     public sealed class DilemmaDefinition : Definition
     {
-        [Tooltip("Номер дилеммы в dilemmas.md")]
+        [Tooltip("Номер дилеммы в общем списке дилемм игры")]
         [SerializeField, Min(1)] private int number = 1;
 
         [SerializeField] private DilemmaSource source;
 
-        [Tooltip("Код триггера (ТЗ 13)")]
+        [Tooltip("Код триггера")]
         [SerializeField] private DilemmaTrigger trigger;
 
         [Tooltip("Перезарядка, дней. 0 — общая по умолчанию из BalanceSettings")]

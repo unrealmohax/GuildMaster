@@ -36,7 +36,7 @@ namespace GuildMaster.Core
             Commands = new CommandQueue();
             context = new SimContext(World, Data, Calendar, Rhythm, Events, Commands);
 
-            // Стартовое состояние мира — до первого такта, своим потоком случайных чисел (ТЗ 04 → «Старт»).
+            // Стартовое состояние мира — до первого такта, своим потоком случайных чисел.
             Run(StartScenario.StreamName, StartScenario.Apply);
         }
 

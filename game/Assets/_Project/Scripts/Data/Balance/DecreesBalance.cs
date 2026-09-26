@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace GuildMaster.Data
 {
-    /// <summary>Раздел <c>Decrees</c>: сроки, цены и эффекты распоряжений (numbers.md → Распоряжения, ТЗ 12).</summary>
+    /// <summary>Раздел <c>Decrees</c>: сроки, цены и эффекты распоряжений.</summary>
     [Serializable]
     public sealed class DecreesBalance
     {

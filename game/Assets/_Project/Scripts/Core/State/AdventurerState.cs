@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace GuildMaster.Core
 {
     /// <summary>
-    /// Показатели состояния человека (ТЗ 05 → <c>AdventurerState</c>): шкалы 0..100, личные деньги, раны, занятие и флаги.
+    /// Показатели состояния человека: шкалы 0..100, личные деньги, раны, занятие и флаги.
     /// Часть мира: снаружи Core только чтение. Менять — <see cref="StateService"/>, <see cref="WalletService"/>,
     /// <see cref="HealthService"/> и системы шагов 5–7 (<see cref="ActivitySystem"/>, <see cref="StateSystem"/>,
     /// <see cref="HealthSystem"/>).
@@ -31,7 +31,7 @@ namespace GuildMaster.Core
         /// <summary>Монеты, ≥ 0.</summary>
         public int Wallet { get; internal set; }
 
-        /// <summary>Долг гильдии, монеты, ≥ 0 (дилемма «Просьба в долг», ТЗ 13).</summary>
+        /// <summary>Долг гильдии, монеты, ≥ 0 (дилемма «Просьба в долг»).</summary>
         public int DebtToGuild { get; internal set; }
 
         /// <summary>Раны в порядке получения. Увечье — не рана, а черта «Калека».</summary>

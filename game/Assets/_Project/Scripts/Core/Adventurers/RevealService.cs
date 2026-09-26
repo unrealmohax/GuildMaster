@@ -3,7 +3,7 @@ using GuildMaster.Data;
 namespace GuildMaster.Core
 {
     /// <summary>
-    /// Раскрытие скрытых черт (ТЗ 04 → «Раскрытие осей», «Эффекты и триггеры»). Системы следующих ТЗ вызывают
+    /// Раскрытие скрытых черт. Системы вызывают
     /// <see cref="TryRevealAxis"/> и <see cref="TryRevealTrait"/> в своих местах со своим триггером; раскрывается,
     /// только если триггер совпадает с триггером полюса или черты из данных. Раскрытие — важное событие с автопаузой
     /// (<see cref="AutopauseKind.TraitRevealed"/>). Нейтральная ось раскрывается сама — <see cref="AdventurerSystem"/>.
@@ -47,7 +47,7 @@ namespace GuildMaster.Core
             return true;
         }
 
-        /// <summary>Нейтральная ось раскрывается как «уравновешен»: заметное событие без автопаузы (решение 2026-09-26).</summary>
+        /// <summary>Нейтральная ось раскрывается как «уравновешен»: заметное событие без автопаузы.</summary>
         internal static bool TryRevealBalanced(SimContext ctx, Adventurer adventurer, AxisId axis)
         {
             if (adventurer.IsAxisRevealed(axis) || !AxisMath.IsNeutral(adventurer.GetAxis(axis), ctx.Data.Balance.Adventurers)) return false;

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace GuildMaster.Data
 {
-    /// <summary>Особая черта (trait-effects.md, ТЗ 04). Числа особых правил — <see cref="TraitsBalance"/>.</summary>
+    /// <summary>Особая черта. Числа особых правил — <see cref="TraitsBalance"/>.</summary>
     [CreateAssetMenu(menuName = "GuildMaster/Special Trait", fileName = "Trait")]
     public sealed class SpecialTraitDefinition : Definition
     {
