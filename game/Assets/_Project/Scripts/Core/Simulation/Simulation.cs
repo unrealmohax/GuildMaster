@@ -1,0 +1,127 @@
+using System;
+using System.Collections.Generic;
+
+namespace GuildMaster.Core
+{
+    /// <summary>
+    /// Точка входа симуляции. <see cref="Tick"/> — один игровой час: системы по порядку, затем очистка событий.
+    /// Работает без сцены и без интерфейса. То же зерно + те же команды в те же такты = тот же мир.
+    /// </summary>
+    public sealed class Simulation : ISimulationClient
+    {
+        private readonly List<ISimSystem> systems;
+        private readonly SimContext context;
+        private bool isRunning;
+
+        public Simulation(DataRegistry data, uint masterSeed, IEnumerable<ISimSystem> systems)
+        {
+            Data = data ?? throw new ArgumentNullException(nameof(data));
+            if (systems == null) throw new ArgumentNullException(nameof(systems));
+
+            this.systems = new List<ISimSystem>(systems);
+            var names = new HashSet<string>(StringComparer.Ordinal);
+            foreach (ISimSystem system in this.systems)
+            {
+                if (system == null) throw new ArgumentException("System list contains null", nameof(systems));
+                if (string.IsNullOrEmpty(system.Name)) throw new ArgumentException($"{system.GetType().Name} has no name", nameof(systems));
+                if (!names.Add(system.Name)) throw new ArgumentException($"Duplicate system name '{system.Name}'", nameof(systems));
+            }
+
+            Calendar = new Calendar(data.Balance.Time);
+            Rng = new RngService(masterSeed);
+            World = new WorldState { Time = Calendar.At(Calendar.StartTotalHours) };
+            Events = new EventBus(World);
+            Commands = new CommandQueue();
+            context = new SimContext(World, Data, Calendar, Events, Commands);
+        }
+
+        public static Simulation CreateDefault(DataRegistry data, uint masterSeed) =>
+            new Simulation(data, masterSeed, SimulationSystems.CreateDefault());
+
+        public WorldState World { get; }
+        public DataRegistry Data { get; }
+        public Calendar Calendar { get; }
+        public RngService Rng { get; }
+        public EventBus Events { get; }
+        public CommandQueue Commands { get; }
+        public IReadOnlyList<ISimSystem> Systems => systems;
+        public uint MasterSeed => Rng.MasterSeed;
+
+        /// <summary>Сколько тактов прошло с начала игры.</summary>
+        public long TicksDone { get; private set; }
+
+        /// <summary>В последнем такте система попросила паузу (автопауза). Сбрасывается <see cref="ConsumePauseRequest"/>.</summary>
+        public bool PauseRequested => context.PauseRequested;
+
+        /// <summary>
+        /// События завершённого такта — перед очисткой шины. Для лога и прогона без интерфейса.
+        /// </summary>
+        public event Action<IReadOnlyList<SimEvent>> TickCompleted;
+
+        public event Action StateChanged;
+
+        public void Send(ICommand command) => Commands.Enqueue(command);
+
+        public void Tick()
+        {
+            BeginRun();
+            try
+            {
+                foreach (ISimSystem system in systems)
+                {
+                    Run(system.Name, system.Tick);
+                }
+                TicksDone++;
+                TickCompleted?.Invoke(Events.Events);
+                Events.Clear();
+            }
+            finally
+            {
+                isRunning = false;
+            }
+            StateChanged?.Invoke();
+        }
+
+        /// <summary>
+        /// На паузе: применить команды сразу, не дожидаясь такта. Тот же поток случайных чисел, что у CommandSystem,
+        /// поэтому результат совпадает с применением в начале следующего такта. События команд уходят в лог
+        /// вместе со следующим тактом.
+        /// </summary>
+        public void ApplyCommandsNow()
+        {
+            if (Commands.Count == 0) return;
+
+            BeginRun();
+            try
+            {
+                Run(CommandSystem.SystemName, CommandSystem.ApplyPending);
+            }
+            finally
+            {
+                isRunning = false;
+            }
+            StateChanged?.Invoke();
+        }
+
+        public bool ConsumePauseRequest()
+        {
+            bool requested = context.PauseRequested;
+            context.PauseRequested = false;
+            return requested;
+        }
+
+        private void BeginRun()
+        {
+            if (isRunning) throw new InvalidOperationException("Simulation is already running a tick");
+            isRunning = true;
+        }
+
+        private void Run(string systemName, Action<SimContext> step)
+        {
+            context.CurrentSystem = systemName;
+            context.Rng = Rng.Stream(systemName);
+            Events.CurrentSource = systemName;
+            step(context);
+        }
+    }
+}

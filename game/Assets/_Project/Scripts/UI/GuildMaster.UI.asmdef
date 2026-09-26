@@ -1,0 +1,19 @@
+{
+    "name": "GuildMaster.UI",
+    "rootNamespace": "GuildMaster.UI",
+    "references": [
+        "GuildMaster.Core",
+        "GuildMaster.Data",
+        "UnityEngine.UI",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
