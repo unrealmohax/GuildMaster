@@ -13,3 +13,67 @@ MonoBehaviour:
   m_Name: GameConfig
   m_EditorClassIdentifier: GuildMaster.Data::GuildMaster.Data.GameConfig
   balance: {fileID: 11400000, guid: 6e7712fa441ee9f43931393ed011d42b, type: 2}
+  statCatalog: {fileID: 11400000, guid: b5fd9613a81940b4ab730ec4e62cf688, type: 2}
+  axes:
+  - {fileID: 11400000, guid: cdceb063848a7144ab3dc5ed0cb64c7a, type: 2}
+  - {fileID: 11400000, guid: 2e7fc0c9dca3bbe439306b4794ee3047, type: 2}
+  - {fileID: 11400000, guid: 6899941c5893fb44fb0caebccf9f3476, type: 2}
+  - {fileID: 11400000, guid: 7177603f570a29f4a9deaa20f48f0249, type: 2}
+  - {fileID: 11400000, guid: af5b7e84e708dc34da10b1623ca3a97d, type: 2}
+  - {fileID: 11400000, guid: 42d7537bb56a0764da2553ed56366feb, type: 2}
+  specialTraits:
+  - {fileID: 11400000, guid: 717045f3793725948add4589c00b8fe9, type: 2}
+  - {fileID: 11400000, guid: 29b7dc087f1d23b4f901d5927ac9a692, type: 2}
+  - {fileID: 11400000, guid: ceea213aea369814cae169b626a60d7c, type: 2}
+  - {fileID: 11400000, guid: 983d365901c5c4840b9d33c9ed50929c, type: 2}
+  - {fileID: 11400000, guid: 8dcc9c7d224f66a458c603523e3c146e, type: 2}
+  - {fileID: 11400000, guid: 8c164c525bc952944bfe956b9287053a, type: 2}
+  - {fileID: 11400000, guid: 5e697d1f05d73a142b9b765d8cd78632, type: 2}
+  - {fileID: 11400000, guid: fdb7888093bc49647adcd327642156d5, type: 2}
+  - {fileID: 11400000, guid: 868e4e45b7d12d742a94c28bf746557a, type: 2}
+  - {fileID: 11400000, guid: 26239cdb093a9db42a2981d8eae87fa9, type: 2}
+  - {fileID: 11400000, guid: 4c6dd60dae1ad264d81438bc996e8e22, type: 2}
+  - {fileID: 11400000, guid: 94d11fbc366441b488028c3d758c6eab, type: 2}
+  archetypes:
+  - {fileID: 11400000, guid: 461ef819d24ab374db72c33b49ba1db5, type: 2}
+  - {fileID: 11400000, guid: 971f37de1119f574f8743518f4633d5a, type: 2}
+  - {fileID: 11400000, guid: 2d509336dcc0434469be48dc5fca1ec5, type: 2}
+  - {fileID: 11400000, guid: 940d84b6597c09e41a12155552b97d8f, type: 2}
+  - {fileID: 11400000, guid: af850cbd7fb58cb4e8d60613422ea003, type: 2}
+  - {fileID: 11400000, guid: d0f15f0a5df35054aa34e53b43bd5c08, type: 2}
+  - {fileID: 11400000, guid: a399a9bf50b428748b0cd96fbab7d0fb, type: 2}
+  questTypes:
+  - {fileID: 11400000, guid: 4961cca86a2829d4f951a7a06b919aee, type: 2}
+  - {fileID: 11400000, guid: ea2ce9594743b434c8c1d4327fdeb7ac, type: 2}
+  - {fileID: 11400000, guid: d54e8adaf23f75f47ae62ed9893e6b72, type: 2}
+  - {fileID: 11400000, guid: ea5454937a2ebcb4c8398bfa34cfdc8e, type: 2}
+  randomEvents:
+  - {fileID: 11400000, guid: 14ce5026b6132d64cba3ad943a7afc14, type: 2}
+  - {fileID: 11400000, guid: 609c068195efceb40912bc65c28ed1b5, type: 2}
+  discoveries:
+  - {fileID: 11400000, guid: e639df07a00e4fe41afd7deb8b14a73a, type: 2}
+  buildings:
+  - {fileID: 11400000, guid: e414ea80d5323ab47a0a5e2ecc7b84ea, type: 2}
+  - {fileID: 11400000, guid: 1280228e1e37a564cad8208066ba40b3, type: 2}
+  - {fileID: 11400000, guid: d4005ca432869b34aa5dee276b7f8f64, type: 2}
+  - {fileID: 11400000, guid: adbcf068d1dbf3a48bb9fdb0ed4b5722, type: 2}
+  - {fileID: 11400000, guid: a5a7d72275b2909438879334fec95987, type: 2}
+  staffRoles:
+  - {fileID: 11400000, guid: 22d6020aee06f8545a516adab15eea5e, type: 2}
+  - {fileID: 11400000, guid: 361e83ad7413ab84983bc5e39840db0f, type: 2}
+  - {fileID: 11400000, guid: 727bea10a29b1fe41a7983472eac9e1e, type: 2}
+  decrees:
+  - {fileID: 11400000, guid: 1077a33a1b90aa2459740ad62b50ebc3, type: 2}
+  - {fileID: 11400000, guid: 958b058725d1ba244ace8b91a0b0d3b8, type: 2}
+  - {fileID: 11400000, guid: 29321e45079607a47961ded3aceb9a17, type: 2}
+  - {fileID: 11400000, guid: d939d20d5cff27444a54e0e99a0387e3, type: 2}
+  dilemmas:
+  - {fileID: 11400000, guid: 158f9c13aa6e53440b4d844ca930f99e, type: 2}
+  - {fileID: 11400000, guid: 49005a11883792842b98d49336e8ef2a, type: 2}
+  - {fileID: 11400000, guid: 74c6f668c7e6ab1468f5a36d4f5b90e0, type: 2}
+  - {fileID: 11400000, guid: cb4faecce2b03954194d23c8c6e64cd3, type: 2}
+  - {fileID: 11400000, guid: b3181989b03b2f84f8e134c4d9f54b09, type: 2}
+  - {fileID: 11400000, guid: 7f1d99eb27025de48a30c349de45792f, type: 2}
+  feedTemplates: {fileID: 11400000, guid: 18c8f1ae03d204e4c82f7d7e296cfeef, type: 2}
+  nameList: {fileID: 11400000, guid: 6f026eaa8db11cd4ea26f6687076d61d, type: 2}
+  orderTexts: {fileID: 11400000, guid: fd9b32d2496b8c8449e6c6cc71656700, type: 2}

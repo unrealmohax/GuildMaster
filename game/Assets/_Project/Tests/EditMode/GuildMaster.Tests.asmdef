@@ -4,6 +4,7 @@
     "references": [
         "GuildMaster.Core",
         "GuildMaster.Data",
+        "GuildMaster.Debugging",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

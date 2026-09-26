@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5be54e69bc05ee846804902fc176122b, type: 3}
+  m_Name: Dormitory
+  m_EditorClassIdentifier: GuildMaster.Data::GuildMaster.Data.BuildingDefinition
+  id: Dormitory
+  displayName: "\u041E\u0431\u0449\u0435\u0436\u0438\u0442\u0438\u0435"
+  nameForms:
+    nominative: "\u041E\u0431\u0449\u0435\u0436\u0438\u0442\u0438\u0435"
+    genitive: 
+    dative: 
+    accusative: 
+    instrumental: 
+    prepositional: 
+    gender: 3
+  cost: 800
+  buildDays: 10
+  upkeepPerMonth: 40
+  capacity: 10
+  builtAtStart: 0
+  staffRole: {fileID: 0}
+  levelCostMultiplier: 1.5
+  levelTimeMultiplier: 1.5

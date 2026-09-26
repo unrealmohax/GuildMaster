@@ -22,7 +22,7 @@ namespace GuildMaster.Debugging
 
         private void OnEnable()
         {
-            if (config == null) config = FindConfig();
+            if (config == null) config = EditorAssets.FindGameConfig();
             if (seed == 0) seed = HeadlessRun.NewRandomSeed();
         }
 
@@ -54,12 +54,6 @@ namespace GuildMaster.Debugging
                 "Зерно {0}: {1} тактов, {2} событий, конец — {3}, за {4:0.000} с",
                 result.Seed, result.Ticks, result.Events, result.FinalTime, result.ElapsedSeconds);
             Debug.Log("[GuildMaster] Headless run. " + report);
-        }
-
-        private static GameConfig FindConfig()
-        {
-            string[] guids = AssetDatabase.FindAssets("t:" + nameof(GameConfig));
-            return guids.Length == 0 ? null : AssetDatabase.LoadAssetAtPath<GameConfig>(AssetDatabase.GUIDToAssetPath(guids[0]));
         }
     }
 }

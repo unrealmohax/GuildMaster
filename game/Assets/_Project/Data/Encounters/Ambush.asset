@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2ffd95682974aa4c994417ca4d73770, type: 3}
+  m_Name: Ambush
+  m_EditorClassIdentifier: GuildMaster.Data::GuildMaster.Data.RandomEventDefinition
+  id: Ambush
+  displayName: "\u0417\u0430\u0441\u0430\u0434\u0430 \u0440\u0430\u0437\u0431\u043E\u0439\u043D\u0438\u043A\u043E\u0432"
+  axes: 03000000050000000400000000000000i
+  valueSource: 1
+  rankOffset:
+    min: 0
+    max: 0
+  successOutcomes: []
+  failureOutcomes:
+  - kind: 1
+    chance: 0.7
+    count: 1
+    turnsBack: 0
+    lootShareOfReward:
+      min: 0
+      max: 0
+  - kind: 2
+    chance: 0.3
+    count: 1
+    turnsBack: 1
+    lootShareOfReward:
+      min: 0
+      max: 0
+  enemies:
+  - nominative: "\u0440\u0430\u0437\u0431\u043E\u0439\u043D\u0438\u0447\u0438\u0439 \u043E\u0442\u0440\u044F\u0434"
+    genitive: 
+    dative: 
+    accusative: 
+    instrumental: 
+    prepositional: 
+    gender: 1
+  - nominative: "\u0433\u043B\u0430\u0432\u0430\u0440\u044C \u0440\u0430\u0437\u0431\u043E\u0439\u043D\u0438\u043A\u043E\u0432"
+    genitive: 
+    dative: 
+    accusative: 
+    instrumental: 
+    prepositional: 
+    gender: 1
+  startFeedKey: quest.event.ambush.start
+  successFeedKey: quest.event.ambush.success
+  failFeedKey: quest.event.ambush.fail

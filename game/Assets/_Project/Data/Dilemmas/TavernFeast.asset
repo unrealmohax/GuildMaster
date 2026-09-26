@@ -1,0 +1,94 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f2bb1b237dc2aa4f93932c2e9a120f7, type: 3}
+  m_Name: TavernFeast
+  m_EditorClassIdentifier: GuildMaster.Data::GuildMaster.Data.DilemmaDefinition
+  id: TavernFeast
+  displayName: "\u0422\u0440\u0430\u043A\u0442\u0438\u0440\u0449\u0438\u043A \u043F\u0440\u0435\u0434\u043B\u0430\u0433\u0430\u0435\u0442 \u043F\u0440\u0430\u0437\u0434\u043D\u0438\u043A"
+  number: 13
+  source: 1
+  trigger: 13
+  cooldownDays: 30
+  cooldownPerGuild: 1
+  oncePerPair: 0
+  bodyTemplate: "\u0422\u0440\u0430\u043A\u0442\u0438\u0440\u0449\u0438\u043A \u043F\u0440\u0435\u0434\u043B\u0430\u0433\u0430\u0435\u0442 \u0443\u0441\u0442\u0440\u043E\u0438\u0442\u044C \u0432\u0435\u0447\u0435\u0440: \u043B\u044E\u0434\u0438 \u043D\u0430 \u043F\u0440\u0435\u0434\u0435\u043B\u0435."
+  reasons: []
+  arrivalEffects: []
+  options:
+  - text: "\u041F\u0440\u043E\u0432\u0435\u0441\u0442\u0438 \u043F\u0440\u0430\u0437\u0434\u043D\u0438\u043A"
+    visibleConsequencesText: "\u2212{\u0441\u0443\u043C\u043C\u0430} \u0438\u0437 \u043A\u0430\u0437\u043D\u044B, \u0443 \u0432\u0441\u0435\u0445 \u0432 \u0442\u0430\u0432\u0435\u0440\u043D\u0435 \u0432\u0435\u0447\u0435\u0440\u043E\u043C \u0441\u0442\u0440\u0435\u0441\u0441 \u0441\u0438\u043B\u044C\u043D\u043E \u0441\u043F\u0430\u0434\u0451\u0442"
+    effects:
+    - kind: 0
+      target: 6
+      value: -150
+      flag: 0
+      axis: 0
+      pole: 0
+      trait: {fileID: 0}
+    - kind: 3
+      target: 4
+      value: -20
+      flag: 0
+      axis: 0
+      pole: 0
+      trait: {fileID: 0}
+    - kind: 5
+      target: 4
+      value: 2
+      flag: 0
+      axis: 0
+      pole: 0
+      trait: {fileID: 0}
+    - kind: 4
+      target: 4
+      value: 10
+      flag: 0
+      axis: 0
+      pole: 0
+      trait: {fileID: 0}
+    isRefusal: 0
+    playerSelectable: 1
+    answerFeedKey: dilemma.feast.full
+  - text: "\u0421\u043A\u0440\u043E\u043C\u043D\u043E"
+    visibleConsequencesText: "\u2212{\u0441\u0443\u043C\u043C\u0430} \u0438\u0437 \u043A\u0430\u0437\u043D\u044B, \u0443 \u0432\u0441\u0435\u0445 \u0432 \u0442\u0430\u0432\u0435\u0440\u043D\u0435 \u0432\u0435\u0447\u0435\u0440\u043E\u043C \u0441\u0442\u0440\u0435\u0441\u0441 \u043D\u0435\u043C\u043D\u043E\u0433\u043E \u0441\u043F\u0430\u0434\u0451\u0442"
+    effects:
+    - kind: 0
+      target: 6
+      value: -60
+      flag: 0
+      axis: 0
+      pole: 0
+      trait: {fileID: 0}
+    - kind: 3
+      target: 4
+      value: -8
+      flag: 0
+      axis: 0
+      pole: 0
+      trait: {fileID: 0}
+    isRefusal: 0
+    playerSelectable: 1
+    answerFeedKey: dilemma.feast.modest
+  - text: "\u041E\u0442\u043A\u0430\u0437\u0430\u0442\u044C"
+    visibleConsequencesText: "\u041D\u0438\u0447\u0435\u0433\u043E \u043D\u0435 \u0438\u0437\u043C\u0435\u043D\u0438\u0442\u0441\u044F"
+    effects:
+    - kind: 17
+      target: 5
+      value: -3
+      flag: 0
+      axis: 0
+      pole: 0
+      trait: {fileID: 0}
+    isRefusal: 1
+    playerSelectable: 1
+    answerFeedKey: dilemma.feast.refuse
+  timeoutOption: 2
