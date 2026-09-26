@@ -10,10 +10,20 @@ namespace GuildMaster.Core
 
         // Время (ТЗ 03)
         HourStarted,
+
+        /// <summary>Новые сутки, 00:00.</summary>
         DayStarted,
+
         MorningStarted,
+
+        /// <summary>Начало дневной фазы (09:00), не путать с <see cref="DayStarted"/>.</summary>
+        DaytimeStarted,
+
         EveningStarted,
         NightStarted,
         MonthStarted,
+
+        /// <summary>Игрок включил или выключил вид автопаузы (ТЗ 03).</summary>
+        AutopauseChanged,
     }
 }

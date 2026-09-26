@@ -18,3 +18,13 @@
 - Части: `GameDataGenerator.cs` — параметры, оси, черты, архетипы, типы заданий, события, постройки, персонал,
   распоряжения; `.Dilemmas.cs` — дилеммы; `.Feed.cs` — шаблоны ленты; `.Texts.cs` — имена и тексты заказов (💡 предложение).
 - После запуска — **GuildMaster → Validate Data** (или тест `DataValidatorTests.RealConfig_HasNoErrors`).
+
+### `Editor/TimeProbe.cs` — время в Play Mode из меню (GM-03)
+
+Меню **GuildMaster → Sandbox → Time**: `Log State` (время, фаза, такты, пауза, скорость, кадр), `Toggle Pause`,
+`Speed 1/2/3`, `Debug Speed`. Нужен для проверки через MCP (`execute_menu_item`), где горячие клавиши не нажать.
+
+- Редактор без фокуса не крутит кадры Play Mode: в настройках проекта `runInBackground` выключен.
+  `Toggle Run In Background` включает его на время проверки. **В редакторе это меняет и `PlayerSettings` в памяти** —
+  перед выходом из Play Mode выключить тем же пунктом (в лог пишутся оба значения) и проверить, что
+  `ProjectSettings.asset` на диске не изменился.

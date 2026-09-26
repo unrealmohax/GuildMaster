@@ -15,6 +15,7 @@ namespace GuildMaster.Core
         {
             new CommandSystem(),
             new TimeSystem(),
+            new AutopauseSystem(), // всегда последняя: видит события всех систем такта
         };
     }
 }

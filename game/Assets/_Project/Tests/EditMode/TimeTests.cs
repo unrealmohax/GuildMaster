@@ -50,11 +50,13 @@ namespace GuildMaster.Tests
             Assert.AreEqual(ticks, byHour.Count(e => e.type == SimEventType.HourStarted));
             Assert.AreEqual(31, byHour.Count(e => e.type == SimEventType.DayStarted));
             Assert.AreEqual(31, byHour.Count(e => e.type == SimEventType.MorningStarted));
+            Assert.AreEqual(31, byHour.Count(e => e.type == SimEventType.DaytimeStarted));
             Assert.AreEqual(31, byHour.Count(e => e.type == SimEventType.EveningStarted));
             Assert.AreEqual(31, byHour.Count(e => e.type == SimEventType.NightStarted));
 
             Assert.IsTrue(byHour.Where(e => e.type == SimEventType.DayStarted).All(e => e.time.Hour == 0));
             Assert.IsTrue(byHour.Where(e => e.type == SimEventType.MorningStarted).All(e => e.time.Hour == 6));
+            Assert.IsTrue(byHour.Where(e => e.type == SimEventType.DaytimeStarted).All(e => e.time.Hour == 9));
             Assert.IsTrue(byHour.Where(e => e.type == SimEventType.EveningStarted).All(e => e.time.Hour == 18));
             Assert.IsTrue(byHour.Where(e => e.type == SimEventType.NightStarted).All(e => e.time.Hour == 22));
 

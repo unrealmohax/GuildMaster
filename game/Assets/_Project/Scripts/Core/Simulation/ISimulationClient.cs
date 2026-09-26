@@ -11,6 +11,7 @@ namespace GuildMaster.Core
         WorldState World { get; }
         DataRegistry Data { get; }
         Calendar Calendar { get; }
+        DayRhythm Rhythm { get; }
 
         void Send(ICommand command);
 

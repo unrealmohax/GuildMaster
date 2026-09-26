@@ -28,11 +28,12 @@ namespace GuildMaster.Core
             }
 
             Calendar = new Calendar(data.Balance.Time);
+            Rhythm = new DayRhythm(Calendar, data.Balance.Time);
             Rng = new RngService(masterSeed);
             World = new WorldState { Time = Calendar.At(Calendar.StartTotalHours) };
             Events = new EventBus(World);
             Commands = new CommandQueue();
-            context = new SimContext(World, Data, Calendar, Events, Commands);
+            context = new SimContext(World, Data, Calendar, Rhythm, Events, Commands);
         }
 
         public static Simulation CreateDefault(DataRegistry data, uint masterSeed) =>
@@ -41,6 +42,7 @@ namespace GuildMaster.Core
         public WorldState World { get; }
         public DataRegistry Data { get; }
         public Calendar Calendar { get; }
+        public DayRhythm Rhythm { get; }
         public RngService Rng { get; }
         public EventBus Events { get; }
         public CommandQueue Commands { get; }

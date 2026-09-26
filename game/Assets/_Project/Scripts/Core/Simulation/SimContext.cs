@@ -3,11 +3,12 @@ namespace GuildMaster.Core
     /// <summary>То, с чем работает система в такте.</summary>
     public sealed class SimContext
     {
-        internal SimContext(WorldState world, DataRegistry data, Calendar calendar, EventBus events, CommandQueue commands)
+        internal SimContext(WorldState world, DataRegistry data, Calendar calendar, DayRhythm rhythm, EventBus events, CommandQueue commands)
         {
             World = world;
             Data = data;
             Calendar = calendar;
+            Rhythm = rhythm;
             Events = events;
             Commands = commands;
         }
@@ -15,6 +16,10 @@ namespace GuildMaster.Core
         public WorldState World { get; }
         public DataRegistry Data { get; }
         public Calendar Calendar { get; }
+
+        /// <summary>Фазы дня, ночлег в пути, время выхода на задание (ТЗ 03).</summary>
+        public DayRhythm Rhythm { get; }
+
         public EventBus Events { get; }
 
         /// <summary>Поток случайных чисел текущей системы.</summary>

@@ -25,7 +25,7 @@ namespace GuildMaster.Tests
         [TestCase("Data")]
         [TestCase("Core", "GuildMaster.Data")]
         [TestCase("UI", "GuildMaster.Core", "GuildMaster.Data", "UnityEngine.UI", "Unity.TextMeshPro")]
-        [TestCase("Bootstrap", "GuildMaster.Core", "GuildMaster.Data", "GuildMaster.UI")]
+        [TestCase("Bootstrap", "GuildMaster.Core", "GuildMaster.Data", "GuildMaster.UI", "Unity.InputSystem")]
         [TestCase("Debugging", "GuildMaster.Core", "GuildMaster.Data", "GuildMaster.UI")]
         public void AssemblyReferences_MatchSpec(string folder, params string[] expected)
         {
@@ -85,7 +85,7 @@ namespace GuildMaster.Tests
         [Test]
         public void WorldState_CanOnlyBeChangedFromCore()
         {
-            Type[] stateTypes = { typeof(WorldState), typeof(IdGenerator) };
+            Type[] stateTypes = { typeof(WorldState), typeof(IdGenerator), typeof(AutopauseState) };
             foreach (Type type in stateTypes)
             {
                 foreach (PropertyInfo property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
@@ -95,9 +95,13 @@ namespace GuildMaster.Tests
                 }
                 Assert.IsEmpty(type.GetFields(BindingFlags.Public | BindingFlags.Instance), $"{type.Name} has public fields");
                 Assert.IsEmpty(
-                    type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly).Where(m => !m.IsSpecialName),
+                    type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly).Where(m => !m.IsSpecialName && !IsQuery(m)),
                     $"{type.Name} has public methods that may change it");
             }
         }
+
+        /// <summary>Публичный метод части мира допустим, только если это вопрос: Is…/Has…/Get…/TryGet… с результатом.</summary>
+        private static bool IsQuery(MethodInfo method) =>
+            method.ReturnType != typeof(void) && Regex.IsMatch(method.Name, "^(Is|Has|Get|TryGet)[A-Z]");
     }
 }

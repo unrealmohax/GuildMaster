@@ -63,6 +63,31 @@ namespace GuildMaster.Tests
         }
 
         [Test]
+        public void AutopauseSystem_DoesNotShiftOtherSystems()
+        {
+            using var data = new TestData();
+
+            string Run(bool withAutopause)
+            {
+                var systems = withAutopause
+                    ? SimulationSystems.CreateDefault()
+                    : new List<ISimSystem> { new CommandSystem(), new TimeSystem() };
+                Assert.AreEqual(withAutopause, systems.Any(s => s is AutopauseSystem));
+                systems.Add(new NoiseSystem("Noise"));
+                var simulation = new Simulation(data.Registry, 9u, systems);
+                return SimulationLog.Record(simulation, sim =>
+                {
+                    sim.Send(new TraceCommand("first"));
+                    TickDays(sim, Days);
+                });
+            }
+
+            string without = Run(withAutopause: false);
+            Assert.That(CountLines(without, "] Debug "), Is.GreaterThan(Days * 24 / 5));
+            Assert.AreEqual(without, Run(withAutopause: true));
+        }
+
+        [Test]
         public void HeadlessYear_RunsUnderOneMinute()
         {
             using var data = new TestData();

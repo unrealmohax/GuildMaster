@@ -145,6 +145,8 @@ namespace GuildMaster.Debugging
                 if (hours.Any(h => h >= time.HoursPerDay)) report.Error(balance, "time", "час вне суток");
                 if (!(time.MorningHour < time.DayHour && time.DayHour < time.EveningHour && time.EveningHour < time.NightHour))
                     report.Error(balance, "time", "фазы дня не по порядку: утро < день < вечер < ночь");
+                if (!(time.MorningHour <= time.LatestDepartureHour && time.LatestDepartureHour < time.CampHour))
+                    report.Error(balance, "time", "нужно: начало утра ≤ последний час выхода < начало ночлега");
                 if (time.SpeedMultipliers.Count == 0 || time.SpeedMultipliers.Any(s => s < 1))
                     report.Error(balance, "time.speedMultipliers", "скорости — непустой список, каждая не меньше 1");
 

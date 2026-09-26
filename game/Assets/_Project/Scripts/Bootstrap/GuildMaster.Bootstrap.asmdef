@@ -4,7 +4,8 @@
     "references": [
         "GuildMaster.Core",
         "GuildMaster.Data",
-        "GuildMaster.UI"
+        "GuildMaster.UI",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

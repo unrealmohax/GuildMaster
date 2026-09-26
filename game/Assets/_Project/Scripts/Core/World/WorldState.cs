@@ -11,5 +11,8 @@ namespace GuildMaster.Core
         public GameTime Time { get; internal set; }
 
         public IdGenerator Ids { get; } = new IdGenerator();
+
+        /// <summary>Переключатели автопаузы и её последняя причина (ТЗ 03).</summary>
+        public AutopauseState Autopause { get; } = new AutopauseState();
     }
 }
