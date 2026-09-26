@@ -68,6 +68,12 @@ namespace GuildMaster.Core
         /// <summary>Корневой ассет; <c>null</c>, если реестр собран только из чисел.</summary>
         public GameConfig Config { get; }
 
+        /// <summary>
+        /// Есть определения (реестр собран из <see cref="GameConfig"/>). Реестр только из чисел — симуляция без людей:
+        /// старт и приток авантюристов (ТЗ 04) пропускаются, это нужно тестам времени и случайности.
+        /// </summary>
+        public bool HasDefinitions => Config != null;
+
         public StatCatalog Stats { get; }
         public NameList Names { get; }
         public OrderTextTemplates OrderTexts { get; }

@@ -85,7 +85,12 @@ namespace GuildMaster.Tests
         [Test]
         public void WorldState_CanOnlyBeChangedFromCore()
         {
-            Type[] stateTypes = { typeof(WorldState), typeof(IdGenerator), typeof(AutopauseState) };
+            Type[] stateTypes =
+            {
+                typeof(WorldState), typeof(IdGenerator), typeof(AutopauseState),
+                typeof(AdventurerRoster), typeof(Adventurer), typeof(AdventurerState), typeof(TraitInstance), typeof(Candidate),
+                typeof(RelationBook), typeof(Relation),
+            };
             foreach (Type type in stateTypes)
             {
                 foreach (PropertyInfo property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))

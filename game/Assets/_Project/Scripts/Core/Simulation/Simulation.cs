@@ -6,6 +6,7 @@ namespace GuildMaster.Core
     /// <summary>
     /// Точка входа симуляции. <see cref="Tick"/> — один игровой час: системы по порядку, затем очистка событий.
     /// Работает без сцены и без интерфейса. То же зерно + те же команды в те же такты = тот же мир.
+    /// При создании готовит стартовое состояние (<see cref="StartScenario"/>: стартовые авантюристы).
     /// </summary>
     public sealed class Simulation : ISimulationClient
     {
@@ -34,6 +35,9 @@ namespace GuildMaster.Core
             Events = new EventBus(World);
             Commands = new CommandQueue();
             context = new SimContext(World, Data, Calendar, Rhythm, Events, Commands);
+
+            // Стартовое состояние мира — до первого такта, своим потоком случайных чисел (ТЗ 04 → «Старт»).
+            Run(StartScenario.StreamName, StartScenario.Apply);
         }
 
         public static Simulation CreateDefault(DataRegistry data, uint masterSeed) =>

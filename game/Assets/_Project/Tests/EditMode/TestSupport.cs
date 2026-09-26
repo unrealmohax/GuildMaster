@@ -73,6 +73,53 @@ namespace GuildMaster.Tests
         }
     }
 
+    /// <summary>Команда-обёртка: выполнить действие с контекстом такта — вызвать службу Core так, как её вызовет система.</summary>
+    internal sealed class ActionCommand : ICommand
+    {
+        private readonly Action<SimContext> action;
+
+        public ActionCommand(Action<SimContext> action)
+        {
+            this.action = action;
+        }
+
+        public void Apply(SimContext ctx) => action(ctx);
+    }
+
+    internal static class SimulationRun
+    {
+        /// <summary>Выполнить действие сразу, как команду на паузе. События — в <c>simulation.Events</c> до следующего такта.</summary>
+        public static void Do(Simulation simulation, Action<SimContext> action)
+        {
+            simulation.Send(new ActionCommand(action));
+            simulation.ApplyCommandsNow();
+        }
+
+        public static void Days(Simulation simulation, int days)
+        {
+            long ticks = simulation.Calendar.DaysToHours(days);
+            for (long i = 0; i < ticks; i++) simulation.Tick();
+        }
+
+        /// <summary>Все события прогона.</summary>
+        public static List<SimEvent> Collect(Simulation simulation, Action<Simulation> run)
+        {
+            var events = new List<SimEvent>();
+            void Append(IReadOnlyList<SimEvent> tickEvents) => events.AddRange(tickEvents);
+
+            simulation.TickCompleted += Append;
+            try
+            {
+                run(simulation);
+            }
+            finally
+            {
+                simulation.TickCompleted -= Append;
+            }
+            return events;
+        }
+    }
+
     internal static class SimulationLog
     {
         /// <summary>Все события прогона строками лога.</summary>

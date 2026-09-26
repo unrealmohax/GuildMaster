@@ -12,8 +12,11 @@ namespace GuildMaster.Core
         public static IReadOnlyDictionary<SimEventType, AutopauseKind> Default { get; } =
             new Dictionary<SimEventType, AutopauseKind>
             {
-                // Пока пусто: событий из таблицы ещё нет. Ждут — ТЗ 04 (раскрытие черты), 05 (уход из гильдии),
-                // 09 (гибель, бегство, катастрофа, отступление), 10 (увольнение, банкротство), 13 (обращение).
+                { SimEventType.AxisRevealed, AutopauseKind.TraitRevealed },
+                { SimEventType.TraitRevealed, AutopauseKind.TraitRevealed },
+
+                // Ждут: ТЗ 05 (уход из гильдии), 09 (гибель, бегство, катастрофа, отступление), 10 (увольнение,
+                // банкротство), 13 (обращение).
             };
     }
 }

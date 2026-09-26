@@ -7,7 +7,8 @@ namespace GuildMaster.Core
     ///  1. CommandSystem   2. TimeSystem      3. OrderSystem     4. QuestSystem
     ///  5. ActivitySystem  6. StateSystem     7. HealthSystem    8. DecisionSystem
     ///  9. PartySystem    10. DilemmaSystem  11. EconomySystem  12. BuildingSystem, StaffSystem
-    /// 13. RecruitSystem  14. DecreeSystem   15. FeedSystem     16. AutopauseSystem
+    /// 13. AdventurerSystem, RecruitSystem   14. DecreeSystem   15. FeedSystem     16. AutopauseSystem
+    /// Шаг 13 дополнен AdventurerSystem (решение 2026-09-26).
     /// </summary>
     public static class SimulationSystems
     {
@@ -15,6 +16,8 @@ namespace GuildMaster.Core
         {
             new CommandSystem(),
             new TimeSystem(),
+            new AdventurerSystem(),
+            new RecruitSystem(),
             new AutopauseSystem(), // всегда последняя: видит события всех систем такта
         };
     }
