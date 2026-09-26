@@ -34,10 +34,10 @@
 | `BuildingDefinition` | 5 | [numbers.md](../docs/content/numbers.md) |
 | `StaffRoleDefinition` | 3 | [staff.md](../docs/mechanics/staff.md), [numbers.md](../docs/content/numbers.md) |
 | `DecreeDefinition` | 4 | [laws.md](../docs/mechanics/laws.md), [numbers.md](../docs/content/numbers.md) |
-| `DilemmaDefinition` | 6 | [dilemmas.md](../docs/mechanics/dilemmas.md), ТЗ 13 |
+| `DilemmaDefinition` | 6 | [dilemmas.md](../docs/mechanics/dilemmas.md) |
 | `FeedTemplateSet` | 1 | [event-feed.md](../docs/content/event-feed.md) |
 | `NameList` | 1 | новое |
-| `OrderTextTemplates` | 1 | новое, ТЗ 08 |
+| `OrderTextTemplates` | 1 | новое |
 
 ## Классы
 
@@ -65,7 +65,7 @@
 
 - `axisId`, `displayName`, `negativePoleName`, `positivePoleName`.
 - Для **каждого полюса** — список эффектов (`TraitEffect`, см. ниже).
-- Для каждого полюса — `revealTrigger` (id триггера раскрытия, ТЗ 04) и `revealFeedKey` (строка раскрытия, ТЗ 14).
+- Для каждого полюса — `revealTrigger` (id триггера раскрытия, ТЗ 04) и `revealFeedKey` (строка раскрытия).
 
 ### `SpecialTraitDefinition`
 
@@ -100,11 +100,11 @@
 ### `QuestTypeDefinition`
 
 - `questTypeId`, `displayName`.
-- `mainAxes`, `secondaryAxes` — шаблон профиля (ТЗ 08).
+- `mainAxes`, `secondaryAxes` — шаблон профиля.
 - `roundHours` — длительность раунда.
 - `maxPartySizeCeiling` — потолок размера группы (0 = нет). В прототипе — 0 у всех типов, доставка тоже (решение 2026-09-26).
 - `statCeilings` — список «параметр → предел по рангам» (в прототипе пусто, но движок поддерживает).
-- Ключи строк ленты: успех раунда, провал раунда (ТЗ 14).
+- Ключи строк ленты: успех раунда, провал раунда.
 
 ### `RandomEventDefinition` / `DiscoveryDefinition`
 
@@ -115,24 +115,24 @@
 
 - `buildingId`, `displayName`, `cost`, `buildDays`, `upkeepPerMonth`, `capacity`, `builtAtStart`.
 - `staffRole` — какая должность работает здесь (или пусто).
-- `levelCostMultiplier`, `levelTimeMultiplier` — для улучшения (в прототипе улучшение не обязательно, см. ТЗ 11).
+- `levelCostMultiplier`, `levelTimeMultiplier` — для улучшения (в прототипе улучшение не обязательно).
 
 ### `StaffRoleDefinition`
 
-- `roleId`, `displayName`, `baseSalary`, `requiredBuilding`, описание эффекта уровня (ТЗ 11).
+- `roleId`, `displayName`, `baseSalary`, `requiredBuilding`, описание эффекта уровня.
 
 ### `DecreeDefinition`
 
 - `decreeId`, `lawNumber` (номер из [laws.md](../docs/mechanics/laws.md)), `displayName`, `description`, `plusText`, `minusText`.
 - `scopeKind`: `None`, `Ranks`.
 - `allowedDurations`: бессрочно, 7 дней, 30 дней.
-- `isBenefit` — отключение вызывает недовольство (ТЗ 12).
+- `isBenefit` — отключение вызывает недовольство.
 - Параметры эффекта (цены, множители) — из `BalanceSettings`.
 
 ### `DilemmaDefinition`
 
 - `dilemmaId`, `number` (из [dilemmas.md](../docs/mechanics/dilemmas.md)), `title`, `source` (авантюрист / персонал).
-- `triggerId` — код триггера (ТЗ 13), `cooldownDays`.
+- `triggerId` — код триггера, `cooldownDays`.
 - `bodyTemplate` — текст с подстановками.
 - `options` — 2–3 варианта: `text`, `visibleConsequencesText`, `effects` (id эффектов + параметры), `isRefusal`.
 - `timeoutOption` — какой вариант срабатывает без ответа (в прототипе — отказ).
@@ -140,7 +140,7 @@
 ### `FeedTemplateSet`
 
 - Список `FeedTemplate`: `key`, `feed` (`Quest` / `Guild`), `importance` (`Normal` / `Notable` / `Important`), `conditions` (соло, далеко, архетип, раскрытая черта), `variants` (строки).
-- Заполняется из [event-feed.md](../docs/content/event-feed.md) один в один. Формат строк и подстановок — ТЗ 14.
+- Заполняется из [event-feed.md](../docs/content/event-feed.md) один в один.
 
 ### `NameList`
 
@@ -149,7 +149,7 @@
 
 ### `OrderTextTemplates`
 
-- Заказчики, места, враги по типам заданий; шаблоны описаний; **намёки по осям** (ТЗ 08).
+- Заказчики, места, враги по типам заданий; шаблоны описаний; **намёки по осям**.
 
 ### `BalanceSettings`
 
@@ -167,7 +167,7 @@
 | `Expenses` | расходы авантюристов |
 | `State` | усталость, стресс, довольство, лояльность, кошелёк |
 | `Health` | сроки ран, эффект Лазарета, осложнения, увечье |
-| `Decisions` | вероятность второго варианта, множители стрелок, ошибки оценки риска, формулы ценности (ТЗ 06) |
+| `Decisions` | вероятность второго варианта, множители стрелок, ошибки оценки риска, формулы ценности |
 | `Tension` | паника, бегство, бросок вперёд, геройство |
 | `Guild` | стартовые деньги и репутация, репутация за исходы, приток людей, максимум людей |
 | `Staff` | зарплаты, диапазон уровня кандидатов |
