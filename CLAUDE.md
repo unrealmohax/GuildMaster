@@ -109,8 +109,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   вызвать через `execute_menu_item`, проверить результат, удалить скрипт.
 - **Компонент не читается** через ресурс `mcpforunity://scene/gameobject/{id}/component/{name}` — та же ошибка.
   **Обход:** сохранить сцену (если её и так меняли по задаче) и проверить YAML.
-- **`read_console` не видит обычные `Debug.Log`** — только предупреждения и ошибки (возможно, в окне Console
-  выключен фильтр Info). Подтвердить работу по логу в Play Mode не получается; видно только отсутствие ошибок.
+- **`read_console` по умолчанию не показывает `Debug.Log`.** С `types: ["all"]` обычные логи видны (GM-02).
+  Но `Debug.LogWarning`/`LogError` с объектом-контекстом (`Debug.LogWarning(текст, ассет)`) не видны ни с каким
+  фильтром — полный отчёт в таких случаях читать через вывод теста (`run_tests` с `include_details`).
 - `manage_asset move` может вернуть ошибку, хотя перенос прошёл — проверять по диску и Build Settings.
 
 ## Claude-хозяйство: `.claude/`
@@ -137,4 +138,4 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Артефакты в репозитории
 
 Знания и инструкции — в `.claude/`, всё, что Claude *делает*, — в песочнице
-`game/Assets/_Project/ClaudeSandbox/` (её `README.md` перечисляет содержимое). Сейчас там пусто.
+`game/Assets/_Project/ClaudeSandbox/` (её `README.md` перечисляет содержимое). Сейчас там — генератор ассетов данных (GM-02).

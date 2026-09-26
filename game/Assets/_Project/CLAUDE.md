@@ -1,14 +1,21 @@
 # Код игры: архитектура
 
-Правила работы — в корневом `CLAUDE.md`. Здесь — устройство кода игры. Задание на архитектуру —
-`TechJob/01-architecture.md` (GM-01); этот файл описывает, как оно реализовано.
+Правила работы — в корневом `CLAUDE.md`. Здесь — устройство кода игры. Задания — `TechJob/01-architecture.md`
+(GM-01, архитектура), `TechJob/02-data.md` (GM-02, данные); этот файл описывает, как они реализованы.
 
 ## Где что лежит
 
 ```
 _Project/
 ├── Scripts/
-│   ├── Data/        GuildMaster.Data      — ScriptableObject: GameConfig, BalanceSettings (+ разделы)
+│   ├── Data/        GuildMaster.Data      — определения и числа (ScriptableObject)
+│   │   ├── GameConfig.cs    корневой ассет: ссылки на всё остальное
+│   │   ├── Balance/         BalanceSettings + 18 разделов (TimeBalance, OrdersBalance, …)
+│   │   ├── Definitions/     Axis, SpecialTrait (+ TraitEffect), Archetype, QuestType, RandomEvent, Discovery,
+│   │   │                    Building, StaffRole, Decree, Dilemma, StatCatalog
+│   │   ├── Text/            FeedTemplateSet, NameList, OrderTextTemplates, TextPlaceholders (словарь меток)
+│   │   ├── Vocabulary/      перечисления словаря TechJob/README.md и кодовые id правил
+│   │   └── Common/          Definition (id + displayName), NounForms (6 падежей), IntRange, FloatRange
 │   ├── Core/        GuildMaster.Core      — симуляция на обычном C#
 │   │   ├── Simulation/  Simulation, SimContext, ISimSystem, DataRegistry, ISimulationClient, SimulationSystems
 │   │   ├── Time/        GameTime, Calendar, TimeSystem
@@ -18,8 +25,11 @@ _Project/
 │   │   └── World/       WorldState, IdGenerator
 │   ├── UI/          GuildMaster.UI        — UiRoot (экраны — ТЗ 15)
 │   ├── Bootstrap/   GuildMaster.Bootstrap — GameRunner
-│   └── Debugging/   GuildMaster.Debugging — HeadlessRun, окно GuildMaster → Run Headless…
-├── Data/            GameConfig.asset, BalanceSettings.asset
+│   └── Debugging/   GuildMaster.Debugging — HeadlessRun, окно GuildMaster → Run Headless…,
+│                    Validation/ (DataValidator, меню GuildMaster → Validate Data), EditorAssets
+├── Data/            GameConfig, BalanceSettings, StatCatalog + папки Axes, Traits, Archetypes, QuestTypes,
+│                    Encounters, Buildings, Staff, Decrees, Dilemmas, Text (FeedTemplates, NameList, OrderTextTemplates)
+├── ClaudeSandbox/   песочница Claude; Editor/GameDataGenerator — генератор ассетов данных (см. её README)
 ├── Prefabs/UI/
 ├── Scenes/Main.unity  — единственная сцена: Main Camera, Global Light 2D, UI (Canvas + UiRoot), EventSystem, GameRunner
 └── Tests/EditMode/  GuildMaster.Tests
@@ -34,7 +44,7 @@ _Project/
 | `GuildMaster.UI` | Core, Data, UnityEngine.UI, Unity.TextMeshPro | Читает мир, отправляет команды |
 | `GuildMaster.Bootstrap` | Core, Data, UI | Создаёт симуляцию, крутит такты |
 | `GuildMaster.Debugging` | Core, Data, UI | Отладка; Editor-код — под `#if UNITY_EDITOR` |
-| `GuildMaster.Tests` | Core, Data | EditMode; видит internal Core (`InternalsVisibleTo`) |
+| `GuildMaster.Tests` | Core, Data, Debugging | EditMode; видит internal Core (`InternalsVisibleTo`) |
 
 Правила проверяются тестами `ArchitectureTests`: ссылки asmdef, отсутствие Unity-объектов в Core,
 поиск запрещённых API в исходниках Core, отсутствие публичных сеттеров у `WorldState`.
@@ -70,12 +80,37 @@ _Project/
 
 ## Данные
 
-`DataRegistry` строится из `GameConfig` (`DataRegistry.FromConfig`) или прямо из `BalanceSettings` (тесты).
-Сейчас в `BalanceSettings` только раздел `Time` — нужный такту; остальное — ТЗ 02. Ассеты во время игры
-не меняются.
+- **ScriptableObject — только определения и числа**, не текущее состояние; во время игры не меняются.
+  Поля — `[SerializeField] private` + геттеры; сеттеров нет. У определения (`Definition`) — неизменный `id`
+  латиницей и `displayName`; `GameConfig` ссылается на всё, новое определение попадает в игру только через него.
+- **`DataRegistry`** (Core) строится из `GameConfig` (`FromConfig`) или только из `BalanceSettings` (тесты).
+  `Get<T>(id)` / `TryGet<T>(id)` — поиск среди определений своего вида; `All<T>()`, `Axis(AxisId)`,
+  `FeedTemplates(ключ)`, `Stats`, `Names`, `OrderTexts`. Дубль id или пустая ссылка в списке — исключение при сборке.
+- **Числа баланса — только в `BalanceSettings`**, в Core констант нет. Разделы повторяют numbers.md
+  (плюс раздел `Traits` — числа особых правил черт). Значения по умолчанию в коде = стартовые числа из документов:
+  ими заполняется новый ассет и `TestData`; дальше источник истины — ассет. Числа вариантов дилемм — в самих
+  `DilemmaDefinition` (решение 2026-09-26); сила эффектов черт — стрелками или долями в `TraitEffect`.
+- **Перечисления, записанные в ассетах** (`StatId`, `AxisId`, `TraitHook`, `RevealTrigger`, `DilemmaEffectKind`…),
+  хранятся числами: новые значения — только в конец, существующие не переставлять.
+- **Кодовые id правил**: особые правила черт — `TraitHook`, триггеры раскрытия — `RevealTrigger`, триггеры дилемм —
+  `DilemmaTrigger`. Данные говорят «какое правило», код реализует его в своей системе (ТЗ 04, 09, 13).
+- **Тексты**: подстановки `{имя}`, `{место:р}`, род `[м|ж]`, `[его|её]@имя` (ТЗ 14). Словарь меток —
+  `TextPlaceholders`. У имён, мест, врагов, построек, распоряжений — `NounForms` (6 падежей); заполнен пока
+  только именительный и род (`GrammaticalGender`), остальное и падежи в шаблонах — GM-14. Скобка рода у названий — `[м|ж|ср|мн]@постройка` (решение 2026-09-26). Ключи ленты (`quest.departed`, `reveal.risk.negative`…)
+  — строки; определения ссылаются на них полями `…FeedKey`.
+- **Валидатор** — GuildMaster → Validate Data (`DataValidator.Validate(config)`): обход сериализуемых полей
+  отражением (пустые ссылки, кроме `[OptionalReference]`; `[Range]`/`[Min]`; `IntRange`/`FloatRange` с min > max),
+  дубли id, связи (постройка ↔ должность, ключи ленты, шансы исходов в сумме 1…), разметка текстов.
+  Ошибка — данные битые; предупреждение — подозрительно (сейчас 17: скобки рода без человека в предложении — GM-14).
+  Консоль MCP видит итоговую строку только в `read_console` с `types: ["all"]`; полный отчёт — вывод теста
+  `DataValidatorTests.RealConfig_HasNoErrors`.
+- **Ассеты заполняет генератор в песочнице** (GuildMaster → Sandbox → Generate Game Data); он перезаписывает
+  определения и тексты, баланс не трогает.
 
 ## Тесты
 
-`Tests/EditMode`: `RngTests`, `TimeTests`, `SimulationTests`, `DeterminismTests`, `ArchitectureTests`.
+`Tests/EditMode`: `RngTests`, `TimeTests`, `SimulationTests`, `DeterminismTests`, `ArchitectureTests`,
+`DataTests.cs` (`DataValidatorTests`, `DataRegistryTests`, `BalanceRuntimeTests`).
 Помощники — `TestSupport.cs`: `TestData` (BalanceSettings без ассета), `NoiseSystem`, `TraceCommand`,
-`SimulationLog.Record` (лог событий прогона строкой). Запуск — Test Runner или MCP `run_tests`.
+`SimulationLog.Record` (лог событий прогона строкой); `DataTests.cs`: `GameData` — реальный `GameConfig`
+и копии ассетов в памяти для порчи (`Copy`, `Edit` через `SerializedObject`). Запуск — Test Runner или MCP `run_tests`.
