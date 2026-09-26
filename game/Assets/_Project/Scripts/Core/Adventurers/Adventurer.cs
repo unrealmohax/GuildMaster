@@ -30,7 +30,7 @@ namespace GuildMaster.Core
     /// Авантюрист (ТЗ 04 → «Модель данных»). Часть мира: снаружи Core только чтение, менять — системами и службами Core
     /// (<see cref="Growth"/>, <see cref="TraitService"/>, <see cref="RevealService"/>, <see cref="GuildRanks"/>…).
     /// Параметры — базовые значения по <see cref="StatId"/>; эффективные — <see cref="AdventurerStats"/>.
-    /// Поля чужих ТЗ (занятие — 06, группа — 07, память — 13) заводятся в своих задачах.
+    /// Поля чужих ТЗ (группа — 07, память — 13) заводятся в своих задачах; занятие — в <see cref="AdventurerState"/> (заглушка GM-05).
     /// </summary>
     public sealed class Adventurer
     {
@@ -77,7 +77,7 @@ namespace GuildMaster.Core
         /// <summary>Ранг характеристик — оценка лучшей роли (у Мастера на все руки — среднее всех 14).</summary>
         public float PowerScore { get; internal set; }
 
-        /// <summary>Показатели состояния (ТЗ 05). Пока только кошелёк — он нужен при генерации.</summary>
+        /// <summary>Показатели состояния, раны, занятие (ТЗ 05).</summary>
         public AdventurerState State { get; } = new AdventurerState();
 
         public Housing Housing { get; internal set; }
@@ -124,19 +124,5 @@ namespace GuildMaster.Core
         internal void AddTrait(TraitInstance trait) => traits.Add(trait);
 
         internal bool RemoveTrait(TraitInstance trait) => traits.Remove(trait);
-    }
-
-    /// <summary>
-    /// Показатели состояния человека (ТЗ 05 → <c>AdventurerState</c>). В GM-04 — только кошелёк; усталость, стресс,
-    /// довольство, лояльность, долг, раны добавит GM-05.
-    /// </summary>
-    public sealed class AdventurerState
-    {
-        internal AdventurerState()
-        {
-        }
-
-        /// <summary>Монеты, ≥ 0.</summary>
-        public int Wallet { get; internal set; }
     }
 }

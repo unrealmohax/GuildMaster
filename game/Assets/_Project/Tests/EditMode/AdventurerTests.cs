@@ -361,6 +361,11 @@ namespace GuildMaster.Tests
             text.Append(" stats ").Append(string.Join(",", a.Stats.Select(v => v.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture))));
             text.Append(" axes ").Append(string.Join(",", a.Axes.Select(v => v.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture))));
             text.Append(" traits ").Append(string.Join(",", a.Traits.Select(t => $"{t.TraitId}{(t.PartnerId != 0 ? "@" + t.PartnerId : "")}{(t.Revealed ? "!" : "")}")));
+            AdventurerState s = a.State;
+            text.Append(FormattableString.Invariant(
+                $" state F{s.Fatigue:0.###} S{s.Stress:0.###} C{s.Contentment:0.###} L{s.Loyalty:0.###} debt {s.DebtToGuild} {s.Activity} {s.Breakdown}{(s.IsWalletEmpty ? " empty" : "")}"));
+            text.Append(" wounds ").Append(string.Join(",", s.Conditions.Select(c =>
+                FormattableString.Invariant($"{c.Kind}:{c.RemainingDays:0.###}/{c.Days}{(c.IsComplicated ? "+" : "")}"))));
             text.Append('\n');
         }
     }

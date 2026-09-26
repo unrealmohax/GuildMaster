@@ -14,9 +14,9 @@ namespace GuildMaster.Core
             {
                 { SimEventType.AxisRevealed, AutopauseKind.TraitRevealed },
                 { SimEventType.TraitRevealed, AutopauseKind.TraitRevealed },
+                { SimEventType.AdventurerLeft, AutopauseKind.MemberLeftGuild },
 
-                // Ждут: ТЗ 05 (уход из гильдии), 09 (гибель, бегство, катастрофа, отступление), 10 (увольнение,
-                // банкротство), 13 (обращение).
+                // Ждут: ТЗ 09 (гибель, бегство, катастрофа, отступление), 10 (увольнение, банкротство), 13 (обращение).
             };
     }
 }

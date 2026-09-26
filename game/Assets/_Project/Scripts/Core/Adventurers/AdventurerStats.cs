@@ -8,7 +8,7 @@ namespace GuildMaster.Core
     /// <list type="bullet">
     /// <item><b>Постоянные</b> модификаторы (Калека −30%) не опускают параметр ниже естественного минимума (10) и входят
     /// в расчёт архетипа (решение 2026-09-26).</item>
-    /// <item><b>Временные</b> (лёгкая рана, усталость — ТЗ 05; паника — ТЗ 09) могут опустить ниже 10 и в архетип не входят.</item>
+    /// <item><b>Временные</b> (лёгкая рана, усталость выше 70 — ТЗ 05; паника — ТЗ 09) могут опустить ниже 10 и в архетип не входят.</item>
     /// </list>
     /// Новый модификатор — одна строка в <see cref="PermanentModifiers"/> или <see cref="TemporaryModifiers"/>.
     /// </summary>
@@ -24,7 +24,8 @@ namespace GuildMaster.Core
 
         private static readonly StatModifier[] TemporaryModifiers =
         {
-            // ТЗ 05: лёгкая рана (профиль × lightWoundProfileMultiplier), усталость выше порога (× fatigueProfileMultiplier).
+            LightWoundMultiplier,
+            FatigueMultiplier,
         };
 
         /// <summary>Базовое × постоянные модификаторы, не ниже естественного минимума. По нему считается архетип.</summary>
@@ -54,6 +55,14 @@ namespace GuildMaster.Core
             foreach (StatModifier modifier in modifiers) product *= modifier(adventurer, stat, data);
             return product;
         }
+
+        /// <summary>❔ Лёгкая рана (ТЗ 05): весь профиль × <c>lightWoundProfileMultiplier</c> (0,85).</summary>
+        private static float LightWoundMultiplier(Adventurer adventurer, StatId stat, DataRegistry data) =>
+            adventurer.State.HasLightWound() ? data.Balance.Health.LightWoundProfileMultiplier : 1f;
+
+        /// <summary>Усталость выше <c>fatigueProfileThreshold</c> (ТЗ 05): весь профиль × <c>fatigueProfileMultiplier</c> (0,8).</summary>
+        private static float FatigueMultiplier(Adventurer adventurer, StatId stat, DataRegistry data) =>
+            StateRules.IsFatigueLowersProfile(adventurer.State, data.Balance.State) ? data.Balance.State.FatigueProfileMultiplier : 1f;
 
         /// <summary>Эффект черты <c>ProfileMultiplier</c> на выбранный при появлении параметр (Калека).</summary>
         private static float TraitProfileMultiplier(Adventurer adventurer, StatId stat, DataRegistry data)

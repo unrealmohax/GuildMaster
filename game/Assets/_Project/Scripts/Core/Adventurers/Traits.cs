@@ -77,6 +77,16 @@ namespace GuildMaster.Core
             return null;
         }
 
+        /// <summary>Черта человека с кодовым правилом <paramref name="hook"/> (Пьяница, Семейный…); null — нет такой.</summary>
+        public static TraitInstance FindWithHook(Adventurer adventurer, TraitHook hook, DataRegistry data)
+        {
+            foreach (TraitInstance instance in adventurer.Traits)
+            {
+                if (data.Get<SpecialTraitDefinition>(instance.TraitId).HasHook(hook)) return instance;
+            }
+            return null;
+        }
+
         private static bool Contains(IReadOnlyList<SpecialTraitDefinition> list, SpecialTraitDefinition trait)
         {
             for (int i = 0; i < list.Count; i++)
@@ -91,7 +101,7 @@ namespace GuildMaster.Core
     /// Появление и снятие особых черт в игре (ТЗ 04). Когда черта появляется (увечье, гибель друга, проверка месяца) —
     /// решают системы ТЗ 05, 09; их эффекты в чужих системах (паника, бегство, таверна, стресс, лояльность) — там же.
     /// Здесь: правила сочетания и замены, партнёр, выбор параметра Калеки, раскрытие «сразу при появлении»,
-    /// Слаженность Проверенного.
+    /// лояльность и Слаженность Проверенного.
     /// </summary>
     public static class TraitService
     {
@@ -122,9 +132,12 @@ namespace GuildMaster.Core
 
             if (trait.RevealTrigger == RevealTrigger.OnAcquire) RevealService.Reveal(ctx, adventurer, instance, trait);
 
-            // ❔ Проверенный: Слаженность +5. Лояльность +10 — ТЗ 05, когда появится лояльность (решение 2026-09-26).
+            // ❔ Проверенный: лояльность +10 (ТЗ 05), Слаженность +5.
             if (trait.HasHook(TraitHook.TestedOnAcquire))
+            {
+                StateService.ChangeLoyalty(ctx, adventurer, ctx.Data.Balance.Traits.TestedLoyaltyBonus);
                 Growth.AddBonus(ctx, adventurer, StatId.Cohesion, ctx.Data.Balance.Traits.TestedCohesionBonus);
+            }
 
             if (affected.HasValue || (replaced?.AffectedStat.HasValue ?? false)) ArchetypeService.Recalculate(ctx, adventurer);
             return true;

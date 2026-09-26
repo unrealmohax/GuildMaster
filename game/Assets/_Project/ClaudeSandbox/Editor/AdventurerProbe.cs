@@ -11,7 +11,7 @@ using UnityEngine;
 namespace GuildMaster.ClaudeSandbox
 {
     /// <summary>
-    /// Песочница (GM-04). Люди гильдии в консоль и ответ кандидату из меню — для проверки через MCP
+    /// Песочница (GM-04, состояние — GM-05). Люди гильдии в консоль и ответ кандидату из меню — для проверки через MCP
     /// (<c>execute_menu_item</c>, <c>read_console</c> с <c>types: ["all"]</c>). Меню: GuildMaster → Sandbox → Adventurers.
     /// </summary>
     public static class AdventurerProbe
@@ -97,9 +97,28 @@ namespace GuildMaster.ClaudeSandbox
                 text.Append("    traits ").Append(string.Join(", ", a.Traits.Select(t =>
                     t.TraitId + (t.PartnerId != 0 ? $"@#{t.PartnerId}" : "") + (t.AffectedStat.HasValue ? $"[{t.AffectedStat}]" : "") + (t.Revealed ? "!" : " (hidden)")))).Append('\n');
             }
+            text.Append("    ").Append(DescribeState(a, data)).Append('\n');
         }
 
-        private static bool TryGetRunner(out GameRunner runner)
+        /// <summary>Состояние (GM-05) одной строкой: занятие, шкалы, лояльность словами, деньги, флаги, раны.</summary>
+        internal static string DescribeState(Adventurer a, DataRegistry data)
+        {
+            AdventurerState s = a.State;
+            var text = new StringBuilder();
+            text.Append($"state {s.Activity}: fatigue {s.Fatigue:0.#}, stress {s.Stress:0.#}, contentment {s.Contentment:0.#}, ")
+                .Append($"loyalty {s.Loyalty:0.#} «{StateRules.LoyaltyWord(s.Loyalty, a.Gender, data.Balance.State)}», wallet {s.Wallet}, debt {s.DebtToGuild}");
+            if (s.IsWalletEmpty) text.Append(", wallet empty");
+            if (s.Breakdown != BreakdownKind.None) text.Append($", breakdown {s.Breakdown} until {s.BreakdownEndsAtHours}h");
+            if (s.InInfirmary) text.Append(", in infirmary");
+            if (s.Conditions.Count > 0)
+            {
+                text.Append(", wounds ").Append(string.Join(" ", s.Conditions.Select(c =>
+                    $"{c.Kind} {c.RemainingDays:0.#}/{c.Days}d{(c.IsComplicated ? " complicated" : "")}")));
+            }
+            return text.ToString();
+        }
+
+        internal static bool TryGetRunner(out GameRunner runner)
         {
             runner = EditorApplication.isPlaying ? Object.FindFirstObjectByType<GameRunner>() : null;
             if (runner != null && runner.Simulation != null) return true;

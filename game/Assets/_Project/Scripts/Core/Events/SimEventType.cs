@@ -1,7 +1,7 @@
 namespace GuildMaster.Core
 {
     /// <summary>
-    /// Типы событий симуляции. Системы добавляют свои типы в своих ТЗ (08–13).
+    /// Типы событий симуляции. Системы добавляют свои типы в своих ТЗ (08–13), новые — в конец.
     /// </summary>
     public enum SimEventType
     {
@@ -57,5 +57,31 @@ namespace GuildMaster.Core
 
         /// <summary>Повышение ранга гильдии.</summary>
         RankPromoted,
+
+        // Состояние и здоровье (ТЗ 05). Участник — человек.
+
+        /// <summary>Рана: лёгкая [З], тяжёлая [В]; <c>maimed</c> — вторая тяжёлая стала увечьем.</summary>
+        AdventurerWounded,
+
+        /// <summary>Тяжёлая рана осложнилась (+7 дней, стресс). [З].</summary>
+        WoundComplicated,
+
+        /// <summary>Рана зажила. [О].</summary>
+        WoundHealed,
+
+        /// <summary>Срыв при высоком стрессе: запой, драка (второй участник — с кем), отказ, «сел и не смог подняться». [В], без автопаузы.</summary>
+        Breakdown,
+
+        /// <summary>Пьяница пропускает день в таверне. [О].</summary>
+        DrunkardSkippedDay,
+
+        /// <summary>Не хватило денег: флаг «кошелёк пуст». [З].</summary>
+        WalletEmptied,
+
+        /// <summary>Ушёл из гильдии по ежемесячной проверке. [В], автопауза <see cref="AutopauseKind.MemberLeftGuild"/>.</summary>
+        AdventurerLeft,
+
+        /// <summary>Спад «Потерявшего товарища» кончился: <c>outcome</c> — сломался / ожесточился. Второй участник — погибший.</summary>
+        GrievingEnded,
     }
 }

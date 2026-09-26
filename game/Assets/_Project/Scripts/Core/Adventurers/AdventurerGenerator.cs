@@ -21,8 +21,8 @@ namespace GuildMaster.Core
 
     /// <summary>
     /// Генерация авантюриста (ТЗ 04 → «Генерация», решения 2026-09-26): пол, имя, возраст → тип → уровень → параметры →
-    /// оси → черты → кошелёк, ранг, жильё → архетип. Случайность — только переданный поток той системы, что генерирует
-    /// (<see cref="RecruitSystem"/>, <see cref="StartScenario"/>). Порядок бросков не менять без причины — сдвинутся составы.
+    /// оси → черты → кошелёк, ранг, жильё → архетип → стартовое состояние (ТЗ 05). Случайность — только переданный поток
+    /// той системы, что генерирует (<see cref="RecruitSystem"/>, <see cref="StartScenario"/>). Порядок бросков не менять без причины — сдвинутся составы.
     /// </summary>
     internal static class AdventurerGenerator
     {
@@ -70,6 +70,9 @@ namespace GuildMaster.Core
 
             // 8. Архетип и ранг характеристик.
             ArchetypeService.Initialize(adventurer, data);
+
+            // 9. Состояние (ТЗ 05): стресс и лояльность — последними бросками генератора, броски шагов 1–7 не сдвигаются.
+            StateService.InitializeNew(rng, adventurer.State, data.Balance.State);
             return new GeneratedAdventurer(adventurer, type, level.Level);
         }
 

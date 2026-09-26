@@ -16,6 +16,9 @@ namespace GuildMaster.Core
         {
             new CommandSystem(),
             new TimeSystem(),
+            new ActivitySystem(),
+            new StateSystem(),
+            new HealthSystem(),
             new AdventurerSystem(),
             new RecruitSystem(),
             new AutopauseSystem(), // всегда последняя: видит события всех систем такта
