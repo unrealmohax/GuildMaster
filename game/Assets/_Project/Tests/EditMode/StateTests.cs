@@ -156,9 +156,11 @@ namespace GuildMaster.Tests
             const int days = 300;
             List<SimEvent> breakdowns = world.Collect(() => world.Days(days)).Where(e => e.Type == SimEventType.Breakdown).ToList();
 
-            float expected = 0.1f * people.Count * days;
-            TestContext.WriteLine($"{breakdowns.Count} breakdowns, expected {expected:0}");
-            Assert.That(breakdowns.Count, Is.EqualTo(expected).Within(expected * 0.13f));
+            int trials = people.Count * days;
+            float expected = 0.1f * trials;
+            float tolerance = Frequency.Tolerance(trials, 0.1f);
+            TestContext.WriteLine($"{breakdowns.Count} breakdowns, expected {expected:0} ± {tolerance:0}");
+            Assert.That(breakdowns.Count, Is.EqualTo(expected).Within(tolerance));
             Assert.IsTrue(breakdowns.All(e => world.Simulation.Calendar.At(e.TimeHours).Hour == 0), "раз в сутки, в 00:00");
             Assert.IsTrue(breakdowns.All(e => e.Importance == EventImportance.Important));
             Assert.AreEqual(breakdowns.Count, breakdowns.Select(e => (e.Participants[0], e.TimeHours)).Distinct().Count());
@@ -299,8 +301,9 @@ namespace GuildMaster.Tests
             }
 
             Assert.AreEqual(-100f, world.Simulation.World.Relations.GetValue(reckless.Id, other.Id), "−10 за драку, до −100");
-            TestContext.WriteLine($"{woundedPairs} of {brawls} brawls wounded both");
-            Assert.That(woundedPairs, Is.EqualTo(0.2f * brawls).Within(0.2f * brawls * 0.2f));
+            float tolerance = Frequency.Tolerance(brawls, 0.2f);
+            TestContext.WriteLine($"{woundedPairs} of {brawls} brawls wounded both, expected {0.2f * brawls:0} ± {tolerance:0}");
+            Assert.That(woundedPairs, Is.EqualTo(0.2f * brawls).Within(tolerance));
         }
 
         [Test]
@@ -383,7 +386,13 @@ namespace GuildMaster.Tests
             List<Adventurer> family = world.AddMany(600, "Family");
             List<Adventurer> loyal = world.AddMany(100);
             foreach (Adventurer adventurer in plain.Concat(family)) adventurer.State.Loyalty = adventurer.State.Contentment = 10f;
-            foreach (Adventurer adventurer in loyal) adventurer.State.Loyalty = adventurer.State.Contentment = 25f;
+            // Граница: пустой кошелёк держит цель довольства на 25 (50 − 10 город − 15), лояльность стоит ровно на 25 весь месяц.
+            foreach (Adventurer adventurer in loyal)
+            {
+                adventurer.State.Loyalty = adventurer.State.Contentment = 25f;
+                adventurer.State.Wallet = 0;
+                adventurer.State.IsWalletEmpty = true;
+            }
 
             List<SimEvent> events = world.Collect(() => world.TickToHour(0));
             Assert.IsFalse(events.Any(e => e.Type == SimEventType.AdventurerLeft), "проверка — только в начале месяца");
@@ -396,6 +405,7 @@ namespace GuildMaster.Tests
 
             Assert.That(plainLeft, Is.EqualTo(120).Within(30));
             Assert.That(familyLeft, Is.EqualTo(180).Within(35));
+            Assert.IsTrue(loyal.All(a => a.State.Loyalty == 25f && a.State.Contentment == 25f), "к проверке лояльность ровно 25");
             Assert.IsTrue(loyal.All(a => world.Simulation.World.Adventurers.IsActive(a.Id)), "лояльность 25 — не ниже 25");
             Assert.IsTrue(plain.Where(a => !world.Simulation.World.Adventurers.IsActive(a.Id)).All(a => a.LeaveReason == LeaveReason.Left));
         }

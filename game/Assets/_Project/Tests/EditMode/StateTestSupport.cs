@@ -91,6 +91,13 @@ namespace GuildMaster.Tests
         public void Tick(SimContext ctx) => action(ctx);
     }
 
+    /// <summary>Допуск для частоты случайного события: <paramref name="sigmas"/> стандартных отклонения биномиального числа успехов.</summary>
+    internal static class Frequency
+    {
+        public static float Tolerance(int trials, float chance, float sigmas = 3f) =>
+            sigmas * (float)Math.Sqrt(trials * chance * (1f - chance));
+    }
+
     /// <summary>Лазарет для тестов (до ТЗ 11 его нет): койки, Лекарь, скорость.</summary>
     internal sealed class FakeInfirmary : IInfirmary
     {

@@ -176,9 +176,12 @@ namespace GuildMaster.Tests
                 stressedSkips += stressed.Count(a => a.State.Activity == Activity.Tavern);
             }
 
-            TestContext.WriteLine($"skips: calm {calmSkips} (≈600), stressed {stressedSkips} (≈1200)");
-            Assert.That(calmSkips, Is.EqualTo(0.1f * 30 * days).Within(0.1f * 30 * days * 0.2f));
-            Assert.That(stressedSkips, Is.EqualTo(0.2f * 30 * days).Within(0.2f * 30 * days * 0.15f));
+            int trials = 30 * days;
+            float calmTolerance = Frequency.Tolerance(trials, 0.1f);
+            float stressedTolerance = Frequency.Tolerance(trials, 0.2f);
+            TestContext.WriteLine($"skips: calm {calmSkips} (≈600 ± {calmTolerance:0}), stressed {stressedSkips} (≈1200 ± {stressedTolerance:0})");
+            Assert.That(calmSkips, Is.EqualTo(0.1f * trials).Within(calmTolerance));
+            Assert.That(stressedSkips, Is.EqualTo(0.2f * trials).Within(stressedTolerance));
             Assert.IsTrue(calm.Concat(stressed).All(a => a.Traits.Single().Revealed), "первый пропущенный день раскрывает");
         }
 
@@ -257,18 +260,53 @@ namespace GuildMaster.Tests
             data.Set("guild.maxAdventurers", 30);
             data.Set("guild.influxBaseChance", 1f);
             Simulation simulation = Simulation.CreateDefault(data.Registry, 360u);
+            int peak = 0;
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            for (int day = 0; day < 360; day++)
+            List<SimEvent> events = SimulationRun.Collect(simulation, sim =>
             {
-                SimulationRun.Days(simulation, 1);
-                foreach (Candidate candidate in simulation.World.Adventurers.Candidates.ToList())
-                    simulation.Send(new AcceptCandidateCommand(candidate.Adventurer.Id));
-            }
+                for (int day = 0; day < 360; day++)
+                {
+                    SimulationRun.Days(sim, 1);
+                    foreach (Candidate candidate in sim.World.Adventurers.Candidates.ToList())
+                        sim.Send(new AcceptCandidateCommand(candidate.Adventurer.Id));
+
+                    // Раны «от заданий», как их будет вызывать ТЗ 09: иначе без заданий состояние стоит на месте.
+                    if (day % 10 == 0)
+                    {
+                        SimulationRun.Do(sim, ctx => HealthService.Wound(ctx, ctx.Rng.Pick(ctx.World.Adventurers.Active),
+                            ctx.Rng.Chance(0.5f) ? ConditionKind.LightWound : ConditionKind.HeavyWound));
+                    }
+
+                    peak = System.Math.Max(peak, sim.World.Adventurers.Active.Count);
+                    foreach (Adventurer adventurer in sim.World.Adventurers.Active) AssertStateInvariants(adventurer);
+                }
+            });
             stopwatch.Stop();
 
-            Assert.That(simulation.World.Adventurers.Active.Count, Is.GreaterThanOrEqualTo(25));
+            Assert.That(peak, Is.GreaterThanOrEqualTo(25), "год прошёл с полной гильдией");
             Assert.That(stopwatch.Elapsed.TotalSeconds, Is.LessThan(60));
-            TestContext.WriteLine($"360 days with {simulation.World.Adventurers.Active.Count} people: {stopwatch.Elapsed.TotalMilliseconds:0} ms");
+            Assert.That(events.Count(e => e.Type == SimEventType.AdventurerWounded), Is.GreaterThan(0));
+            Assert.That(events.Count(e => e.Type == SimEventType.WoundHealed), Is.GreaterThan(0));
+            TestContext.WriteLine($"360 days, peak {peak} people, now {simulation.World.Adventurers.Active.Count}: " +
+                $"{stopwatch.Elapsed.TotalMilliseconds:0} ms, wounded {events.Count(e => e.Type == SimEventType.AdventurerWounded)}, " +
+                $"healed {events.Count(e => e.Type == SimEventType.WoundHealed)}, left {events.Count(e => e.Type == SimEventType.AdventurerLeft)}");
+        }
+
+        private static void AssertStateInvariants(Adventurer adventurer)
+        {
+            AdventurerState s = adventurer.State;
+            string who = $"#{adventurer.Id}";
+            Assert.That(s.Fatigue, Is.InRange(0f, 100f), who);
+            Assert.That(s.Stress, Is.InRange(0f, 100f), who);
+            Assert.That(s.Contentment, Is.InRange(0f, 100f), who);
+            Assert.That(s.Loyalty, Is.InRange(0f, 100f), who);
+            Assert.That(s.Wallet, Is.GreaterThanOrEqualTo(0), who);
+            Assert.That(s.DebtToGuild, Is.GreaterThanOrEqualTo(0), who);
+            Assert.IsTrue(!s.IsWalletEmpty || s.Wallet == 0, $"{who}: флаг «кошелёк пуст» при деньгах");
+            Assert.IsFalse(s.InInfirmary, $"{who}: Лазарета до ТЗ 11 нет");
+            Assert.That(s.Conditions.Count(c => c.Kind == ConditionKind.LightWound), Is.LessThanOrEqualTo(1), $"{who}: лёгкие не складываются");
+            Assert.That(s.Conditions.Count(c => c.Kind == ConditionKind.HeavyWound), Is.LessThanOrEqualTo(1), $"{who}: вторая тяжёлая — увечье");
+            Assert.IsTrue(s.Conditions.All(c => c.RemainingDays > 0f), $"{who}: зажившая рана осталась");
         }
     }
 }
