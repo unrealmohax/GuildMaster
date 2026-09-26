@@ -4,7 +4,7 @@
 |---|---|---|
 | **GM-13** | `GM-13_dilemmas` | `[GM-13]` — код, `[TechSpec-13]` — правки этого ТЗ |
 
-Дизайн: [dilemmas.md](../docs/mechanics/dilemmas.md). Числа: [numbers.md](../docs/content/numbers.md) + допущения ниже (идут в `BalanceSettings.Dilemmas`).
+Дизайн: [dilemmas.md](../docs/mechanics/dilemmas.md). Числа: [numbers.md](../docs/content/numbers.md) + допущения ниже. Суммы и сдвиги вариантов — в эффектах вариантов `DilemmaDefinition`; срок ответа, лимит открытых, перезарядка, час проверки и числа триггеров — в `BalanceSettings.Dilemmas` (решение 2026-09-26).
 
 ## Цель
 
