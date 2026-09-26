@@ -66,7 +66,7 @@ namespace GuildMaster.Core
 
             TraitsBalance traits = ctx.Data.Balance.Traits;
             float chance = state.Stress > traits.DrunkardStressThreshold ? traits.DrunkardSkipChanceStressed : traits.DrunkardSkipChance;
-            if (!ctx.Rng.Chance(chance)) return;
+            if (!ctx.RollChance(chance, "drunkard-skip-day", adventurer, "stress", state.Stress)) return;
 
             GameTime time = ctx.World.Time;
             state.SkipsDayUntilHours = time.TotalHours - time.Hour + ctx.Data.Balance.Time.NightHour;

@@ -87,7 +87,7 @@ namespace GuildMaster.Core
             if (opponent != null)
             {
                 RelationService.Change(ctx, adventurer.Id, opponent.Id, balance.BrawlRelation);
-                if (ctx.Rng.Chance(balance.BrawlWoundChance))
+                if (ctx.RollChance(balance.BrawlWoundChance, "brawl-wound", adventurer))
                 {
                     HealthService.Wound(ctx, adventurer, ConditionKind.LightWound);
                     HealthService.Wound(ctx, opponent, ConditionKind.LightWound);

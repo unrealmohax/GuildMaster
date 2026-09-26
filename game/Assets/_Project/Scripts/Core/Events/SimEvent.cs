@@ -74,7 +74,23 @@ namespace GuildMaster.Core
                 .Append(Source).Append("] [")
                 .Append(Importance).Append("] ")
                 .Append(Type);
+            AppendDetails(line);
+            return line.ToString();
+        }
 
+        /// <summary>
+        /// Текст события для <see cref="SimLogger"/> (время и система — в подписи строки):
+        /// «Breakdown (Important) ids=3,5 kind=Binge». Важность обычного события не пишется.
+        /// </summary>
+        public void AppendLogText(StringBuilder line)
+        {
+            line.Append(Type);
+            if (Importance != EventImportance.Normal) line.Append(" (").Append(Importance).Append(')');
+            AppendDetails(line);
+        }
+
+        private void AppendDetails(StringBuilder line)
+        {
             if (Participants.Count > 0)
             {
                 line.Append(" ids=");
@@ -89,7 +105,6 @@ namespace GuildMaster.Core
             {
                 line.Append(' ').Append(pair.Key).Append('=').Append(FormatValue(pair.Value));
             }
-            return line.ToString();
         }
 
         private static string FormatValue(object value)

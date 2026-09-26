@@ -22,7 +22,7 @@ namespace GuildMaster.Core
 
             if (ctx.World.Time.Hour != ctx.Data.Balance.Time.MorningHour) return;
             if (ctx.World.Adventurers.HeadCount >= ctx.Data.Balance.Guild.MaxAdventurers) return;
-            if (!ctx.Rng.Chance(CandidateChance(ctx.Data))) return;
+            if (!ctx.RollChance(CandidateChance(ctx.Data), "candidate")) return;
 
             AddCandidate(ctx);
         }
@@ -51,6 +51,7 @@ namespace GuildMaster.Core
             long now = ctx.World.Time.TotalHours;
             long expires = now + ctx.Calendar.DaysToHours(ctx.Data.Balance.Adventurers.CandidateWaitDays);
             ctx.World.Adventurers.AddCandidate(new Candidate(candidate, now, expires));
+            AdventurerLog.WriteGenerated(ctx, "candidate", candidate, generated.Type, generated.Level);
 
             ctx.Events.Publish(SimEventType.CandidateArrived, EventImportance.Normal, candidate.Id)
                 .With("archetype", candidate.ArchetypeId)

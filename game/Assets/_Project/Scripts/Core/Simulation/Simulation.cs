@@ -7,14 +7,18 @@ namespace GuildMaster.Core
     /// Точка входа симуляции. <see cref="Tick"/> — один игровой час: системы по порядку, затем очистка событий.
     /// Работает без сцены и без интерфейса. То же зерно + те же команды в те же такты = тот же мир.
     /// При создании готовит стартовое состояние (<see cref="StartScenario"/>: стартовые авантюристы).
+    /// Лог (<see cref="SimLogger"/>) получает события сразу после шага системы, которая их опубликовала, — вслед за её
+    /// бросками; уровень события — <see cref="EventLogLevels"/>.
     /// </summary>
     public sealed class Simulation : ISimulationClient
     {
         private readonly List<ISimSystem> systems;
         private readonly SimContext context;
         private bool isRunning;
+        private int loggedEvents;
 
-        public Simulation(DataRegistry data, uint masterSeed, IEnumerable<ISimSystem> systems)
+        /// <param name="log">Лог симуляции; <c>null</c> — без лога. Логгер привязывается к этой симуляции.</param>
+        public Simulation(DataRegistry data, uint masterSeed, IEnumerable<ISimSystem> systems, SimLogger log = null)
         {
             Data = data ?? throw new ArgumentNullException(nameof(data));
             if (systems == null) throw new ArgumentNullException(nameof(systems));
@@ -34,14 +38,16 @@ namespace GuildMaster.Core
             World = new WorldState { Time = Calendar.At(Calendar.StartTotalHours) };
             Events = new EventBus(World);
             Commands = new CommandQueue();
-            context = new SimContext(World, Data, Calendar, Rhythm, Events, Commands);
+            Log = log ?? SimLogger.Disabled;
+            Log.Bind(Calendar, World);
+            context = new SimContext(World, Data, Calendar, Rhythm, Events, Commands, Log);
 
             // Стартовое состояние мира — до первого такта, своим потоком случайных чисел.
             Run(StartScenario.StreamName, StartScenario.Apply);
         }
 
-        public static Simulation CreateDefault(DataRegistry data, uint masterSeed) =>
-            new Simulation(data, masterSeed, SimulationSystems.CreateDefault());
+        public static Simulation CreateDefault(DataRegistry data, uint masterSeed, SimLogger log = null) =>
+            new Simulation(data, masterSeed, SimulationSystems.CreateDefault(), log);
 
         public WorldState World { get; }
         public DataRegistry Data { get; }
@@ -50,6 +56,7 @@ namespace GuildMaster.Core
         public RngService Rng { get; }
         public EventBus Events { get; }
         public CommandQueue Commands { get; }
+        public SimLogger Log { get; }
         public IReadOnlyList<ISimSystem> Systems => systems;
         public uint MasterSeed => Rng.MasterSeed;
 
@@ -80,6 +87,7 @@ namespace GuildMaster.Core
                 TicksDone++;
                 TickCompleted?.Invoke(Events.Events);
                 Events.Clear();
+                loggedEvents = 0;
             }
             finally
             {
@@ -127,7 +135,21 @@ namespace GuildMaster.Core
             context.CurrentSystem = systemName;
             context.Rng = Rng.Stream(systemName);
             Events.CurrentSource = systemName;
+            Log.Source = systemName;
             step(context);
+            LogNewEvents();
+        }
+
+        /// <summary>В лог — события, опубликованные с прошлой записи (их данные уже дописаны).</summary>
+        private void LogNewEvents()
+        {
+            IReadOnlyList<SimEvent> events = Events.Events;
+            for (; loggedEvents < events.Count; loggedEvents++)
+            {
+                SimEvent simEvent = events[loggedEvents];
+                SimLogLevel level = EventLogLevels.Of(simEvent.Type);
+                if (Log.IsOn(level)) Log.WriteEvent(level, simEvent);
+            }
         }
     }
 }

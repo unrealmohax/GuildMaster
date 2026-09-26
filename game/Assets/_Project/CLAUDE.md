@@ -2,8 +2,8 @@
 
 Правила работы — в корневом `CLAUDE.md`. Здесь — устройство кода игры. Задания — `TechJob/01-architecture.md`
 (GM-01, архитектура), `TechJob/02-data.md` (GM-02, данные), `TechJob/03-time.md` (GM-03, время),
-`TechJob/04-adventurers.md` (GM-04, авантюристы), `TechJob/05-state-health.md` (GM-05, состояние и здоровье);
-этот файл описывает, как они реализованы.
+`TechJob/04-adventurers.md` (GM-04, авантюристы), `TechJob/05-state-health.md` (GM-05, состояние и здоровье),
+`TechJob/06-debug-logging.md` (GM-06, лог и прогон без интерфейса); этот файл описывает, как они реализованы.
 
 ## Комментарии в коде: без ссылок на документацию
 
@@ -40,6 +40,7 @@ _Project/
 │   │   ├── Random/      Rng (PCG32), RngService (потоки), StableHash
 │   │   ├── Events/      SimEvent, SimEventType, EventImportance, EventBus
 │   │   ├── Commands/    ICommand, CommandQueue, CommandSystem
+│   │   ├── Logging/     SimLogger, SimLogLevel, EventLogLevels (событие → уровень), AdventurerLog (строки о людях)
 │   │   ├── Adventurers/ модель (Adventurer, TraitInstance, AdventurerRoster + Candidate, RelationBook), правила
 │   │   │                (AdventurerStats, ArchetypeCalculator/Service, AxisMath, Growth, GuildRanks, RelationService,
 │   │   │                TraitRules/TraitService, RevealService, AdventurerLifecycle), генерация (AdventurerGenerator,
@@ -50,13 +51,14 @@ _Project/
 │   │   └── World/       WorldState, IdGenerator
 │   ├── UI/          GuildMaster.UI        — UiRoot (экраны — ТЗ 14)
 │   ├── Bootstrap/   GuildMaster.Bootstrap — GameRunner
-│   └── Debugging/   GuildMaster.Debugging — HeadlessRun, окно GuildMaster → Run Headless…,
-│                    Validation/ (DataValidator, меню GuildMaster → Validate Data), EditorAssets
+│   └── Debugging/   GuildMaster.Debugging — Headless/ (HeadlessRun, окно GuildMaster → Run Headless…, боты,
+│                    сценарий, сводка, LogFiles), Validation/ (DataValidator, меню GuildMaster → Validate Data),
+│                    EditorAssets
 ├── Data/            GameConfig, BalanceSettings, StatCatalog + папки Axes, Traits, Archetypes, QuestTypes,
 │                    Encounters, Buildings, Staff, Decrees, Dilemmas, Text (FeedTemplates, NameList, OrderTextTemplates)
 ├── ClaudeSandbox/   песочница Claude; Editor/GameDataGenerator — генератор ассетов данных, Editor/TimeProbe — время
 │                    в Play Mode из меню, Editor/AdventurerProbe — люди гильдии в консоль, Editor/StateProbe — раны,
-│                    стресс, прогон 90 дней (см. её README)
+│                    стресс, прогон 90 дней, Editor/HeadlessProbe — прогон в файлы без окна (см. её README)
 ├── Prefabs/UI/
 ├── Scenes/Main.unity  — единственная сцена: Main Camera, Global Light 2D, UI (Canvas + UiRoot), EventSystem, GameRunner
 └── Tests/EditMode/  GuildMaster.Tests
@@ -105,13 +107,14 @@ _Project/
 - **Команды.** UI вызывает `ISimulationClient.Send(команда)`; `CommandSystem` применяет очередь в начале такта,
   до сдвига времени. На паузе `GameRunner` вызывает `Simulation.ApplyCommandsNow()` — тот же поток случайных
   чисел и то же время, поэтому мир совпадает с применением в следующем такте. События таких команд уходят
-  в лог вместе со следующим тактом.
+  в `TickCompleted` вместе со следующим тактом, а в `SimLogger` — сразу, со временем паузы.
 - **События.** `ctx.Events.Publish(тип, важность, id…)` — шина сама ставит время и имя системы;
   полезные данные — `.With(ключ, значение)`, порядок сохраняется. `SimEvent.ToLogLine()` — строка
   без зависимости от культуры: `[1.1.1 07:00] [TimeSystem] [Normal] HourStarted`.
 - **Случайность.** В системе — только `ctx.Rng`: это поток с зерном `хеш(мастер-зерно, имя системы)`.
   Имя системы (`ISimSystem.Name`) поэтому менять нельзя без причины — сдвинутся все броски.
-  `Chance()` всегда тратит одно число. Алгоритм закреплён тестом на эталонные числа PCG32.
+  `Chance()` всегда тратит одно число. Алгоритм закреплён тестом на эталонные числа PCG32. Бросок шанса в системе —
+  `ctx.RollChance(шанс, "что", человек, "показатель", значение)`: то же одно число, что `Rng.Chance`, и строка в лог.
 - **Автопауза.** `AutopauseSystem` смотрит события такта: тип есть в `AutopauseRules.Default` и его вид
   (`AutopauseKind`) включён в `World.Autopause` — запоминает событие в `World.Autopause.Triggers` (для окна
   «Перейти», GM-14; чистится в начале следующего такта) и вызывает `ctx.RequestPause()`; `GameRunner` после такта
@@ -216,6 +219,50 @@ _Project/
 - **События** (`SimEventType`, новые — в конец): `AdventurerWounded`, `WoundComplicated`, `WoundHealed`, `Breakdown`,
   `DrunkardSkippedDay`, `WalletEmptied`, `AdventurerLeft`, `GrievingEnded`. Строки ленты — GM-07.
 
+## Лог и прогон без интерфейса (GM-06)
+
+- **`SimLogger`** (Core, `Logging/`): строка `[Год.Месяц.День ЧЧ:00] [Система] [Уровень] текст`, конец строки `\n`, числа
+  без культуры. Уровни `SimLogLevel`: `Error`, `Info`, `Debug`, `Trace`; логгер пишет свой уровень и всё выше. Пишет
+  в `TextWriter` (не закрывает его) и, если задан, в обработчик консоли. Даётся в конструктор `Simulation`
+  (`CreateDefault(data, seed, log)`); без него — `SimLogger.Disabled`. Логгер привязывается к одной симуляции (время
+  подписи — время мира), имя системы ставит `Simulation.Run` перед каждым шагом. Случайных чисел не тратит.
+- **Выключенный уровень не строит строку**: простые строки — `ctx.Log.Write<T0…T3>(уровень, формат, аргументы)` (формат
+  только при включённом уровне, дженерики — без упаковки), сложные — под `if (log.IsOn(уровень))` через
+  `Begin(уровень)` → дописать в построитель → `Commit()`. Строку со склейкой (`"a" + x`) в `Write` не передавать.
+- **События** пишет сама `Simulation` — сразу после шага системы, которая их опубликовала (после её бросков), текстом
+  `SimEvent.AppendLogText`: `Breakdown (Important) ids=3,5 kind=Binge`. Уровень — `EventLogLevels`: по умолчанию `Info`;
+  `DayStarted` — `Debug`, часы и фазы дня — `Trace` (иначе на `Info` ~10 тыс. строк за год). Новое частое событие — строка там.
+- **Что пишется** (`AdventurerLog`): `Debug` — броски `ctx.RollChance` (`roll breakdown #3 Имя stress=85.2 chance=0.1
+  rolled=0.0532 => yes`): срыв, уход (`loyalty`), осложнение, приход кандидата, пропуск дня Пьяницы, спад Потерявшего
+  товарища, рана в драке; генерация человека (`start` — стартовая шестёрка после раздачи черт, `candidate` — кандидат):
+  тип, уровень, архетип, параметры, оси, черты со скрытыми, кошелёк и стартовое состояние; стартовые «старые друзья».
+  `Trace` — раз в сутки на каждого (`StateSystem`, после суточных сдвигов): занятие, усталость, стресс, довольство и цель,
+  лояльность, кошелёк, флаги, раны. `Error` — исключение прогона.
+- **Прогон** — `HeadlessRun.Run(data, зерно, дней, бот, лог)`: перед каждым тактом ходит бот, затем такт; итог — `Result`
+  (симуляция, такты, события, время, строк лога, сводка, сценарий). Первая строка лога — параметры прогона
+  (`[-] [HeadlessRun] [Info] run seed=… bot=…`), команды бота — `[Bot] [Info] send accept 7`.
+  `RunToFiles(config, Options, прогресс)` — серия в `Logs/` проекта (`LogFiles`): прогон `i` — зерно `Seed + i`;
+  на каждый `sim_{зерно}_{дата}.log`, `summary_{зерно}.csv`, `scenario_{зерно}.txt`; при нескольких — `summary_{зерно}_x{N}.csv`.
+- **Бот** (`PlayerBot.cs`): `PlayerBot` = имя + список `IBotRule`; правило получает `BotTurn` (мир на чтение, `Send`,
+  номер такта). Готовые — `PlayerBots.Presets`: «Пассивный» (без правил), «Простой» (`AcceptAllCandidatesRule`).
+  Новое поведение — правило в списке бота, новый бот — строка в `Presets`.
+- **Сценарий** (`ScenarioScript.cs`): текст, строка на команду `такт слово аргументы` (`672 accept 7`), такт — сколько
+  тактов сделано к отправке, `#` — комментарий, `# seed=N` — зерно записи. Команды — `ScenarioCommands.Formats`
+  (`accept`, `reject`, `autopause Вид on|off`); новая команда игрока — строка там. `ScenarioRecorder` пишет команды
+  бота в сценарий (неизвестную — комментарием, `Unrecorded`), `ScenarioRule` — бот «Сценарий».
+- **Сводка** (`RunSummary.cs`, `SummaryColumns.cs`): столбцы — `MonthColumn` (имя, функция от `MonthRecord` — мир на конец
+  месяца и счётчики событий месяца, свёртка в итог `Sum`/`Last`/`Mean`, формат) и `PersonColumn` (функция от
+  `PersonRecord` — человек и события, где он первый участник). Новый показатель — строка в `SummaryColumns.Monthly` /
+  `People`. Строка — календарный месяц, закрывается после его последнего часа; последний неполный — если в нём прошли
+  целые сутки (360 дней с 06:00 — ровно 12 строк). Люди — все, кто был в гильдии (активные и архив). Несколько
+  прогонов — `SummaryAggregate` (среднее, стандартное отклонение выборки, мин, макс по месяцам и итогу).
+  `SummaryCsv`: запятая, точка, UTF-8 с BOM (Excel), таблицы через пустую строку.
+- **Окно** GuildMaster → Run Headless…: Game Config, зерно (случайное по кнопке), дней (360), уровень лога (Info),
+  лог в консоль, бот («Простой»; «Сценарий» — с файлом, зерно берётся из `# seed=`), прогонов (1–100). Итог — отчёт,
+  таблицы сводки (при серии — среднее ± разброс), «Открыть папку Logs».
+- **Скорость** (редактор): год с ботом «Простой» — ~0,18 с без лога и на `Info` (62 строки), ~0,21 с на `Trace`
+  (~14 тыс. строк); серия из 10 лет на `Info` — ~3 с.
+
 ## Мир меняется только командами
 
 Состояние в `WorldState` и его частях — публичные геттеры, `internal`-сеттеры. Снаружи Core (UI, Bootstrap)
@@ -261,12 +308,16 @@ GM-04: `AdventurerTests.cs` (`AdventurerGenerationTests`, `ArchetypeTests`, `Sta
 GM-05: `StateTests` (старт, занятия, обрезка, расписание, усталость, срывы и их частота, довольство, лояльность, уход,
 слова), `WalletTests`, `HealthTests` (сроки с Лазаретом и без, койки, осложнения, увечье), `StateTraitTests.cs`
 (`StateTraitTests` — черты и стресс от событий, `StateDeterminismTests` — чужие потоки, детерминизм с ранами,
-год с 30 людьми). Всего 181.
+год с 30 людьми);
+GM-06: `LoggingTests.cs` (`SimLoggerTests` — формат, уровни, выключенный уровень не форматирует, событие после бросков;
+`SimulationLogTests` — лог не меняет мир, одно зерно + бот = один лог, сценарий повторяет игру, по логу видно,
+почему срыв и уход), `HeadlessRunTests.cs` (`HeadlessRunTests` — боты, год меньше минуты, Info против Trace по цене лога,
+сводка, свёртка, файлы; `ScenarioScriptTests` — разбор, запись, ошибки с номером строки). Всего 210.
 Числа баланса в тесте меняются `GameData.Edit(data.Balance, "time.dayHour", p => p.intValue = 10)`.
 Помощники — `TestSupport.cs`: `TestData` (BalanceSettings без ассета), `NoiseSystem`, `TraceCommand`,
 `SimulationLog.Record` (лог событий прогона строкой), `ActionCommand` и `SimulationRun` (`Do` — вызвать службу Core
 как команду на паузе, `Days`, `Collect` — события прогона); `StateTestSupport.cs`: `StateWorld` (мир без стартовой
-шестёрки, `Add(черты…)` — ровный человек, `TickToHour`, `Collect`), `LambdaSystem` (код в своём месте такта),
+шестёрки, по желанию со своим `SimLogger`; `Add(черты…)` — ровный человек, `TickToHour`, `Collect`), `LambdaSystem` (код в своём месте такта),
 `FakeInfirmary`, `Frequency.Tolerance` (допуск частоты — 3σ биномиального числа успехов); `DataTests.cs`: `GameData` — реальный `GameConfig`
 и копии ассетов в памяти для порчи (`Copy`, `Edit` через `SerializedObject`); `PeopleTestData.cs`: `PeopleData` —
 определения из реального `GameConfig` + `BalanceSettings` по умолчанию (`Set(путь, число)`); `PeopleDump` — состав строкой

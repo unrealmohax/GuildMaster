@@ -34,8 +34,10 @@ namespace GuildMaster.Core
             foreach (Adventurer adventurer in new List<Adventurer>(active))
             {
                 WalletService.PayDaily(ctx, adventurer);
-                StateService.MoveContentment(ctx, adventurer, StateRules.ContentmentTarget(adventurer, commission, ctx.Data));
+                float target = StateRules.ContentmentTarget(adventurer, commission, ctx.Data);
+                StateService.MoveContentment(ctx, adventurer, target);
                 StateService.MoveLoyalty(ctx, adventurer);
+                AdventurerLog.WriteDaily(ctx, adventurer, target);
                 ResetDay(adventurer.State);
                 TryBreakdown(ctx, adventurer);
                 TryEndGrieving(ctx, adventurer);
@@ -56,7 +58,7 @@ namespace GuildMaster.Core
             AdventurerState state = adventurer.State;
             StateBalance balance = ctx.Data.Balance.State;
             if (state.Stress <= balance.BreakdownThreshold || state.Breakdown != BreakdownKind.None || state.IsOnQuest()) return;
-            if (!ctx.Rng.Chance(balance.BreakdownChancePerDay)) return;
+            if (!ctx.RollChance(balance.BreakdownChancePerDay, "breakdown", adventurer, "stress", state.Stress)) return;
 
             StateService.StartBreakdown(ctx, adventurer, StateService.BreakdownKindOf(adventurer, ctx.Data));
         }
@@ -72,7 +74,7 @@ namespace GuildMaster.Core
             if (grieving == null || ctx.World.Time.TotalHours - grieving.AcquiredAtHours < ctx.Calendar.DaysToHours(traits.GrievingDays)) return;
 
             RevealService.TryRevealTrait(ctx, adventurer, grieving.TraitId, RevealTrigger.GrievingAfterDecline);
-            bool broke = ctx.Rng.Chance(traits.GrievingBreakChance);
+            bool broke = ctx.RollChance(traits.GrievingBreakChance, "grieving-broke", adventurer);
             if (broke) StateService.AddStress(ctx, adventurer, traits.GrievingBreakStress);
             else Growth.AddBonus(ctx, adventurer, StatId.Composure, traits.GrievingHardenComposure);
 
@@ -94,7 +96,7 @@ namespace GuildMaster.Core
                 float chance = balance.LeaveChance;
                 if (TraitRules.FindWithHook(adventurer, TraitHook.FamilyLeaveChance, ctx.Data) != null)
                     chance *= ctx.Data.Balance.Traits.FamilyLeaveChanceMultiplier;
-                if (!ctx.Rng.Chance(chance)) continue;
+                if (!ctx.RollChance(chance, "leave", adventurer, "loyalty", adventurer.State.Loyalty)) continue;
 
                 float loyalty = adventurer.State.Loyalty;
                 AdventurerLifecycle.Retire(ctx, adventurer, LeaveReason.Left);

@@ -12,13 +12,13 @@ namespace GuildMaster.Tests
     /// </summary>
     internal sealed class StateWorld : IDisposable
     {
-        public StateWorld(uint seed = 7u, IInfirmary infirmary = null, ISimSystem beforeState = null)
+        public StateWorld(uint seed = 7u, IInfirmary infirmary = null, ISimSystem beforeState = null, SimLogger log = null)
         {
             Data = new PeopleData();
             List<ISimSystem> systems = SimulationSystems.CreateDefault();
             if (infirmary != null) systems[systems.FindIndex(s => s is HealthSystem)] = new HealthSystem(infirmary);
             if (beforeState != null) systems.Insert(systems.FindIndex(s => s is StateSystem), beforeState);
-            Simulation = new Simulation(Data.Registry, seed, systems);
+            Simulation = new Simulation(Data.Registry, seed, systems, log);
 
             Do(ctx =>
             {

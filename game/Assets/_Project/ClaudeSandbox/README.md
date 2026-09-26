@@ -45,3 +45,10 @@
 командой (как это будет вызывать ТЗ 11), в Play Mode; `Preview 90 Days` — 90 дней для зёрен 1–3 без Play Mode
 (симуляция в памяти, кандидаты принимаются): счётчики событий систем состояния и состояние каждого в конце.
 Пишет через `Debug.Log` — в MCP читать `read_console` с `types: ["all"]`.
+
+### `Editor/HeadlessProbe.cs` — прогон без интерфейса из меню (GM-06)
+
+Меню **GuildMaster → Sandbox → Headless**: `Year Seed 1 Debug`, `Year Seed 1 Trace` — год с ботом «Простой» в файлы;
+`Year Seeds 1-10 Info` — серия из 10 лет (зёрна 1–10) со свёрткой. То же, что кнопка окна **Run Headless…**, но без
+окна — для проверки через MCP (`execute_menu_item`). Файлы — в `Logs/` проекта (папка в `.gitignore`), пути и время —
+в консоль (`read_console` с `types: ["all"]`). После проверки файлы прогона (`sim_*`, `summary_*`, `scenario_*`) удалить.

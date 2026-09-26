@@ -51,7 +51,7 @@ namespace GuildMaster.Core
                     if (condition.Kind == ConditionKind.HeavyWound && !condition.ComplicationChecked)
                     {
                         condition.ComplicationChecked = true;
-                        if (!state.InInfirmary && ctx.Rng.Chance(health.ComplicationChance)) Complicate(ctx, adventurer, condition);
+                        if (!state.InInfirmary && ctx.RollChance(health.ComplicationChance, "complication", adventurer)) Complicate(ctx, adventurer, condition);
                     }
 
                     condition.RemainingDays -= step;

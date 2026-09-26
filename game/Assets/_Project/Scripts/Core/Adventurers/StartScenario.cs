@@ -64,6 +64,11 @@ namespace GuildMaster.Core
                 free.Remove(adventurer);
                 if (AdventurerGenerator.AddBirthTrait(rng, data, world, adventurer, now, allowPartner: false)) traitsGiven++;
             }
+
+            foreach (GeneratedAdventurer generated in lineup)
+            {
+                AdventurerLog.WriteGenerated(ctx, "start", generated.Adventurer, generated.Type, generated.Level);
+            }
         }
 
         private static List<GeneratedAdventurer> GenerateLineup(SimContext ctx, out List<int> rankF)
@@ -166,6 +171,7 @@ namespace GuildMaster.Core
                 if (trait == null || traitsGiven + 2 > traitsTotal)
                 {
                     RelationService.Set(ctx, first.Id, second.Id, balance.OldFriendsRelation);
+                    ctx.Log.Write(SimLogLevel.Debug, "start old friends #{0} #{1} relation={2}", first.Id, second.Id, balance.OldFriendsRelation);
                     continue;
                 }
 
