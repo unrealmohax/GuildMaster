@@ -252,7 +252,7 @@ GM-05: `StateTests` (старт, занятия, обрезка, расписа�
 `SimulationLog.Record` (лог событий прогона строкой), `ActionCommand` и `SimulationRun` (`Do` — вызвать службу Core
 как команду на паузе, `Days`, `Collect` — события прогона); `StateTestSupport.cs`: `StateWorld` (мир без стартовой
 шестёрки, `Add(черты…)` — ровный человек, `TickToHour`, `Collect`), `LambdaSystem` (код в своём месте такта),
-`FakeInfirmary`; `DataTests.cs`: `GameData` — реальный `GameConfig`
+`FakeInfirmary`, `Frequency.Tolerance` (допуск частоты — 3σ биномиального числа успехов); `DataTests.cs`: `GameData` — реальный `GameConfig`
 и копии ассетов в памяти для порчи (`Copy`, `Edit` через `SerializedObject`); `PeopleTestData.cs`: `PeopleData` —
 определения из реального `GameConfig` + `BalanceSettings` по умолчанию (`Set(путь, число)`); `PeopleDump` — состав строкой
 (с состоянием и ранами).
