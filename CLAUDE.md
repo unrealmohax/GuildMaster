@@ -97,6 +97,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `execute_code` требует in-process Roslyn; в этом проекте он **не установлен**.
 - После создания или правки скриптов — дождаться конца компиляции и проверить консоль на ошибки.
 
+### ⚠️ Известные ограничения MCP (временно — разобраться)
+
+Замечены в GM-01 (unity-mcp v10.2.0, Unity 6000.6.3f1). Причина не выяснена — вероятно, пакет не поддерживает
+новый API идентификаторов объектов в Unity 6.x.
+
+- **Ссылки на объекты сцены не ставятся.** `manage_components set_property` падает с `NotImplementedException`
+  на любом свойстве; `manage_gameobject modify` с `component_properties` ставит простые поля и ссылки на ассеты
+  (`{"guid": …}`), но не ссылки на объекты сцены (ни по `instanceID`, ни по имени).
+  **Обход:** одноразовый Editor-скрипт в песочнице (`ClaudeSandbox/Editor/`) с `[MenuItem]` и `SerializedObject`,
+  вызвать через `execute_menu_item`, проверить результат, удалить скрипт.
+- **Компонент не читается** через ресурс `mcpforunity://scene/gameobject/{id}/component/{name}` — та же ошибка.
+  **Обход:** сохранить сцену (если её и так меняли по задаче) и проверить YAML.
+- **`read_console` не видит обычные `Debug.Log`** — только предупреждения и ошибки (возможно, в окне Console
+  выключен фильтр Info). Подтвердить работу по логу в Play Mode не получается; видно только отсутствие ошибок.
+- `manage_asset move` может вернуть ошибку, хотя перенос прошёл — проверять по диску и Build Settings.
+
 ## Claude-хозяйство: `.claude/`
 
 ```
