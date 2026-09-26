@@ -1,8 +1,8 @@
 # Код игры: архитектура
 
 Правила работы — в корневом `CLAUDE.md`. Здесь — устройство кода игры. Задания — `TechJob/01-architecture.md`
-(GM-01, архитектура), `TechJob/02-data.md` (GM-02, данные), `TechJob/03-time.md` (GM-03, время); этот файл описывает,
-как они реализованы.
+(GM-01, архитектура), `TechJob/02-data.md` (GM-02, данные), `TechJob/03-time.md` (GM-03, время),
+`TechJob/04-adventurers.md` (GM-04, авантюристы); этот файл описывает, как они реализованы.
 
 ## Где что лежит
 
@@ -24,6 +24,10 @@ _Project/
 │   │   ├── Random/      Rng (PCG32), RngService (потоки), StableHash
 │   │   ├── Events/      SimEvent, SimEventType, EventImportance, EventBus
 │   │   ├── Commands/    ICommand, CommandQueue, CommandSystem
+│   │   ├── Adventurers/ модель (Adventurer, TraitInstance, AdventurerRoster + Candidate, RelationBook), правила
+│   │   │                (AdventurerStats, ArchetypeCalculator/Service, AxisMath, Growth, GuildRanks, RelationService,
+│   │   │                TraitRules/TraitService, RevealService, AdventurerLifecycle), генерация (AdventurerGenerator,
+│   │   │                StartScenario), системы AdventurerSystem, RecruitSystem и команды кандидатам
 │   │   └── World/       WorldState, IdGenerator
 │   ├── UI/          GuildMaster.UI        — UiRoot (экраны — ТЗ 15)
 │   ├── Bootstrap/   GuildMaster.Bootstrap — GameRunner
@@ -32,7 +36,7 @@ _Project/
 ├── Data/            GameConfig, BalanceSettings, StatCatalog + папки Axes, Traits, Archetypes, QuestTypes,
 │                    Encounters, Buildings, Staff, Decrees, Dilemmas, Text (FeedTemplates, NameList, OrderTextTemplates)
 ├── ClaudeSandbox/   песочница Claude; Editor/GameDataGenerator — генератор ассетов данных, Editor/TimeProbe — время
-│                    в Play Mode из меню (см. её README)
+│                    в Play Mode из меню, Editor/AdventurerProbe — люди гильдии в консоль (см. её README)
 ├── Prefabs/UI/
 ├── Scenes/Main.unity  — единственная сцена: Main Camera, Global Light 2D, UI (Canvas + UiRoot), EventSystem, GameRunner
 └── Tests/EditMode/  GuildMaster.Tests
@@ -57,9 +61,11 @@ _Project/
 
 `Simulation.Tick()` — один игровой час: системы из списка по порядку, затем `TickCompleted(события)` и очистка шины,
 затем `StateChanged`. Порядок систем — в `SimulationSystems` (комментарий со всеми 16 шагами из ТЗ 01);
-новая система встаёт на своё место в `CreateDefault()`. Сейчас реализованы шаги 1–2 и 16: `CommandSystem`,
-`TimeSystem`, `AutopauseSystem` (всегда последняя). Тесты, которые добавляют системы в конец `CreateDefault()`,
-ставят их после автопаузы — для проверки случайности это неважно.
+новая система встаёт на своё место в `CreateDefault()`. Сейчас реализованы шаги 1–2, 13 и 16: `CommandSystem`,
+`TimeSystem`, `AdventurerSystem` + `RecruitSystem` (шаг 13 дополнен `AdventurerSystem`, решение 2026-09-26),
+`AutopauseSystem` (всегда последняя). Тесты, которые добавляют системы в конец `CreateDefault()`,
+ставят их после автопаузы — для проверки случайности это неважно. **Стартовое состояние** готовит конструктор
+`Simulation` до первого такта: `StartScenario` со своим потоком `StartScenario` (стартовые люди), событий не пишет.
 
 - **Время.** `GameTime.TotalHours` — часы от 00:00 дня 1 месяца 1 года 1 (не от старта игры). Старт —
   `TotalHours = StartHour` (06:00). Календарь — `Calendar` по `BalanceSettings.Time`. `TimeSystem` сначала
@@ -91,7 +97,51 @@ _Project/
   «Перейти», GM-15; чистится в начале следующего такта) и вызывает `ctx.RequestPause()`; `GameRunner` после такта
   забирает флаг `ConsumePauseRequest()` и ставит паузу. **Новое событие с автопаузой — одна строка
   `{ SimEventType.Тип, AutopauseKind.Вид }` в `AutopauseRules`.** Переключатели — команда `SetAutopauseCommand`
-  (пишет `AutopauseChanged`), по умолчанию все включены. Пока в правилах пусто — событий из таблицы ТЗ 03 ещё нет.
+  (пишет `AutopauseChanged`), по умолчанию все включены. Сейчас в правилах — раскрытия (`AxisRevealed`, `TraitRevealed`
+  → `TraitRevealed`); остальные события таблицы ТЗ 03 появятся в ТЗ 05, 09, 10, 13.
+
+## Авантюристы (GM-04)
+
+- **Мир.** `World.Adventurers` (`AdventurerRoster`): `Active`, `Archive` (ушедшие и погибшие, с `LeftAtHours` и
+  `LeaveReason`), `Candidates` (`Candidate`: человек + срок ожидания), `HeadCount` = активные + кандидаты (лимит
+  `Guild.maxAdventurers`). `World.Relations` (`RelationBook`): симметричные пары `Relation` (значение −100..+100,
+  совместные задания); нет записи — 0. Всё только на чтение снаружи Core; мутации — службы Core, которые требуют
+  `SimContext` (его получают только системы и команды), поэтому UI мир изменить не может.
+- **`Adventurer`**: базовые параметры по `StatId` (`Stats`, `GetStat`), оси (`Axes`, `RevealedAxes`), черты
+  (`TraitInstance`: `TraitId`, `Revealed`, `PartnerId`, `AcquiredAtHours`, `AffectedStat` — параметр Калеки), ранг гильдии
+  и `RankPoints` (дробные: частичный успех × 0,5), `PromotionReadyAtHours`, `ArchetypeId` + `PowerScore`, `State`
+  (`AdventurerState`: пока только `Wallet`, остальное — GM-05), `Housing` (пока всегда `City`, Общежитие — GM-11),
+  `JoinedAtHours`, счётчики заданий. Занятие (GM-06), группа (GM-07), память (GM-13) — не заведены.
+- **Эффективные параметры** — `AdventurerStats`: `Permanent` = база × постоянные модификаторы (Калека), не ниже
+  естественного минимума; `Effective` = `Permanent` × временные (пусто — рана и усталость в GM-05). Новый модификатор —
+  строка в `PermanentModifiers` / `TemporaryModifiers`.
+- **Архетип** — `ArchetypeCalculator.Evaluate` (чистая функция, по `Permanent`; роли — архетипы вида `Role` в порядке
+  GameConfig), `Profile` — оценки всех ролей для карточки. `ArchetypeService.Recalculate(ctx, …)` — при изменении
+  параметров (рост, черты вызывают сами) и в `AdventurerSystem` раз в сутки (00:00); смена — `ArchetypeChanged` без автопаузы.
+- **Оси** — `AxisMath`: полюс, `Strength`, `Multiplier`/`ArrowMultiplier` (сила влияния эффекта полюса),
+  `IsExtreme` (≥ 70), `IsNeutral` (< 30).
+- **Рост** — `Growth`: `Train`, `PickTrainingStat`, `ApplyQuestExperience` (оси передаёт вызывающий, GM-09),
+  `ApplyHardQuestComposure`, `ApplyGroupQuestCohesion`, `AddBonus`; `TrainingGain`/`QuestExperienceGain` — чистые.
+  Хладнокровие и Слаженность не тренируются и опыта задания не получают.
+- **Ранг гильдии** — `GuildRanks`: `AddPoints`, `IsReadyForPromotion`, `Promote` (очки → 0, `RankPromoted`),
+  `FailPromotion` (+`promotionRetryDays`), `CanTakeOrder`.
+- **Черты** — `TraitRules` (чистые: `CanAdd`, `IsPermanent` — Калека по эффекту `ProfileMultiplier`, `FindReplaced`),
+  `TraitService.TryAcquire` / `TryRemove` (замена приобретённой, партнёр, параметр Калеки из потока вызывающего,
+  раскрытие `OnAcquire`, Слаженность Проверенного). Эффекты черт в чужих системах — там. Черты находятся по `TraitHook`,
+  а не по id.
+- **Раскрытие** — `RevealService.TryRevealAxis` / `TryRevealTrait(ctx, человек, …, RevealTrigger)`: раскрывает, только если
+  триггер совпадает с триггером полюса или черты в данных; событие [В] с автопаузой. Нейтральная ось — сама,
+  `AdventurerSystem`, через `neutralRevealDays` в гильдии: `AxisBalanced` [З] без автопаузы.
+- **Отношения** — `RelationService.Change` / `Set` / `AddJointQuest`, метки `LabelsOf` (друзья, неприязнь, давние напарники).
+- **Генерация** — `AdventurerGenerator` (internal): пол, имя (по возможности без повторов), возраст → тип (веса
+  `ArchetypeDefinition.generationWeight`) → уровень → параметры → оси → черты (с партнёром — только если есть подходящий
+  в гильдии) → кошелёк, ранг G, город → архетип. Порядок бросков не менять без причины. Старт — `StartScenario`.
+- **Кандидаты** — `RecruitSystem`: утром (`morningHour`) раз в сутки шанс `CandidateChance` (заглушки: репутация
+  стартовая до ТЗ 10, распоряжений нет до ТЗ 12), ожидание `candidateWaitDays`, `CandidateArrived` / `CandidateLeft`;
+  команды `AcceptCandidateCommand` (черта с партнёром появляется и у партнёра, если он ещё может её взять) и
+  `RejectCandidateCommand`. Уход из гильдии — `AdventurerLifecycle.Retire` (событие публикует вызывающая система).
+- **Реестр только из чисел** (`DataRegistry.HasDefinitions == false`, `TestData`) — симуляция без людей: старт и приток
+  пропускаются. Поэтому тесты времени и случайности на `TestData` людей не видят.
 
 ## Мир меняется только командами
 
@@ -131,8 +181,14 @@ _Project/
 ## Тесты
 
 `Tests/EditMode`: `RngTests`, `TimeTests`, `DayRhythmTests`, `GameClockTests`, `AutopauseTests`, `SimulationTests`,
-`DeterminismTests`, `ArchitectureTests`, `DataTests.cs` (`DataValidatorTests`, `DataRegistryTests`, `BalanceRuntimeTests`).
+`DeterminismTests`, `ArchitectureTests`, `DataTests.cs` (`DataValidatorTests`, `DataRegistryTests`, `BalanceRuntimeTests`);
+GM-04: `AdventurerTests.cs` (`AdventurerGenerationTests`, `ArchetypeTests`, `StartScenarioTests`), `TraitTests`,
+`GrowthTests.cs` (`GrowthTests`, `GuildRankTests`, `RelationTests`), `RecruitTests.cs` (`RecruitTests`,
+`PeopleDeterminismTests` — детерминизм, чужие потоки не сдвигаются, 360 дней с людьми).
 Числа баланса в тесте меняются `GameData.Edit(data.Balance, "time.dayHour", p => p.intValue = 10)`.
 Помощники — `TestSupport.cs`: `TestData` (BalanceSettings без ассета), `NoiseSystem`, `TraceCommand`,
-`SimulationLog.Record` (лог событий прогона строкой); `DataTests.cs`: `GameData` — реальный `GameConfig`
-и копии ассетов в памяти для порчи (`Copy`, `Edit` через `SerializedObject`). Запуск — Test Runner или MCP `run_tests`.
+`SimulationLog.Record` (лог событий прогона строкой), `ActionCommand` и `SimulationRun` (`Do` — вызвать службу Core
+как команду на паузе, `Days`, `Collect` — события прогона); `DataTests.cs`: `GameData` — реальный `GameConfig`
+и копии ассетов в памяти для порчи (`Copy`, `Edit` через `SerializedObject`); `PeopleTestData.cs`: `PeopleData` —
+определения из реального `GameConfig` + `BalanceSettings` по умолчанию (`Set(путь, число)`); `PeopleDump` — состав строкой.
+Запуск — Test Runner или MCP `run_tests`.

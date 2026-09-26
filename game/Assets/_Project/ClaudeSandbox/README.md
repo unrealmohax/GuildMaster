@@ -28,3 +28,10 @@
   `Toggle Run In Background` включает его на время проверки. **В редакторе это меняет и `PlayerSettings` в памяти** —
   перед выходом из Play Mode выключить тем же пунктом (в лог пишутся оба значения) и проверить, что
   `ProjectSettings.asset` на диске не изменился.
+
+### `Editor/AdventurerProbe.cs` — люди гильдии из меню (GM-04)
+
+Меню **GuildMaster → Sandbox → Adventurers**: `Log Roster` (активные, кандидаты, отношения: параметры, оси с пометкой
+раскрытия `!`, черты с партнёром и пометкой «скрыта»), `Accept First Candidate`, `Reject First Candidate` — в Play Mode;
+`Preview Start Lineups` — стартовые шестёрки для зёрен 1–3 без Play Mode (симуляция в памяти, сцена не трогается).
+Пишет через `Debug.Log` — в MCP читать `read_console` с `types: ["all"]`.

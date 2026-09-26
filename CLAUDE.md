@@ -144,4 +144,5 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Артефакты в репозитории
 
 Знания и инструкции — в `.claude/`, всё, что Claude *делает*, — в песочнице
-`game/Assets/_Project/ClaudeSandbox/` (её `README.md` перечисляет содержимое). Сейчас там — генератор ассетов данных (GM-02).
+`game/Assets/_Project/ClaudeSandbox/` (её `README.md` перечисляет содержимое). Сейчас там — генератор ассетов данных (GM-02)
+и меню проверки в Play Mode: время (GM-03), люди гильдии (GM-04).
