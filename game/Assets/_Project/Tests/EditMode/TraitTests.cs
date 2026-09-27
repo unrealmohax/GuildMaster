@@ -202,6 +202,7 @@ namespace GuildMaster.Tests
             var events = new List<SimEvent>();
             bool paused = false;
             simulation.TickCompleted += tickEvents => events.AddRange(tickEvents);
+            simulation.Send(new SetAutopauseCommand(AutopauseKind.ImportantOrder, false)); // важные заказы ставят свою автопаузу
             while (simulation.World.Time.TotalHours < revealAt + simulation.Calendar.HoursPerDay)
             {
                 simulation.Tick();

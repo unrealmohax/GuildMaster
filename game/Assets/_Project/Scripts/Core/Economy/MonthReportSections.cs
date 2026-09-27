@@ -23,6 +23,10 @@ namespace GuildMaster.Core
             LedgerTo = world.Treasury.Ledger.Count;
             MoneyAtStart = previous?.MoneyAtEnd ?? world.Treasury.StartMoney;
             MoneyAtEnd = world.Treasury.Money;
+            ReputationAtStart = previous?.ReputationAtEnd ?? world.Guild.StartReputation;
+            ReputationAtEnd = world.Guild.Reputation;
+            OrdersAtStart = previous?.OrdersAtEnd ?? default;
+            OrdersAtEnd = world.Orders.Totals;
         }
 
         public WorldState World { get; }
@@ -38,6 +42,13 @@ namespace GuildMaster.Core
         public int LedgerTo { get; }
         public int MoneyAtStart { get; }
         public int MoneyAtEnd { get; }
+        public float ReputationAtStart { get; }
+        public float ReputationAtEnd { get; }
+
+        /// <summary>Счётчики заказов на начало периода (у первого отчёта — нули) и сейчас; за период — их разница.</summary>
+        public OrderTotals OrdersAtStart { get; }
+
+        public OrderTotals OrdersAtEnd { get; }
 
         /// <summary>
         /// Час попадает в период. Час начала первого периода — начало игры: стартовый состав — не новость месяца.
@@ -69,6 +80,8 @@ namespace GuildMaster.Core
     /// <list type="bullet">
     /// <item>«Деньги»: казна на начало, доходы всего и по статьям, расходы всего и по статьям, казна на конец — из журнала.</item>
     /// <item>«Люди»: кто пришёл, кто ушёл (погиб, пропал, изгнан), что раскрылось — из людей в гильдии и в архиве.</item>
+    /// <item>«Заказы»: сколько пришло, повешено на доску, отклонено Регистратором и игроком, снято по сроку — из счётчиков.</item>
+    /// <item>«Репутация»: было → стало.</item>
     /// </list>
     /// </summary>
     public static class MonthReportSections
@@ -87,6 +100,16 @@ namespace GuildMaster.Core
         public const string PeopleExpelled = "report.people.expelled";
         public const string PeopleRevealed = "report.people.revealed";
 
+        public const string OrdersTitle = "report.orders";
+        public const string OrdersArrived = "report.orders.arrived";
+        public const string OrdersPosted = "report.orders.posted";
+        public const string OrdersDeclinedByRegistrar = "report.orders.declinedByRegistrar";
+        public const string OrdersDeclinedByPlayer = "report.orders.declinedByPlayer";
+        public const string OrdersExpired = "report.orders.expired";
+
+        public const string ReputationTitle = "report.reputation";
+        public const string ReputationChange = "report.reputation.change";
+
         /// <summary>Слово для раскрытой нейтральной оси: «Риск: уравновешенность».</summary>
         public const string AxisBalanced = "report.axis.balanced";
 
@@ -95,6 +118,9 @@ namespace GuildMaster.Core
             new MonthReportSection(MoneyTitle, new[] { MoneyStart, MoneyIncome, MoneyExpense, MoneyEnd }, BuildMoney),
             new MonthReportSection(PeopleTitle,
                 new[] { PeopleJoined, PeopleLeft, PeopleDied, PeopleDisappeared, PeopleExpelled, PeopleRevealed, AxisBalanced }, BuildPeople),
+            new MonthReportSection(OrdersTitle,
+                new[] { OrdersArrived, OrdersPosted, OrdersDeclinedByRegistrar, OrdersDeclinedByPlayer, OrdersExpired }, BuildOrders),
+            new MonthReportSection(ReputationTitle, new[] { ReputationChange }, BuildReputation),
         };
 
         /// <summary>Все ключи текстов отчёта: заголовки, подписи строк, названия статей журнала.</summary>
@@ -162,6 +188,23 @@ namespace GuildMaster.Core
             AddPeople(lines, PeopleRevealed, Revealed(period, everyone));
             return lines;
         }
+
+        private static List<ReportLine> BuildOrders(ReportPeriod period)
+        {
+            OrderTotals from = period.OrdersAtStart;
+            OrderTotals to = period.OrdersAtEnd;
+            return new List<ReportLine>
+            {
+                ReportLine.Number(OrdersArrived, to.Arrived - from.Arrived),
+                ReportLine.Number(OrdersPosted, to.Posted - from.Posted),
+                ReportLine.Number(OrdersDeclinedByRegistrar, to.DeclinedByRegistrar - from.DeclinedByRegistrar),
+                ReportLine.Number(OrdersDeclinedByPlayer, to.DeclinedByPlayer - from.DeclinedByPlayer),
+                ReportLine.Number(OrdersExpired, to.Expired - from.Expired),
+            };
+        }
+
+        private static List<ReportLine> BuildReputation(ReportPeriod period) =>
+            new List<ReportLine> { ReportLine.Change(ReputationChange, period.ReputationAtStart, period.ReputationAtEnd) };
 
         private static void AddLeft(List<ReportLine> lines, ReportPeriod period, string key, LeaveReason reason) =>
             AddPeople(lines, key, Pick(period, key, period.World.Adventurers.Archive,

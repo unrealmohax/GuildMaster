@@ -6,7 +6,8 @@ namespace GuildMaster.Core
     /// <summary>
     /// Точка входа симуляции. <see cref="Tick"/> — один игровой час: системы по порядку, затем очистка событий.
     /// Работает без сцены и без интерфейса. То же зерно + те же команды в те же такты = тот же мир.
-    /// При создании готовит стартовое состояние (казна; <see cref="StartScenario"/>: стартовые авантюристы).
+    /// При создании готовит стартовое состояние (казна, репутация; <see cref="StartScenario"/>: стартовые авантюристы;
+    /// <see cref="OrderSystem.ApplyStart"/>: стартовые заказы на доске).
     /// Когда гильдия закрыта (<see cref="IsFinished"/>), такты больше ничего не делают.
     /// Лог (<see cref="SimLogger"/>) получает события сразу после шага системы, которая их опубликовала, — вслед за её
     /// бросками; уровень события — <see cref="EventLogLevels"/>.
@@ -38,14 +39,16 @@ namespace GuildMaster.Core
             Rng = new RngService(masterSeed);
             World = new WorldState { Time = Calendar.At(Calendar.StartTotalHours) };
             World.Treasury.Initialize(data.Balance.Guild.StartMoney, data.Balance.Economy.DefaultCommission, World.Time.TotalHours);
+            World.Guild.Initialize(data.Balance.Guild.StartReputation);
             Events = new EventBus(World);
             Commands = new CommandQueue();
             Log = log ?? SimLogger.Disabled;
             Log.Bind(Calendar, World);
             context = new SimContext(World, Data, Calendar, Rhythm, Events, Commands, Log);
 
-            // Стартовое состояние мира — до первого такта, своим потоком случайных чисел.
+            // Стартовое состояние мира — до первого такта, каждая часть своим потоком случайных чисел.
             Run(StartScenario.StreamName, StartScenario.Apply);
+            Run(OrderSystem.StartStreamName, OrderSystem.ApplyStart);
         }
 
         public static Simulation CreateDefault(DataRegistry data, uint masterSeed, SimLogger log = null) =>

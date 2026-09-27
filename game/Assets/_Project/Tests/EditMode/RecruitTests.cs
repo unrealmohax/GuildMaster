@@ -19,10 +19,11 @@ namespace GuildMaster.Tests
         public void TearDown() => data.Dispose();
 
         [Test]
-        public void CandidateChance_IsBasePlusStartReputation()
+        public void CandidateChance_IsBasePlusReputation()
         {
-            // Репутация — стартовая (5): 3% + 5 × 0,3% = 4,5%.
-            Assert.That(RecruitSystem.CandidateChance(data.Registry), Is.EqualTo(0.045f).Within(1e-6f));
+            // 3% + 5 × 0,3% = 4,5%; 3% + 40 × 0,3% = 15%.
+            Assert.That(RecruitSystem.CandidateChance(data.Registry, 5f), Is.EqualTo(0.045f).Within(1e-6f));
+            Assert.That(RecruitSystem.CandidateChance(data.Registry, 40f), Is.EqualTo(0.15f).Within(1e-6f));
         }
 
         [Test]
@@ -43,7 +44,7 @@ namespace GuildMaster.Tests
                     "не больше одного в сутки");
             }
 
-            float expected = RecruitSystem.CandidateChance(data.Registry) * days * seeds;
+            float expected = RecruitSystem.CandidateChance(data.Registry, data.Balance.Guild.StartReputation) * days * seeds;
             TestContext.WriteLine($"{total} candidates in {days * seeds} days, expected {expected:0}");
             Assert.That(total, Is.EqualTo(expected).Within(expected * 0.1f));
         }

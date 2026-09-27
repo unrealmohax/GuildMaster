@@ -93,6 +93,7 @@ namespace GuildMaster.Tests
                 typeof(FeedState), typeof(FeedEntry),
                 typeof(Treasury), typeof(Bankruptcy), typeof(LedgerEntry),
                 typeof(MonthReportHistory), typeof(MonthReport), typeof(ReportSection), typeof(ReportLine), typeof(ReportItem),
+                typeof(GuildState), typeof(OrderBoard), typeof(Order),
             };
             foreach (Type type in stateTypes)
             {

@@ -8,7 +8,8 @@ namespace GuildMaster.Tests
 {
     /// <summary>
     /// Мир для тестов состояния и здоровья: реальные определения, числа по умолчанию, системы по умолчанию,
-    /// стартовая шестёрка сразу уходит в архив — в гильдии только люди, которых тест добавил сам.
+    /// стартовая шестёрка сразу уходит в архив — в гильдии только люди, которых тест добавил сам. Системы заказов нет:
+    /// тест видит только события своих людей.
     /// </summary>
     internal sealed class StateWorld : IDisposable
     {
@@ -16,6 +17,7 @@ namespace GuildMaster.Tests
         {
             Data = new PeopleData();
             List<ISimSystem> systems = SimulationSystems.CreateDefault();
+            systems.RemoveAll(s => s is OrderSystem);
             if (infirmary != null) systems[systems.FindIndex(s => s is HealthSystem)] = new HealthSystem(infirmary);
             if (beforeState != null) systems.Insert(systems.FindIndex(s => s is StateSystem), beforeState);
             Simulation = new Simulation(Data.Registry, seed, systems, log);

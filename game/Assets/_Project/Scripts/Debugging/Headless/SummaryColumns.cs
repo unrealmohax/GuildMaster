@@ -14,7 +14,7 @@ namespace GuildMaster.Debugging
     public static class SummaryColumns
     {
         /// <summary>По месяцам: люди, приход и уход, срывы, раны, раскрытия, средние показатели на конец месяца, кошельки,
-        /// строки ленты гильдии по важности, казна на конец месяца, доходы и расходы, банкротство.</summary>
+        /// строки ленты гильдии по важности, казна на конец месяца, доходы и расходы, банкротство, заказы, репутация на конец месяца.</summary>
         public static readonly IReadOnlyList<MonthColumn> Monthly = new[]
         {
             new MonthColumn("Людей", m => m.World.Adventurers.Active.Count, SummaryTotal.Last, "0"),
@@ -40,6 +40,12 @@ namespace GuildMaster.Debugging
             new MonthColumn("Доходы", m => m.Ledger(LedgerFlow.Income), SummaryTotal.Sum, "0"),
             new MonthColumn("Расходы", m => -m.Ledger(LedgerFlow.Expense), SummaryTotal.Sum, "0"),
             new MonthColumn("Банкротство", m => m.World.Treasury.Bankruptcy.Active ? 1 : 0, SummaryTotal.Last, "0"),
+            new MonthColumn("Заказов пришло", m => m.Count(SimEventType.OrderArrived), SummaryTotal.Sum, "0"),
+            new MonthColumn("На доску", m => m.Count(SimEventType.OrderPosted), SummaryTotal.Sum, "0"),
+            new MonthColumn("Отклонено Регистратором", m => m.Count(SimEventType.OrderDeclinedByRegistrar), SummaryTotal.Sum, "0"),
+            new MonthColumn("Отклонено игроком", m => m.Count(SimEventType.OrderDeclinedByPlayer), SummaryTotal.Sum, "0"),
+            new MonthColumn("Снято по сроку", m => m.Count(SimEventType.OrderExpired), SummaryTotal.Sum, "0"),
+            new MonthColumn("Репутация", m => m.World.Guild.Reputation, SummaryTotal.Last, "0.#"),
         };
 
         /// <summary>

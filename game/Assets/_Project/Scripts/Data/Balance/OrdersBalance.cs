@@ -56,6 +56,9 @@ namespace GuildMaster.Data
         [Tooltip("Намёков в описании: на столько самых больших осей")]
         [SerializeField] private IntRange hintCount = new IntRange(1, 2);
 
+        [Tooltip("Точность описания: скрытый множитель, насколько описание недооценивает или переоценивает задание")]
+        [SerializeField] private FloatRange descriptionAccuracy = new FloatRange(0.9f, 1.1f);
+
         [Tooltip("Важный заказ: награда от")]
         [SerializeField, Min(0)] private int importantRewardThreshold = 250;
 
@@ -67,6 +70,9 @@ namespace GuildMaster.Data
 
         [Tooltip("Ранг стартовых заказов")]
         [SerializeField] private GuildRank startOrderRank = GuildRank.G;
+
+        [Tooltip("Закрытых заказов (отклонённых, снятых) хранится не больше; старые выбрасываются")]
+        [SerializeField, Min(1)] private int closedOrdersLimit = 200;
 
         public float BaseOrdersPerDay => baseOrdersPerDay;
         public float ReputationPerExtraOrder => reputationPerExtraOrder;
@@ -82,10 +88,12 @@ namespace GuildMaster.Data
         public float BonusRewardShare => bonusRewardShare;
         public FloatRange LootShare => lootShare;
         public IntRange HintCount => hintCount;
+        public FloatRange DescriptionAccuracy => descriptionAccuracy;
         public int ImportantRewardThreshold => importantRewardThreshold;
         public int PlayerResponseDays => playerResponseDays;
         public int StartOrders => startOrders;
         public GuildRank StartOrderRank => startOrderRank;
+        public int ClosedOrdersLimit => closedOrdersLimit;
     }
 
     /// <summary>Строка смеси рангов: с этой репутации — такие веса рангов G–C.</summary>

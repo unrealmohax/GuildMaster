@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using GuildMaster.Core;
+using GuildMaster.Data;
 
 namespace GuildMaster.Debugging
 {
@@ -89,9 +90,14 @@ namespace GuildMaster.Debugging
         /// <summary>Комиссия бота «Простой».</summary>
         public const float SimpleCommission = 0.2f;
 
-        /// <summary>Ставит комиссию 20% и принимает всех кандидатов в авантюристы.</summary>
+        /// <summary>
+        /// Ставит комиссию 20%, принимает всех кандидатов в авантюристы, Регистратору велит брать все типы до высшего ранга людей
+        /// гильдии без порога награды, важные заказы принимает, как только в гильдии есть человек этого ранга или выше; до тех пор
+        /// заказ ждёт, и без ответа заказчик уходит сам.
+        /// </summary>
         public static PlayerBot Simple() =>
-            new PlayerBot(SimpleName, new SetCommissionOnceRule(SimpleCommission), new AcceptAllCandidatesRule());
+            new PlayerBot(SimpleName, new SetCommissionOnceRule(SimpleCommission), new AcceptAllCandidatesRule(),
+                new RegistrarUpToTopRankRule(), new AnswerImportantOrdersByRankRule());
 
         /// <summary>Повторяет команды сценария в их такты.</summary>
         public static PlayerBot Scenario(ScenarioScript script) => new PlayerBot(ScenarioName, new ScenarioRule(script));
@@ -123,6 +129,50 @@ namespace GuildMaster.Debugging
         {
             IReadOnlyList<Candidate> candidates = turn.World.Adventurers.Candidates;
             for (int i = 0; i < candidates.Count; i++) turn.Send(new AcceptCandidateCommand(candidates[i].Adventurer.Id));
+        }
+    }
+
+    /// <summary>
+    /// Правила Регистратора — все типы, до высшего ранга людей гильдии, без порога награды. Высший ранг сменился — новые правила.
+    /// Людей нет — до ранга G.
+    /// </summary>
+    public sealed class RegistrarUpToTopRankRule : IBotRule
+    {
+        public void Act(BotTurn turn)
+        {
+            var wanted = new RegistrarRules(null, TopRank(turn.World), 0);
+            if (!turn.World.Orders.Rules.IsSameAs(wanted)) turn.Send(new SetRegistrarRulesCommand(wanted));
+        }
+
+        /// <summary>Высший ранг среди людей в гильдии; никого нет — G.</summary>
+        public static GuildRank TopRank(WorldState world)
+        {
+            GuildRank top = GuildRank.G;
+            foreach (Adventurer adventurer in world.Adventurers.Active)
+            {
+                if (adventurer.GuildRank > top) top = adventurer.GuildRank;
+            }
+            return top;
+        }
+    }
+
+    /// <summary>
+    /// Важный заказ: принять без доплаты, как только в гильдии есть человек его ранга или выше. Нет такого — не отвечать:
+    /// заказ ждёт (вдруг кто-то вырастет или придёт), без ответа заказчик уходит сам.
+    /// </summary>
+    public sealed class AnswerImportantOrdersByRankRule : IBotRule
+    {
+        public void Act(BotTurn turn)
+        {
+            IReadOnlyList<Order> orders = turn.World.Orders.Open;
+            GuildRank top = RegistrarUpToTopRankRule.TopRank(turn.World);
+            bool anyone = turn.World.Adventurers.Active.Count > 0;
+            for (int i = 0; i < orders.Count; i++)
+            {
+                Order order = orders[i];
+                if (order.Status != OrderStatus.AwaitingPlayer || !anyone || order.Rank > top) continue;
+                turn.Send(new AnswerImportantOrderCommand(order.Id, true));
+            }
         }
     }
 }

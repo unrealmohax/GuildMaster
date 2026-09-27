@@ -3,13 +3,14 @@ using System.Collections.Generic;
 namespace GuildMaster.Core
 {
     /// <summary>
-    /// Отчёт за прошедший месяц: период, казна на начало и конец, записи журнала за период и разделы. Раздел — заголовок
+    /// Отчёт за прошедший месяц: период, казна на начало и конец, записи журнала за период, репутация и счётчики заказов
+    /// на конец (с них начинается следующий отчёт) и разделы. Раздел — заголовок
     /// и строки (<see cref="MonthReportSections"/>). Тексты — ключи шаблонов; строками их собирает <see cref="MonthReportText"/>.
     /// </summary>
     public sealed class MonthReport
     {
         internal MonthReport(int year, int month, long fromHours, long toHours, int moneyAtStart, int moneyAtEnd, int ledgerFrom, int ledgerTo,
-            int income, int expense, IReadOnlyList<ReportSection> sections)
+            int income, int expense, float reputationAtEnd, OrderTotals ordersAtEnd, IReadOnlyList<ReportSection> sections)
         {
             Year = year;
             Month = month;
@@ -21,6 +22,8 @@ namespace GuildMaster.Core
             LedgerTo = ledgerTo;
             Income = income;
             Expense = expense;
+            ReputationAtEnd = reputationAtEnd;
+            OrdersAtEnd = ordersAtEnd;
             Sections = sections;
         }
 
@@ -48,6 +51,12 @@ namespace GuildMaster.Core
 
         /// <summary>Расходы за период (положительное число).</summary>
         public int Expense { get; }
+
+        /// <summary>Репутация гильдии, когда отчёт составлен.</summary>
+        public float ReputationAtEnd { get; }
+
+        /// <summary>Счётчики заказов за игру, когда отчёт составлен.</summary>
+        public OrderTotals OrdersAtEnd { get; }
 
         public IReadOnlyList<ReportSection> Sections { get; }
 
@@ -111,8 +120,8 @@ namespace GuildMaster.Core
     }
 
     /// <summary>
-    /// Строка отчёта: ключ подписи и значение — сумма (<see cref="HasAmount"/>; со знаком, если <see cref="Signed"/>)
-    /// или список людей (<see cref="Items"/>).
+    /// Строка отчёта: ключ подписи и значение — сумма или число (<see cref="HasAmount"/>; со знаком, если <see cref="Signed"/>),
+    /// изменение «было → стало» (<see cref="HasChange"/>) или список людей (<see cref="Items"/>).
     /// </summary>
     public sealed class ReportLine
     {
@@ -134,9 +143,22 @@ namespace GuildMaster.Core
         /// <summary>Сумма пишется со знаком: доходы «+», расходы «−».</summary>
         public bool Signed { get; }
 
+        /// <summary>Значение — изменение: <see cref="From"/> → <see cref="To"/>.</summary>
+        public bool HasChange { get; private set; }
+
+        public float From { get; private set; }
+        public float To { get; private set; }
+
         public IReadOnlyList<ReportItem> Items { get; }
 
         public static ReportLine Money(string textKey, int amount, bool signed) => new ReportLine(textKey, true, amount, signed, null);
+
+        /// <summary>Строка-счёт: «Пришло: 45».</summary>
+        public static ReportLine Number(string textKey, int count) => new ReportLine(textKey, true, count, false, null);
+
+        /// <summary>Строка-изменение: «Репутация: 5 → 7».</summary>
+        public static ReportLine Change(string textKey, float from, float to) =>
+            new ReportLine(textKey, false, 0, false, null) { HasChange = true, From = from, To = to };
 
         public static ReportLine People(string textKey, IReadOnlyList<ReportItem> items) => new ReportLine(textKey, false, 0, false, items);
     }

@@ -40,7 +40,9 @@ namespace GuildMaster.Tests
 
             Assert.That(Total(summary, "Пришло"), Is.GreaterThan(0));
             Assert.AreEqual(Total(summary, "Кандидатов"), Total(summary, "Пришло"), 1, "каждый пришедший кандидат принят (последний может ждать хода бота)");
-            Assert.AreEqual(result.Scenario.Recorded, (int)Total(summary, "Пришло"), 1);
+            // Команды кандидатам — «такт accept id»; у ответа на важный заказ слово другое («answer»).
+            int accepts = result.Scenario.ToString().Split('\n').Count(line => line.Split(' ').Length > 1 && line.Split(' ')[1] == "accept");
+            Assert.AreEqual(accepts, (int)Total(summary, "Пришло"), 1);
         }
 
         [Test]

@@ -4,8 +4,8 @@
 (GM-01, архитектура), `TechJob/02-data.md` (GM-02, данные), `TechJob/03-time.md` (GM-03, время),
 `TechJob/04-adventurers.md` (GM-04, авантюристы), `TechJob/05-state-health.md` (GM-05, состояние и здоровье),
 `TechJob/06-debug-logging.md` (GM-06, лог и прогон без интерфейса), `TechJob/07-event-feed.md` (GM-07, лента событий),
-`TechJob/08-decision-model.md` (GM-08, модель решений), `TechJob/09-economy.md` (GM-09, экономика гильдии);
-этот файл описывает, как они реализованы.
+`TechJob/08-decision-model.md` (GM-08, модель решений), `TechJob/09-economy.md` (GM-09, экономика гильдии),
+`TechJob/10-orders.md` (GM-10, заказы, доска и репутация); этот файл описывает, как они реализованы.
 
 ## Комментарии в коде: без ссылок на документацию
 
@@ -57,6 +57,9 @@ _Project/
 │   │   │                MonthReportSections (+ ReportPeriod), MonthReportSystem, MonthReportText
 │   │   ├── Feed/        FeedSystem, FeedState + FeedEntry (лента в мире), FeedKeys (событие → ключ), FeedConditions,
 │   │   │                TextRenderer + TextValue + ITextSource (движок подстановки), EventTextSource (метки из события)
+│   │   ├── Guild/       GuildState (репутация в мире), ReputationService
+│   │   ├── Orders/      Order (+ статусы), OrderBoard (+ RegistrarRules, OrderTotals), OrderGenerator, OrderSystem,
+│   │   │                OrderCommands (правила Регистратора, ответ на важный заказ, доплата), OrderTextSource
 │   │   └── World/       WorldState, IdGenerator
 │   ├── UI/          GuildMaster.UI        — UiRoot (экраны — ТЗ 14)
 │   ├── Bootstrap/   GuildMaster.Bootstrap — GameRunner
@@ -93,13 +96,14 @@ _Project/
 
 `Simulation.Tick()` — один игровой час: системы из списка по порядку, затем `TickCompleted(события)` и очистка шины,
 затем `StateChanged`. Порядок систем — в `SimulationSystems` (комментарий со всеми 16 шагами из ТЗ 01);
-новая система встаёт на своё место в `CreateDefault()`. Сейчас реализованы шаги 1–2, 5–8, 11, 13, 15 и 16: `CommandSystem`,
-`TimeSystem`, `ActivitySystem`, `StateSystem`, `HealthSystem`, `DecisionSystem`, `EconomySystem`, `AdventurerSystem` + `RecruitSystem`
+новая система встаёт на своё место в `CreateDefault()`. Сейчас реализованы шаги 1–3, 5–8, 11, 13, 15 и 16: `CommandSystem`,
+`TimeSystem`, `OrderSystem`, `ActivitySystem`, `StateSystem`, `HealthSystem`, `DecisionSystem`, `EconomySystem`, `AdventurerSystem` + `RecruitSystem`
 (шаг 13 дополнен `AdventurerSystem`, решение 2026-09-26), `MonthReportSystem` (отчёт месяца — после всех систем, которые меняют мир,
 решение 2026-09-27), `FeedSystem` (после всех систем, которые публикуют события), `AutopauseSystem` (всегда последняя). Тесты, которые добавляют системы в конец `CreateDefault()`,
 ставят их после автопаузы — для проверки случайности это неважно. **Стартовое состояние** готовит конструктор
-`Simulation` до первого такта: казна (`Guild.startMoney`, `Economy.defaultCommission`) и `StartScenario` со своим потоком
-`StartScenario` (стартовые люди), событий не пишет. **Гильдия закрыта** (`Simulation.IsFinished`, он же
+`Simulation` до первого такта: казна (`Guild.startMoney`, `Economy.defaultCommission`), репутация (`Guild.startReputation`),
+`StartScenario` со своим потоком `StartScenario` (стартовые люди) и `OrderSystem.ApplyStart` со своим потоком `OrderStart`
+(стартовые заказы на доске); событий не пишет. **Гильдия закрыта** (`Simulation.IsFinished`, он же
 `ISimulationClient.IsFinished`) — `Tick()` и `ApplyCommandsNow()` ничего не делают.
 
 - **Время.** `GameTime.TotalHours` — часы от 00:00 дня 1 месяца 1 года 1 (не от старта игры). Старт —
@@ -134,8 +138,8 @@ _Project/
   забирает флаг `ConsumePauseRequest()` и ставит паузу. **Новое событие с автопаузой — одна строка
   `{ SimEventType.Тип, AutopauseKind.Вид }` в `AutopauseRules`.** Переключатели — команда `SetAutopauseCommand`
   (пишет `AutopauseChanged`), по умолчанию все включены. Сейчас в правилах — раскрытия (`AxisRevealed`, `TraitRevealed`
-  → `TraitRevealed`), уход из гильдии (`AdventurerLeft` → `MemberLeftGuild`) и начало банкротства (`BankruptcyStarted`);
-  остальные события таблицы ТЗ 03 появятся в ТЗ 11, 13, 17.
+  → `TraitRevealed`), уход из гильдии (`AdventurerLeft` → `MemberLeftGuild`), начало банкротства (`BankruptcyStarted`) и важный
+  заказ (`OrderAwaitingPlayer` → `ImportantOrder`); остальные события таблицы ТЗ 03 появятся в ТЗ 11, 13, 17.
 
 ## Авантюристы (GM-04)
 
@@ -173,8 +177,8 @@ _Project/
 - **Генерация** — `AdventurerGenerator` (internal): пол, имя (по возможности без повторов), возраст → тип (веса
   `ArchetypeDefinition.generationWeight`) → уровень → параметры → оси → черты (с партнёром — только если есть подходящий
   в гильдии) → кошелёк, ранг G, город → архетип → стартовое состояние (GM-05, последние броски). Порядок бросков не менять без причины. Старт — `StartScenario`.
-- **Кандидаты** — `RecruitSystem`: утром (`morningHour`) раз в сутки шанс `CandidateChance` (заглушки: репутация
-  стартовая до ТЗ 10, распоряжений нет до ТЗ 16), ожидание `candidateWaitDays`, `CandidateArrived` / `CandidateLeft`;
+- **Кандидаты** — `RecruitSystem`: утром (`morningHour`) раз в сутки шанс `CandidateChance(данные, репутация)` — от текущей
+  `World.Guild.Reputation` (GM-10; распоряжений нет до ТЗ 16), ожидание `candidateWaitDays`, `CandidateArrived` / `CandidateLeft`;
   команды `AcceptCandidateCommand` (черта с партнёром появляется и у партнёра, если он ещё может её взять) и
   `RejectCandidateCommand`. Уход из гильдии — `AdventurerLifecycle.Retire` (событие публикует вызывающая система).
 - **Реестр только из чисел** (`DataRegistry.HasDefinitions == false`, `TestData`) — симуляция без людей: старт и приток
@@ -277,6 +281,13 @@ _Project/
 - **Окно** GuildMaster → Run Headless…: Game Config, зерно (случайное по кнопке), дней (360), уровень лога (Info),
   лог в консоль, бот («Простой»; «Сценарий» — с файлом, зерно берётся из `# seed=`), прогонов (1–100). Итог — отчёт,
   таблицы сводки (при серии — среднее ± разброс), «Открыть папку Logs».
+- **Доработка GM-10**: «Простой» ещё держит правила Регистратора «все типы, до высшего ранга людей, без порога»
+  (`RegistrarUpToTopRankRule` — шлёт команду, когда высший ранг сменился) и отвечает на важные заказы
+  (`AnswerImportantOrdersByRankRule`: как только есть человек ранга заказа или выше — принять без доплаты; до тех пор не отвечать —
+  заказ ждёт, без ответа заказчик уходит сам). Команды
+  сценария — `registrar all|none|Hunt,Escort Ранг Награда`, `answer id accept Доплата` / `answer id decline`, `surcharge id сумма`.
+  В сводке — «Заказов пришло», «На доску», «Отклонено Регистратором», «Отклонено игроком», «Снято по сроку», «Репутация».
+  Лог `Info` — ещё ~2 тыс. строк событий заказов в год; `Debug` — заказ целиком при появлении (`order new #4 …`).
 - **Доработка GM-09**: «Простой» первым ходом ставит комиссию 20% (`SetCommissionOnceRule`); команда сценария
   `commission 0.2`; прогон кончается раньше срока, если гильдия закрылась (`Result.GuildClosed`, строка
   `guild closed at …`, в окне — «Гильдия закрыта»); в сводке — «Казна» (на конец месяца), «Доходы», «Расходы»,
@@ -310,6 +321,10 @@ _Project/
 - **Сводка**: столбцы «Лента [О]», «Лента [З]», «Лента [В]» — строк за месяц (`MonthRecord.FeedLines`).
 - **Строки GM-09**: `guild.bankruptcy.started` [В], `guild.bankruptcy.lifted` [З], `guild.closed` [В] (💡), `guild.month.summary` [З]
   (событие `MonthReportReady`: `income`, `expense`, `count` — погибших).
+- **Строки GM-10**: за утро — `guild.board.newOrders` и `guild.board.declined` (`count`), `guild.board.awaitingPlayer` [В],
+  `guild.board.expired` (вариант по типу — условие `QuestType`: id в данных события `questType`), `guild.board.noAnswer`
+  (только `OrderDeclinedByPlayer` с `noAnswer`; отказ игрока строки не даёт). Названия — из данных события заказа (`client`,
+  `place`, `enemy`, `cargo`).
 
 ## Модель решений (GM-08)
 
@@ -393,6 +408,43 @@ _Project/
 - **Прогон года** (10 зёрен, «Простой»): казна 2000 → ~2040; таверна +14 в первый месяц, дальше 0–7 — без заданий кошельки пустеют
   и в таверне почти не едят и не пьют. Трудных времён нет (никто не уходит, банкротства нет).
 
+## Заказы, доска и репутация (GM-10)
+
+Числа — `BalanceSettings.Orders` (поток, смесь рангов, «сложный не по времени», доли дальних, порог требований, множитель осей,
+награда, намёки, точность описания, порог важного, срок ответа, стартовые заказы, предел архива), `Ranks` (оси и награды по рангам),
+`Guild` (репутация, приток). Доли типов — `QuestTypeDefinition.generationWeight`. Решение 2026-09-27 в `docs/decisions.md`.
+
+- **Мир.** `World.Guild` (`GuildState`): `Reputation`, `StartReputation`; меняет только `ReputationService.Change(ctx, Δ, причина)` —
+  обрезка 0..`maxReputation`, событие `ReputationChanged` (без строки). В GM-10 репутация не меняется. `World.Orders` (`OrderBoard`):
+  `Open` (на доске и ждущие игрока), `Closed` (отклонённые и снятые, не больше `closedOrdersLimit`), `Rules` (`RegistrarRules`:
+  типы или все, ранг до, минимум награды; по умолчанию — все, до C, 0), `Totals` (`OrderTotals` — счётчики за игру, без
+  стартовых), `TryGetOpen`, `TryGetOrder`, `GetPromisedSurcharges` (доплаты на доске). Свой счётчик id.
+- **`Order`**: тип, заказчик, место, враг, груз (`NounForms`), ранг, расстояние, описание, `HintStats`, награда, доплата, статус
+  (`Incoming` → `OnBoard` / `AwaitingPlayer` → `Declined` (+ `DeclinedBy`: `Registrar`, `Player`, `NoAnswer`) / `Expired`),
+  `IsImportant`, `IsHardEarly`, часы прихода, повешен, снимут, ответ до, закрыт. **Скрытое — `internal`**: профиль
+  (`Requirement(StatId)`, по всем 14 параметрам, у Слаженности 0 — `Vocabulary.IsDiagramAxis`), потолки, `DescriptionAccuracy`.
+- **`OrderGenerator`** (internal, чистые функции от потока): `Generate` (порядок бросков — в комментарии класса, не менять без
+  причины), `RankMixFor`, `OrdersPerDay`, `BuildProfile` («тип + ранг → профиль»: главные / второстепенные из диапазона ранга,
+  далеко без Выживания — Выживание второстепенной, × множитель, все оси диаграммы не ниже `requirementFloor`), `Reward`
+  (× дальность, округление), `LargestAxes`, `IsImportant`. Описание — шаблон типа (`OrderTextSource` даёт метки) + намёки на
+  1–2 самые большие оси + «Путь неблизкий», одинаковые предложения склеиваются.
+- **`OrderSystem`** (шаг 3, свой поток): каждый такт — снять заказы с вышедшим сроком (`OrderExpired`) и отклонить важные без
+  ответа (`OrderDeclinedByPlayer`, `noAnswer`); в начале утра — число по репутации (дробная часть — бросок `extra-order` всегда),
+  каждый: `OrderArrived` → важный — `AwaitingPlayer` ([В], автопауза, ответ до `playerResponseDays`), иначе по правилам —
+  `OrderPosted` или `OrderDeclinedByRegistrar`; в конце утра — `NewOrdersPosted` / `RegistrarDeclinedOrders` (`count`) для ленты.
+  Id заказа — в данных события (`order`), не в участниках. `ApplyStart` — стартовые заказы (поток `OrderStart`, без событий).
+- **Команды**: `SetRegistrarRulesCommand` (те же правила — без события, смена — `RegistrarRulesChanged`),
+  `AnswerImportantOrderCommand` (принять — на доске с этого часа, срок от принятия, доплата; отклонить — `Declined` / `Player`),
+  `SetSurchargeCommand` (только на доске, ≥ 0, из казны не списывается, `SurchargeSet`).
+- **Отчёт месяца**: разделы «Заказы» (числами — разница счётчиков с прошлым отчётом; `ReportLine.Number`) и «Репутация»
+  («За месяц: 5 → 5» — `ReportLine.Change`). `MonthReport` хранит `ReputationAtEnd` и `OrdersAtEnd`.
+- **Что поменялось в GM-04–09**: шанс кандидата — от текущей репутации (пока равна стартовой — броски те же); `StateWorld` в тестах
+  убирает `OrderSystem` (тесты состояния видят только своих людей); тест раскрытия нейтральных осей выключает автопаузу важного
+  заказа; тест бота «Простой» считает только команды `accept` (в сценарии теперь и `registrar`, `answer`); отчёт месяца длиннее
+  на 8 строк. Чужие броски не сдвинуты (тест `OrderSystem_DoesNotShiftOtherSystems`).
+- **Прогон года** (10 зёрен, «Простой»): ~1,5 заказа в день (~45 в месяц), почти все снимаются по сроку — заданий ещё нет;
+  важных ~27 в год, все уходят без ответа (высший ранг людей — F, бот ждёт человека нужного ранга).
+
 ## Мир меняется только командами
 
 Состояние в `WorldState` и его частях — публичные геттеры, `internal`-сеттеры. Снаружи Core (UI, Bootstrap)
@@ -417,7 +469,7 @@ _Project/
   `DilemmaTrigger`. Данные говорят «какое правило», код реализует его в своей системе (ТЗ 04, 11, 17).
 - **Тексты**: подстановки `{имя}`, `{место:р}`, род `[м|ж]`, `[его|её]@имя` (ТЗ 07). Словарь меток —
   `TextPlaceholders`. У имён, мест, врагов, построек, распоряжений — `NounForms` (6 падежей и род `GrammaticalGender`);
-  у имён `NameList` заполнены все шесть форм (валидатор требует), у названий заказов — пока только именительный. Падежи в шаблонах расставлены. Скобка рода у названий — `[м|ж|ср|мн]@постройка` (решение 2026-09-26). Ключи ленты (`quest.departed`, `reveal.risk.negative`…)
+  у имён `NameList` и у названий заказов (заказчики, места, враги, грузы) заполнены все шесть форм (валидатор требует). Падежи в шаблонах расставлены. Скобка рода у названий — `[м|ж|ср|мн]@постройка` (решение 2026-09-26). Ключи ленты (`quest.departed`, `reveal.risk.negative`…)
   — строки; определения ссылаются на них полями `…FeedKey`.
 - **Валидатор** — GuildMaster → Validate Data (`DataValidator.Validate(config)`): обход сериализуемых полей
   отражением (пустые ссылки, кроме `[OptionalReference]`; `[Range]`/`[Min]`; `IntRange`/`FloatRange` с min > max),
@@ -459,7 +511,13 @@ GM-09: `EconomyTests.cs` (`TreasuryTests` — старт, запись журн�
 с автопаузой и строкой, сброс счётчика, снятие, закрытие по сроку и остановка, досрочный конец прогона; `MonthReportTests` —
 отчёт совпадает с журналом, люди и раскрытия, строка ленты, следующий отчёт продолжает; `HardTimesTests` — Проверенный и Преданный
 при уходе и банкротстве, без трудных времён ничего; `EconomyDeterminismTests` — одно зерно = та же казна, журнал, отчёты, лента;
-чужие броски не сдвигаются; сводка года; `EconomyScenarioTests` — команда `commission`, бот «Простой»). Всего 297.
+чужие броски не сдвигаются; сводка года; `EconomyScenarioTests` — команда `commission`, бот «Простой»);
+GM-10: `OrderTests.cs` (`OrderGenerationTests` — смесь рангов по репутации, 5% «сложных», доли типов и расстояний, профиль по шаблону
+и порог, награда, намёки на самые большие оси, без повторов, важность, точность, скрытое не видно; `OrderBoardTests` — старт без
+событий и без сдвига людей, число заказов по утрам, Регистратор по правилам и строки утра, важные — игроку, автопауза, отказ без
+ответа, ответ и доплата, снятие по сроку, предел архива, репутация, шанс кандидата от репутации, отчёт; `OrderDeterminismTests` —
+одно зерно = те же заказы и лента, чужие броски не сдвигаются; `OrderScenarioTests` — команды сценария, бот «Простой», сводка,
+повтор сценария; бот ждёт человека нужного ранга). Всего 335.
 Помощники ленты — `DictionarySource` (метки из словаря), `FeedTestTemplates` (шаблоны в памяти).
 Числа баланса в тесте меняются `GameData.Edit(data.Balance, "time.dayHour", p => p.intValue = 10)`.
 Помощники — `TestSupport.cs`: `TestData` (BalanceSettings без ассета), `NoiseSystem`, `TraceCommand`,

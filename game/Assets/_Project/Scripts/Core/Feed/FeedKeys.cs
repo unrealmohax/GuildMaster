@@ -29,6 +29,11 @@ namespace GuildMaster.Core
         public const string BankruptcyLifted = "guild.bankruptcy.lifted";
         public const string GuildClosed = "guild.closed";
         public const string MonthReport = "guild.month.summary";
+        public const string NewOrders = "guild.board.newOrders";
+        public const string RegistrarDeclined = "guild.board.declined";
+        public const string AwaitingPlayer = "guild.board.awaitingPlayer";
+        public const string OrderExpired = "guild.board.expired";
+        public const string OrderNoAnswer = "guild.board.noAnswer";
 
         /// <summary>Ключи, которые события дают всегда (не из данных) — их шаблоны обязаны быть в данных.</summary>
         public static IReadOnlyList<string> Fixed { get; } = new[]
@@ -38,6 +43,7 @@ namespace GuildMaster.Core
             BreakdownBinge, BreakdownBrawl, BreakdownBrawlAlone, BreakdownRefuse, BreakdownCollapse,
             Quarrel,
             BankruptcyStarted, BankruptcyLifted, GuildClosed, MonthReport,
+            NewOrders, RegistrarDeclined, AwaitingPlayer, OrderExpired, OrderNoAnswer,
         };
 
         private static readonly Dictionary<SimEventType, Func<SimEvent, WorldState, DataRegistry, string>> Keys =
@@ -60,6 +66,11 @@ namespace GuildMaster.Core
                 { SimEventType.BankruptcyLifted, (e, w, d) => BankruptcyLifted },
                 { SimEventType.GuildClosed, (e, w, d) => GuildClosed },
                 { SimEventType.MonthReportReady, (e, w, d) => MonthReport },
+                { SimEventType.NewOrdersPosted, (e, w, d) => NewOrders },
+                { SimEventType.RegistrarDeclinedOrders, (e, w, d) => RegistrarDeclined },
+                { SimEventType.OrderAwaitingPlayer, (e, w, d) => AwaitingPlayer },
+                { SimEventType.OrderExpired, (e, w, d) => OrderExpired },
+                { SimEventType.OrderDeclinedByPlayer, (e, w, d) => e.TryGet("noAnswer", out bool noAnswer) && noAnswer ? OrderNoAnswer : null },
             };
 
         /// <summary>Ключ строки события; <c>null</c> — событие строки не даёт.</summary>

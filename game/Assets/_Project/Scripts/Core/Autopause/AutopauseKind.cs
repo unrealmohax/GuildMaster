@@ -29,5 +29,8 @@ namespace GuildMaster.Core
 
         /// <summary>Новое обращение — дилемма.</summary>
         DilemmaReceived,
+
+        /// <summary>Важный заказ ждёт решения игрока.</summary>
+        ImportantOrder,
     }
 }

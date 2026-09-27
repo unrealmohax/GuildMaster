@@ -111,5 +111,40 @@ namespace GuildMaster.Core
 
         /// <summary>Готов отчёт за прошедший месяц (<see cref="MonthReport"/>): <c>income</c>, <c>expense</c>, <c>count</c> — погибших. [З], без автопаузы.</summary>
         MonthReportReady,
+
+        // Репутация и заказы. Id заказа — в данных события (order), вместе с типом, рангом, расстоянием, наградой и названиями.
+
+        /// <summary>Изменилась репутация гильдии: <c>from</c>, <c>to</c>, <c>reason</c>. [О], без строки ленты.</summary>
+        ReputationChanged,
+
+        /// <summary>Пришёл заказ (до Регистратора): <c>important</c>, <c>hardEarly</c>. [О].</summary>
+        OrderArrived,
+
+        /// <summary>Заказ повешен на доску: <c>by</c> — registrar / player, <c>expiresAt</c>. [О].</summary>
+        OrderPosted,
+
+        /// <summary>Регистратор отклонил заказ по правилам игрока: <c>rules</c>. [О].</summary>
+        OrderDeclinedByRegistrar,
+
+        /// <summary>Важный заказ ждёт решения игрока: <c>answerDueAt</c>. [В], автопауза <see cref="AutopauseKind.ImportantOrder"/>.</summary>
+        OrderAwaitingPlayer,
+
+        /// <summary>Игрок отклонил важный заказ или не ответил вовремя (<c>noAnswer</c>). [О].</summary>
+        OrderDeclinedByPlayer,
+
+        /// <summary>Заказ никто не взял — снят с доски по сроку. [О].</summary>
+        OrderExpired,
+
+        /// <summary>За утро повешено на доску: <c>count</c>. [О].</summary>
+        NewOrdersPosted,
+
+        /// <summary>За утро Регистратор отказал заказчикам: <c>count</c>. [О].</summary>
+        RegistrarDeclinedOrders,
+
+        /// <summary>Игрок сменил правила Регистратора: <c>from</c>, <c>to</c>. [О].</summary>
+        RegistrarRulesChanged,
+
+        /// <summary>Игрок назначил доплату к заказу: <c>order</c>, <c>from</c>, <c>to</c>. [О].</summary>
+        SurchargeSet,
     }
 }

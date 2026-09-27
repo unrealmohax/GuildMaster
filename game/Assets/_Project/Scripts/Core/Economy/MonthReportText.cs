@@ -24,6 +24,7 @@ namespace GuildMaster.Core
                     text.Clear();
                     text.Append(Label(data, line.TextKey, errors)).Append(": ");
                     if (line.HasAmount) text.Append(Amount(line.Amount, line.Signed));
+                    if (line.HasChange) text.Append(Value(line.From)).Append(" → ").Append(Value(line.To));
                     for (int i = 0; i < line.Items.Count; i++)
                     {
                         if (i > 0) text.Append(", ");
@@ -51,6 +52,9 @@ namespace GuildMaster.Core
 
         public static string Amount(int amount, bool signed) =>
             amount.ToString(signed ? "+0;-0;0" : "0", CultureInfo.InvariantCulture);
+
+        /// <summary>Дробное значение: до десятых, без лишних нулей («5», «7.5»).</summary>
+        public static string Value(float value) => value.ToString("0.#", CultureInfo.InvariantCulture);
 
         private static void AppendItem(StringBuilder text, ReportItem item, WorldState world, DataRegistry data, List<string> errors)
         {

@@ -17,6 +17,7 @@ namespace GuildMaster.Core
         {
             new CommandSystem(),
             new TimeSystem(),
+            new OrderSystem(),
             new ActivitySystem(),
             new StateSystem(),
             new HealthSystem(),

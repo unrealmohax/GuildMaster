@@ -3,8 +3,7 @@ namespace GuildMaster.Core
     /// <summary>
     /// Всё текущее состояние мира. Снаружи Core — только чтение: сеттеры internal, менять мир можно
     /// только системами и командами.
-    /// Репутация, персонал, постройки, заказы, задания, группы, распоряжения, обращения
-    /// добавляются по тому же правилу.
+    /// Персонал, постройки, задания, группы, распоряжения, обращения добавляются по тому же правилу.
     /// </summary>
     public sealed class WorldState
     {
@@ -29,5 +28,11 @@ namespace GuildMaster.Core
 
         /// <summary>Отчёты месяца.</summary>
         public MonthReportHistory Reports { get; } = new MonthReportHistory();
+
+        /// <summary>Гильдия как целое: репутация.</summary>
+        public GuildState Guild { get; } = new GuildState();
+
+        /// <summary>Заказы: доска, ждущие игрока, архив, правила Регистратора.</summary>
+        public OrderBoard Orders { get; } = new OrderBoard();
     }
 }

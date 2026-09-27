@@ -93,6 +93,9 @@ namespace GuildMaster.Data
         /// <summary>Характеристика (а не навык): для роста «в 3 раза медленнее» и для Калеки.</summary>
         public static bool IsCharacteristic(StatId stat) => stat <= StatId.Cohesion;
 
+        /// <summary>Ось диаграммы задания: все параметры, кроме Слаженности (она множитель группы).</summary>
+        public static bool IsDiagramAxis(StatId stat) => stat != StatId.Cohesion;
+
         /// <summary>Номер ранга для формул: G = 1 … C = 5.</summary>
         public static int Number(GuildRank rank) => (int)rank + 1;
     }

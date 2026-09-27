@@ -22,19 +22,18 @@ namespace GuildMaster.Core
 
             if (ctx.World.Time.Hour != ctx.Data.Balance.Time.MorningHour) return;
             if (ctx.World.Adventurers.HeadCount >= ctx.Data.Balance.Guild.MaxAdventurers) return;
-            if (!ctx.RollChance(CandidateChance(ctx.Data), "candidate")) return;
+            if (!ctx.RollChance(CandidateChance(ctx.Data, ctx.World.Guild.Reputation), "candidate")) return;
 
             AddCandidate(ctx);
         }
 
         /// <summary>
         /// Шанс кандидата в сутки: <c>influxBaseChance + репутация × influxChancePerReputation</c> × распоряжение.
-        /// Репутация — стартовая, множитель распоряжений — 1.
+        /// Репутация — текущая репутация гильдии, множитель распоряжений — 1.
         /// </summary>
-        public static float CandidateChance(DataRegistry data)
+        public static float CandidateChance(DataRegistry data, float reputation)
         {
             GuildBalance guild = data.Balance.Guild;
-            float reputation = guild.StartReputation;   // репутации в мире пока нет — стартовая
             const float decreeMultiplier = 1f;          // распоряжений пока нет
             return (guild.InfluxBaseChance + reputation * guild.InfluxChancePerReputation) * decreeMultiplier;
         }

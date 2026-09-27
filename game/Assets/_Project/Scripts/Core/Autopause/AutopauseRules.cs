@@ -16,7 +16,7 @@ namespace GuildMaster.Core
                 { SimEventType.TraitRevealed, AutopauseKind.TraitRevealed },
                 { SimEventType.AdventurerLeft, AutopauseKind.MemberLeftGuild },
                 { SimEventType.BankruptcyStarted, AutopauseKind.BankruptcyStarted },
-
+                { SimEventType.OrderAwaitingPlayer, AutopauseKind.ImportantOrder },
             };
     }
 }

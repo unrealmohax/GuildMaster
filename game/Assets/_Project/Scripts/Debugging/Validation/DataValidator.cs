@@ -574,16 +574,7 @@ namespace GuildMaster.Debugging
                 const int minNames = 60;
                 if (list.Count < minNames) report.Warning(names, path, $"имён {list.Count}, нужно {minNames}+");
                 CheckNouns(names, path, list);
-                for (int i = 0; i < list.Count; i++)
-                {
-                    NounForms name = list[i];
-                    if (name == null || string.IsNullOrWhiteSpace(name.Nominative)) continue;
-                    foreach (GrammaticalCase grammaticalCase in Enum.GetValues(typeof(GrammaticalCase)))
-                    {
-                        if (string.IsNullOrWhiteSpace(name.Get(grammaticalCase)))
-                            report.Error(names, $"{path}[{i}]", $"«{name.Nominative}»: нет формы {grammaticalCase}");
-                    }
-                }
+                CheckAllCases(names, path, list);
                 foreach (IGrouping<string, NounForms> duplicate in list.Where(n => n != null).GroupBy(n => n.Nominative).Where(g => g.Count() > 1))
                 {
                     report.Warning(names, path, $"имя «{duplicate.Key}» повторяется");
@@ -596,6 +587,7 @@ namespace GuildMaster.Debugging
 
                 if (texts.Clients.Count == 0) report.Error(texts, "clients", "нет заказчиков");
                 CheckNouns(texts, "clients", texts.Clients);
+                CheckAllCases(texts, "clients", texts.Clients);
                 RequireText(texts, "farHint", texts.FarHint);
 
                 foreach (QuestTypeDefinition questType in Live(config.QuestTypes))
@@ -615,6 +607,9 @@ namespace GuildMaster.Debugging
                     CheckNouns(texts, path + ".places", typeTexts.Places);
                     CheckNouns(texts, path + ".enemies", typeTexts.Enemies);
                     CheckNouns(texts, path + ".cargo", typeTexts.Cargo);
+                    CheckAllCases(texts, path + ".places", typeTexts.Places);
+                    CheckAllCases(texts, path + ".enemies", typeTexts.Enemies);
+                    CheckAllCases(texts, path + ".cargo", typeTexts.Cargo);
                     for (int d = 0; d < typeTexts.Descriptions.Count; d++)
                     {
                         TextMarkupCheck.Run(typeTexts.Descriptions[d], false, texts, $"{path}.descriptions[{d}]", report);
@@ -646,6 +641,21 @@ namespace GuildMaster.Debugging
                 for (int i = 0; i < nouns.Count; i++)
                 {
                     CheckNoun(asset, $"{path}[{i}]", nouns[i]);
+                }
+            }
+
+            /// <summary>У каждого слова заполнены все шесть падежей: их подставляет лента.</summary>
+            private void CheckAllCases(Object asset, string path, IReadOnlyList<NounForms> nouns)
+            {
+                for (int i = 0; i < nouns.Count; i++)
+                {
+                    NounForms noun = nouns[i];
+                    if (noun == null || string.IsNullOrWhiteSpace(noun.Nominative)) continue;
+                    foreach (GrammaticalCase grammaticalCase in Enum.GetValues(typeof(GrammaticalCase)))
+                    {
+                        if (string.IsNullOrWhiteSpace(noun.Get(grammaticalCase)))
+                            report.Error(asset, $"{path}[{i}]", $"«{noun.Nominative}»: нет формы {grammaticalCase}");
+                    }
                 }
             }
 

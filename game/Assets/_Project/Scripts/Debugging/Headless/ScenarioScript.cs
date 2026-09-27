@@ -52,6 +52,26 @@ namespace GuildMaster.Debugging
             new ScenarioCommandFormat("commission", typeof(SetCommissionCommand),
                 args => new SetCommissionCommand(ParseFloat(args, 0)),
                 command => ((SetCommissionCommand)command).Commission.ToString("R", CultureInfo.InvariantCulture)),
+            // registrar all|Hunt,Escort|none МаксРанг МинНаграда
+            new ScenarioCommandFormat("registrar", typeof(SetRegistrarRulesCommand),
+                args => new SetRegistrarRulesCommand(ParseTypes(args, 0), ParseEnum<GuildMaster.Data.GuildRank>(args, 1), ParseInt(args, 2)),
+                command => ((SetRegistrarRulesCommand)command).Rules.ToString()),
+            // answer IdЗаказа accept|decline [доплата]
+            new ScenarioCommandFormat("answer", typeof(AnswerImportantOrderCommand),
+                args => new AnswerImportantOrderCommand(ParseInt(args, 0), ParseAcceptDecline(args, 1), args.Length > 2 ? ParseInt(args, 2) : 0),
+                command =>
+                {
+                    var answer = (AnswerImportantOrderCommand)command;
+                    return Int(answer.OrderId) + (answer.Accept ? " accept " + Int(answer.Surcharge) : " decline");
+                }),
+            // surcharge IdЗаказа сумма
+            new ScenarioCommandFormat("surcharge", typeof(SetSurchargeCommand),
+                args => new SetSurchargeCommand(ParseInt(args, 0), ParseInt(args, 1)),
+                command =>
+                {
+                    var surcharge = (SetSurchargeCommand)command;
+                    return Int(surcharge.OrderId) + " " + Int(surcharge.Amount);
+                }),
         };
 
         public static ICommand Parse(string keyword, string[] args)
@@ -96,6 +116,25 @@ namespace GuildMaster.Debugging
             Enum.TryParse(Arg(args, index), false, out T value) && Enum.IsDefined(typeof(T), value)
                 ? value
                 : throw new FormatException($"'{args[index]}' is not a {typeof(T).Name}");
+
+        /// <summary>Типы заданий: «all» — все, «none» — ни одного, иначе id через запятую.</summary>
+        private static IEnumerable<string> ParseTypes(string[] args, int index)
+        {
+            string text = Arg(args, index);
+            if (text == "all") return null;
+            if (text == "none") return Array.Empty<string>();
+            return text.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+        }
+
+        private static bool ParseAcceptDecline(string[] args, int index)
+        {
+            switch (Arg(args, index))
+            {
+                case "accept": return true;
+                case "decline": return false;
+                default: throw new FormatException($"'{args[index]}' is not accept or decline");
+            }
+        }
 
         private static bool ParseOnOff(string[] args, int index)
         {

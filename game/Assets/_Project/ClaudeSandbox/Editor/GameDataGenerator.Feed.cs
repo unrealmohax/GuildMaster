@@ -185,10 +185,21 @@ namespace GuildMaster.ClaudeSandbox
 
             // ===== Лента гильдии =====
 
-            t.Add(Guild("guild.board.newOrders", O, None, "На доске {число} новых заказов"));
+            // Правка: без согласования числа («На доске 1 новых заказов»).
+            t.Add(Guild("guild.board.newOrders", O, None, "Новых заказов на доске: {число}"));
             t.Add(Guild("guild.board.accepted", O, IfType(q["Hunt"]), "Регистратор принял заказ на охоту у {место:р}"));
-            t.Add(Guild("guild.board.awaitingPlayer", Z, None, "Регистратор отложил один заказ для вас: слишком опасный или слишком дорогой"));
+            // Новая строка: сколько заказов за утро Регистратор отклонил по правилам.
+            t.Add(Guild("guild.board.declined", O, None, "Регистратор отказал заказчикам: {число}"));
+            // Правка: [З] → [В] — важный заказ ставит автопаузу.
+            t.Add(Guild("guild.board.awaitingPlayer", V, None, "Регистратор отложил один заказ для вас: слишком опасный или слишком дорогой"));
+            // Новые варианты: по строке на каждый тип задания и общая.
+            t.Add(Guild("guild.board.expired", O, None, "Заказ сняли — никто не взял"));
+            t.Add(Guild("guild.board.expired", O, IfType(q["Hunt"]), "Заказ на охоту у {место:р} сняли — никто не взял"));
+            t.Add(Guild("guild.board.expired", O, IfType(q["Extermination"]), "Заказ на истребление у {место:р} сняли — никто не взял"));
+            t.Add(Guild("guild.board.expired", O, IfType(q["Escort"]), "Заказ на сопровождение сняли — никто не взял"));
             t.Add(Guild("guild.board.expired", O, IfType(q["Delivery"]), "Заказ на доставку сняли — никто не взял"));
+            // Новая строка: важный заказ без ответа.
+            t.Add(Guild("guild.board.noAnswer", O, None, "{заказчик} не дождал[ся|ась|ось|ись]@заказчик ответа и уш[ёл|ла|ло|ли]@заказчик"));
 
             t.Add(Guild("guild.order.taken", O, IfType(q["Hunt"]), "{имя} взял[|а] охоту у {место:р}"));
             t.Add(Guild("guild.party.formed", O, None, "{имя} собрал[|а] группу: {напарник} и ещё двое"));
@@ -264,6 +275,14 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("report.people.expelled", O, None, "Изгнаны"));
             t.Add(Guild("report.people.revealed", O, None, "Раскрылись"));
             t.Add(Guild("report.axis.balanced", O, None, "уравновешенность"));
+            t.Add(Guild("report.orders", O, None, "Заказы"));
+            t.Add(Guild("report.orders.arrived", O, None, "Пришло"));
+            t.Add(Guild("report.orders.posted", O, None, "Повешено на доску"));
+            t.Add(Guild("report.orders.declinedByRegistrar", O, None, "Отклонено Регистратором"));
+            t.Add(Guild("report.orders.declinedByPlayer", O, None, "Отклонено вами"));
+            t.Add(Guild("report.orders.expired", O, None, "Снято по сроку"));
+            t.Add(Guild("report.reputation", O, None, "Репутация"));
+            t.Add(Guild("report.reputation.change", O, None, "За месяц"));
             // Названия статей журнала казны.
             t.Add(Guild("ledger.tavern", O, None, "Таверна"));
 

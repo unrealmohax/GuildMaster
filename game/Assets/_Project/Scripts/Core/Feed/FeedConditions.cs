@@ -26,7 +26,8 @@ namespace GuildMaster.Core
     /// <item><c>Archetype</c> — архетип первого участника;</item>
     /// <item><c>RevealedAxisPole</c>, <c>RevealedTrait</c> — черта первого участника уже раскрыта: строка, которая называет
     /// черту прямо, не выдаёт скрытое;</item>
-    /// <item><c>MaimedStat</c> — какая характеристика снижена у Калеки (данные события <c>stat</c>).</item>
+    /// <item><c>MaimedStat</c> — какая характеристика снижена у Калеки (данные события <c>stat</c>);</item>
+    /// <item><c>QuestType</c> — тип задания или заказа (id в данных события <c>questType</c>).</item>
     /// </list>
     /// </summary>
     public static class FeedConditions
@@ -38,6 +39,7 @@ namespace GuildMaster.Core
                 { FeedConditionKind.RevealedAxisPole, IsAxisPoleRevealed },
                 { FeedConditionKind.RevealedTrait, IsTraitRevealed },
                 { FeedConditionKind.MaimedStat, IsMaimedStat },
+                { FeedConditionKind.QuestType, IsQuestType },
             };
 
         /// <summary>У условия этого вида есть проверка.</summary>
@@ -88,5 +90,8 @@ namespace GuildMaster.Core
 
         private static bool IsMaimedStat(FeedCondition condition, FeedConditionContext context) =>
             context.Event.TryGet("stat", out StatId stat) && stat == condition.Stat;
+
+        private static bool IsQuestType(FeedCondition condition, FeedConditionContext context) =>
+            condition.QuestType != null && context.Event.TryGet("questType", out string id) && id == condition.QuestType.Id;
     }
 }
