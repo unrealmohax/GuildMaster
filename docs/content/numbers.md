@@ -254,6 +254,21 @@
 | Беспринципный утаивает трофеев | 30% — `Adventurers.skimShare` |
 | Ленивый: день считается при усталости ниже | 50 и без ран — `Adventurers.lazyFatigueBelow` |
 
+### Группы ❔ (GM-12)
+
+| Что | Значение |
+|---|---|
+| «Товарищи» в оценке заказа | ❔ 0 соло; 0,5 в группе; +0,3, если в группе друг; +0,2, если группа постоянная — `Decisions.companionsInGroup`, `companionsFriendBonus`, `companionsPermanentBonus` |
+| «Товарищи» в группе у одиночки (отрицательный полюс оси Люди) | ❔ −0,5 × сила полюса — `Decisions.lonerGroupCompanions` (✅ 2026-09-27: отрицательные, иначе группа тянула и одиночку) |
+| Доля в группе | ❔ под задание — по `PowerScore`, постоянная — поровну (гость тоже) |
+| Оценка напарника | ❔ прирост воспринимаемого перекрытия × 3 + отношения / 100 + 0,3 (друг) − \|разница рангов\| × 0,2 — `Decisions.partnerOverlapGainWeight`, `partnerRelationDivisor`, `partnerFriendBonus`, `partnerRankDifferencePenalty` |
+| Размер группы | до 6 — `Rounds.maxPartySize` |
+| Постоянная группа складывается | ❔ 3 совместных успеха у каждой пары и попарные отношения ≥ 20 — `Decisions.permanentPartySuccesses`, `permanentPartyMinRelation` |
+| Член уходит после ссоры | ❔ отношения двух членов ≤ −40 — уходит тот, у кого ниже среднее отношений к остальным — `Decisions.permanentPartyBreakRelation` |
+| Одиночка уходит из постоянной группы | ❔ ось Люди ≤ −70, после 3 заданий с группой — `Decisions.lonerLeavesAfterQuests` |
+| Гость становится членом | ❔ после 3 успехов с группой — `Decisions.newMemberSuccesses` |
+| Слаженность за задание | +0,5 в группе, +1 члену постоянной группы, которая шла вместе (гостю — +0,5) — `Growth.cohesionPerGroupQuest`, `cohesionPerPermanentPartyQuest` |
+
 ### Моменты напряжения
 
 | Что | Значение |
