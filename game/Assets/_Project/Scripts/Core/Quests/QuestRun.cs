@@ -94,7 +94,7 @@ namespace GuildMaster.Core
     }
 
     /// <summary>
-    /// Задание: исполнение заказа группой (в прототипе люди ходят соло, но расчёт — для любого числа). Часть мира: снаружи
+    /// Задание: исполнение заказа одним человеком или группой. Часть мира: снаружи
     /// Core только чтение, меняет <see cref="QuestSystem"/>. Строки ленты задания — <see cref="Log"/>.
     /// </summary>
     public sealed class QuestRun
@@ -139,6 +139,15 @@ namespace GuildMaster.Core
         public NounForms Cargo { get; }
         public bool IsPromotion { get; }
         public bool IsEventQuest { get; }
+
+        /// <summary>Группа, которая пошла на задание; 0 — человек шёл один.</summary>
+        public int PartyId { get; internal set; }
+
+        /// <summary>Пошла постоянная группа: награду делят поровну, Слаженность членов растёт быстрее.</summary>
+        public bool IsPermanentParty { get; internal set; }
+
+        /// <summary>Название постоянной группы на момент выхода («Серые волки»); иначе пусто.</summary>
+        public string PartyTitle { get; internal set; } = string.Empty;
 
         /// <summary>Кто идёт сейчас: дошли, не сбежали, живы.</summary>
         public IReadOnlyList<int> Members => members;

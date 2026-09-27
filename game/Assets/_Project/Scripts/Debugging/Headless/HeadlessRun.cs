@@ -53,7 +53,11 @@ namespace GuildMaster.Debugging
         /// Один прогон на <paramref name="days"/> суток. Лог — в <paramref name="log"/> (<c>null</c> — без лога); первой строкой —
         /// параметры прогона. Исключение в симуляции пишется в лог уровнем <see cref="SimLogLevel.Error"/> и пробрасывается.
         /// </summary>
-        public static Result Run(DataRegistry data, uint seed, int days, PlayerBot bot, SimLogger log = null)
+        public static Result Run(DataRegistry data, uint seed, int days, PlayerBot bot, SimLogger log = null) =>
+            Run(data, seed, days, bot, log, null);
+
+        /// <summary>То же; <paramref name="watch"/> получает симуляцию до первого такта (замеры подписываются на её события).</summary>
+        public static Result Run(DataRegistry data, uint seed, int days, PlayerBot bot, SimLogger log, Action<Simulation> watch)
         {
             if (data == null) throw new ArgumentNullException(nameof(data));
             if (bot == null) throw new ArgumentNullException(nameof(bot));
@@ -70,6 +74,7 @@ namespace GuildMaster.Debugging
                 simulation = Simulation.CreateDefault(data, seed, log);
                 long events = 0;
                 simulation.TickCompleted += tickEvents => events += tickEvents.Count;
+                watch?.Invoke(simulation);
 
                 var scenario = new ScenarioRecorder(seed, bot.Name);
                 var turn = new BotTurn(simulation, command => SendFromBot(simulation, scenario, command));

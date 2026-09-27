@@ -245,6 +245,15 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("guild.order.taken", O, IfType(q["CaveExploration"]), "{имя} взял[ся|ась] исследовать пещеру у {место:р}"));
             t.Add(Guild("guild.party.formed", O, None, "{имя} собрал[|а] группу: {напарник} и ещё двое"));
             t.Add(Guild("guild.party.noPartners", O, None, "{имя} искал[|а] напарников весь день. Никто не согласился"));
+            // Новые строки (GM-12, 💡): группа по числу людей, постоянная группа взяла заказ, не собрал — пошёл один, отказ от приглашения.
+            t.Add(Guild("guild.party.formed.pair", O, None, "{имя} собрал[|а] группу: с [ним|ней]@имя пойдёт {напарник}"));
+            t.Add(Guild("guild.party.formed.three", O, None, "{имя} собрал[|а] группу: {напарник} и ещё один"));
+            t.Add(Guild("guild.party.formed.five", O, None, "{имя} собрал[|а] группу: {напарник} и ещё трое"));
+            t.Add(Guild("guild.party.formed.six", O, None, "{имя} собрал[|а] большую группу: {напарник} и ещё четверо"));
+            t.Add(Guild("guild.party.permanentSetOut", O, None, "{группа} взяла заказ. Ведёт {имя}"));
+            t.Add(Guild("guild.party.noPartners.solo", O, None, "{имя} не наш[ёл|ла] напарников и пош[ёл|ла] од[ин|на]"));
+            t.Add(Guild("guild.party.declined", O, None, "{имя} отказал[ся|ась] идти с {группа:т}: {причина}"));
+            t.Add(Guild("guild.party.declined.solo", O, None, "{имя} не пош[ёл|ла] с {группа:т} и взял[|а] заказ од[ин|на]: {причина}"));
             t.Add(Guild("guild.order.solo", O, None, "{имя} пош[ёл|ла] на задание од[ин|на]"));
 
             t.Add(Guild("guild.day.training", O, None, "{имя} весь день на тренировочном дворе"));
@@ -306,6 +315,18 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("reason.fled", O, IfPole(AxisId.Risk, AxisPole.Negative), "[трус|трусиха]@имя"));
             t.Add(Guild("reason.fled", O, IfTrait(traits["Deserter"]), "бежал[|а]@имя уже не впервые"));
             t.Add(Guild("reason.nightmares", O, None, "похоже на то, после чего [он|она]@имя не спит"));
+            // Причины отказа от приглашения в группу (GM-12, 💡).
+            t.Add(Guild("reason.invite.whim", O, None, "не захотел[|а]@имя"));
+            t.Add(Guild("reason.invite.money", O, None, "доля выходит маленькая"));
+            t.Add(Guild("reason.invite.money", O, IfPole(AxisId.Money, AxisPole.Positive), "жадн[ый|ая]@имя — делиться не хочет"));
+            t.Add(Guild("reason.invite.glory", O, None, "заказ не по [его|её]@имя рангу"));
+            t.Add(Guild("reason.invite.glory", O, IfPole(AxisId.Work, AxisPole.Positive), "амбициозн[ый|ая]@имя — метит выше"));
+            t.Add(Guild("reason.invite.danger", O, None, "слишком опасно, по [его|её]@имя мнению"));
+            t.Add(Guild("reason.invite.danger", O, IfPole(AxisId.Risk, AxisPole.Negative), "[трус|трусиха]@имя — не пойдёт на такое"));
+            t.Add(Guild("reason.invite.loner", O, None, "не хочет идти с группой"));
+            t.Add(Guild("reason.invite.loner", O, IfPole(AxisId.People, AxisPole.Negative), "одиночка"));
+            t.Add(Guild("reason.invite.tired", O, None, "устал[|а]@имя"));
+            t.Add(Guild("reason.invite.comfort", O, None, "тяжело на душе"));
 
             // ===== Отчёт месяца (docs/content/event-feed.md → «Отчёт месяца», 💡): не строки ленты, а подписи отчёта =====
 
@@ -379,6 +400,11 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("guild.archetype.changed", O, None, "{имя} теперь — {архетип}"));
             t.Add(Guild("guild.party.permanentFormed", Z, None, "{имя} и {напарник} с товарищами теперь ходят вместе: {группа}"));
             t.Add(Guild("guild.party.permanentDisbanded", Z, None, "{группа} распалась"));
+            // Новые строки (GM-12, 💡): постоянная группа из двоих, ушёл из группы, новый член.
+            t.Add(Guild("guild.party.permanentFormed.pair", Z, None, "{имя} и {напарник} теперь ходят вместе и зовут себя «{название}»"));
+            t.Add(Guild("guild.party.memberLeft.quarrel", O, None, "{имя} уш[ёл|ла] из {группа:р} после ссоры с {напарник:т}"));
+            t.Add(Guild("guild.party.memberLeft.loner", O, None, "{имя} уш[ёл|ла] из {группа:р}. [Ему|Ей]@имя одн[ому|ой]@имя привычнее"));
+            t.Add(Guild("guild.party.memberJoined", O, None, "{имя} теперь ходит с {группа:т}"));
             t.Add(Guild("guild.decree.expired", O, None, "Срок вышел: {распоряжение} больше не действует"));
             t.Add(Guild("guild.bankruptcy.lifted", Z, None, "Казна снова в плюсе. Из долговой ямы выбрались"));
 

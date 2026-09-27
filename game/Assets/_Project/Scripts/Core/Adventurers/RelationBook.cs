@@ -26,6 +26,8 @@ namespace GuildMaster.Core
 
         public int GetJointQuests(int a, int b) => TryGetRelation(a, b, out Relation relation) ? relation.JointQuests : 0;
 
+        public int GetJointSuccesses(int a, int b) => TryGetRelation(a, b, out Relation relation) ? relation.JointSuccesses : 0;
+
         internal Relation GetOrCreate(int a, int b)
         {
             long key = Key(a, b);
@@ -64,7 +66,7 @@ namespace GuildMaster.Core
         }
     }
 
-    /// <summary>Отношения пары: число −100..+100 и счётчик совместных заданий. <see cref="A"/> &lt; <see cref="B"/>.</summary>
+    /// <summary>Отношения пары: число −100..+100 и счётчики совместных заданий и успехов. <see cref="A"/> &lt; <see cref="B"/>.</summary>
     public sealed class Relation
     {
         internal Relation(int a, int b)
@@ -77,6 +79,9 @@ namespace GuildMaster.Core
         public int B { get; }
         public float Value { get; internal set; }
         public int JointQuests { get; internal set; }
+
+        /// <summary>Из совместных заданий — выполненных (для постоянных групп).</summary>
+        public int JointSuccesses { get; internal set; }
 
         public int GetOther(int id) => id == A ? B : id == B ? A : throw new ArgumentException($"{id} is not in relation {A}–{B}");
     }

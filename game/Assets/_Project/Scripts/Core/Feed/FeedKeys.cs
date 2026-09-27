@@ -44,6 +44,22 @@ namespace GuildMaster.Core
         public const string DeserterReturned = "guild.deserter.returned";
         public const string Disappeared = "guild.adventurer.disappeared";
         public const string EventQuestFound = "guild.eventQuest.found";
+        public const string PartyGatheredPair = "guild.party.formed.pair";
+        public const string PartyGatheredThree = "guild.party.formed.three";
+        public const string PartyGatheredFour = "guild.party.formed";
+        public const string PartyGatheredFive = "guild.party.formed.five";
+        public const string PartyGatheredSix = "guild.party.formed.six";
+        public const string PermanentPartySetOut = "guild.party.permanentSetOut";
+        public const string PartyNotGathered = "guild.party.noPartners";
+        public const string PartyNotGatheredSolo = "guild.party.noPartners.solo";
+        public const string InvitationDeclined = "guild.party.declined";
+        public const string InvitationDeclinedSolo = "guild.party.declined.solo";
+        public const string PermanentPartyFormed = "guild.party.permanentFormed";
+        public const string PermanentPartyFormedPair = "guild.party.permanentFormed.pair";
+        public const string PermanentPartyDisbanded = "guild.party.permanentDisbanded";
+        public const string PartyMemberLeftQuarrel = "guild.party.memberLeft.quarrel";
+        public const string PartyMemberLeftLoner = "guild.party.memberLeft.loner";
+        public const string PartyMemberJoined = "guild.party.memberJoined";
 
         public const string QuestDeparted = "quest.departed";
         public const string QuestTravel = "quest.travel";
@@ -79,6 +95,9 @@ namespace GuildMaster.Core
             BankruptcyStarted, BankruptcyLifted, GuildClosed, MonthReport,
             NewOrders, RegistrarDeclined, AwaitingPlayer, OrderExpired, OrderNoAnswer,
             OrderTaken, PromotionTaken, OrderRefused, PromotionOffered, RankPromoted, Fled, DeserterReturned, Disappeared, EventQuestFound,
+            PartyGatheredPair, PartyGatheredThree, PartyGatheredFour, PartyGatheredFive, PartyGatheredSix, PermanentPartySetOut,
+            PartyNotGathered, PartyNotGatheredSolo, InvitationDeclined, InvitationDeclinedSolo,
+            PermanentPartyFormed, PermanentPartyFormedPair, PermanentPartyDisbanded, PartyMemberLeftQuarrel, PartyMemberLeftLoner, PartyMemberJoined,
             QuestDeparted, QuestTravel, QuestCamp, QuestCeiling, QuestDeath, QuestLost, QuestOnlyFugitive, QuestMedicSaved,
             QuestReturnTrip, QuestReturnTripHard, QuestRetreat, QuestFlee, QuestLootHandedIn, QuestLootSkimmed,
         }.Concat(Prefixed("quest.loss.", QuestLossKinds)).Concat(Prefixed("quest.wound.", QuestWoundKinds))
@@ -158,6 +177,13 @@ namespace GuildMaster.Core
                 { SimEventType.LootHandedIn, (e, w, d) => QuestLootHandedIn },
                 { SimEventType.LootSkimmed, (e, w, d) => QuestLootSkimmed },
                 { SimEventType.PromotionExam, (e, w, d) => e.TryGet("passed", out bool passed) && passed ? "quest.promotion.passed" : "quest.promotion.failed" },
+                { SimEventType.PartyGathered, (e, w, d) => Gathered(e) },
+                { SimEventType.PartyNotGathered, (e, w, d) => e.TryGet("solo", out bool solo) && solo ? PartyNotGatheredSolo : PartyNotGathered },
+                { SimEventType.InvitationDeclined, (e, w, d) => e.TryGet("solo", out bool solo) && solo ? InvitationDeclinedSolo : InvitationDeclined },
+                { SimEventType.PermanentPartyFormed, (e, w, d) => e.TryGet("count", out int more) && more > 0 ? PermanentPartyFormed : PermanentPartyFormedPair },
+                { SimEventType.PermanentPartyDisbanded, (e, w, d) => PermanentPartyDisbanded },
+                { SimEventType.PartyMemberLeft, (e, w, d) => MemberLeft(e) },
+                { SimEventType.PartyMemberJoined, (e, w, d) => PartyMemberJoined },
             };
 
         /// <summary>Ключ строки события; <c>null</c> — событие строки не даёт.</summary>
@@ -174,6 +200,33 @@ namespace GuildMaster.Core
         public static bool IsGuildWorthy(SimEvent simEvent) =>
             GuildWorthy.Contains(simEvent.Type)
             || (simEvent.Type == SimEventType.QuestReturned && simEvent.TryGet("kind", out string kind) && kind == "catastrophe");
+
+        /// <summary>Группа собралась: постоянная — «взяла заказ», под задание — строка по числу людей.</summary>
+        private static string Gathered(SimEvent simEvent)
+        {
+            if (simEvent.TryGet("permanent", out bool permanent) && permanent) return PermanentPartySetOut;
+            simEvent.TryGet("total", out int total);
+            switch (total)
+            {
+                case 2: return PartyGatheredPair;
+                case 3: return PartyGatheredThree;
+                case 4: return PartyGatheredFour;
+                case 5: return PartyGatheredFive;
+                default: return total > 5 ? PartyGatheredSix : null;
+            }
+        }
+
+        /// <summary>Ушёл из постоянной группы: ссора или одиночка — строка; погиб или ушёл из гильдии — строки нет (есть своя).</summary>
+        private static string MemberLeft(SimEvent simEvent)
+        {
+            simEvent.TryGet("cause", out string cause);
+            switch (cause)
+            {
+                case "quarrel": return PartyMemberLeftQuarrel;
+                case "loner": return PartyMemberLeftLoner;
+                default: return null;
+            }
+        }
 
         private static IEnumerable<string> Prefixed(string prefix, IEnumerable<string> kinds) => kinds.Select(k => prefix + k);
 

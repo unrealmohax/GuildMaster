@@ -114,8 +114,9 @@ namespace GuildMaster.Core
 
     /// <summary>
     /// Запреты вариантов. Утром и днём таверна — только Пьянице или при стрессе выше <c>daytimeTavernStress</c>. Заказ нельзя
-    /// взять: выше ранга гильдии человека (кроме своего экзамена на следующий ранг); при тяжёлой ране, усталости выше 90,
-    /// срыве; если выйти в следующем часу уже поздно; чужой экзамен; заказ уже взят.
+    /// взять ни одному, ни с группой: выше ранга гильдии человека (кроме своего экзамена на следующий ранг); при тяжёлой ране,
+    /// усталости выше 90, срыве; если выйти в следующем часу уже поздно; чужой экзамен; экзамен — только одному; заказ уже взят
+    /// (кроме приглашения: заказ уже у той группы, которая зовёт).
     /// </summary>
     public static class DecisionBans
     {
@@ -124,17 +125,20 @@ namespace GuildMaster.Core
             new DecisionBan("tavern in daytime: not a drunkard, stress not above daytimeTavernStress", IsDaytimeTavern),
             new DecisionBan("order above guild rank", (ctx, a, action) => OrderOf(ctx, action, out Order o) && !o.IsPromotion && !GuildRanks.CanTakeOrder(a, o.Rank)),
             new DecisionBan("no quests: heavy wound, fatigue above ban, breakdown",
-                (ctx, a, action) => action.Kind == DecisionActionKind.TakeOrder && !StateRules.CanTakeQuests(a.State, ctx.Data.Balance.State)),
+                (ctx, a, action) => action.IsOrder && !StateRules.CanTakeQuests(a.State, ctx.Data.Balance.State)),
             new DecisionBan("too late to depart next hour",
-                (ctx, a, action) => action.Kind == DecisionActionKind.TakeOrder && !ctx.Rhythm.CanStartQuest(ctx.World.Time.Hour + 1)),
+                (ctx, a, action) => action.IsOrder && !ctx.Rhythm.CanStartQuest(ctx.World.Time.Hour + 1)),
             new DecisionBan("someone else's promotion", (ctx, a, action) => OrderOf(ctx, action, out Order o) && o.IsPromotion && o.OwnerId != a.Id),
-            new DecisionBan("order taken by others", (ctx, a, action) => OrderOf(ctx, action, out Order o) && o.Status != OrderStatus.OnBoard),
+            new DecisionBan("promotion is taken alone",
+                (ctx, a, action) => action.Kind != DecisionActionKind.TakeOrder && OrderOf(ctx, action, out Order o) && o.IsPromotion),
+            new DecisionBan("order taken by others",
+                (ctx, a, action) => action.Kind != DecisionActionKind.JoinParty && OrderOf(ctx, action, out Order o) && o.Status != OrderStatus.OnBoard),
         };
 
         private static bool OrderOf(SimContext ctx, DecisionAction action, out Order order)
         {
             order = null;
-            return action.Kind == DecisionActionKind.TakeOrder && ctx.World.Orders.TryGetOrder(action.OrderId, out order);
+            return action.IsOrder && ctx.World.Orders.TryGetOrder(action.OrderId, out order);
         }
 
         private static bool IsDaytimeTavern(SimContext ctx, Adventurer adventurer, DecisionAction action)

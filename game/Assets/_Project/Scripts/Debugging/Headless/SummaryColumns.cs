@@ -60,6 +60,13 @@ namespace GuildMaster.Debugging
                 SummaryTotal.Sum, "0"),
             new MonthColumn("Шанс раунда", RoundChance, SummaryTotal.Mean),
             new MonthColumn("Экзаменов сдано", m => m.Count(SimEventType.PromotionExam, e => e.TryGet("passed", out bool passed) && passed), SummaryTotal.Sum, "0"),
+            new MonthColumn("Заданий соло", m => Quests(m, e => Departed(e) == 1), SummaryTotal.Sum, "0"),
+            new MonthColumn("Заданий в группе", m => Quests(m, e => Departed(e) > 1), SummaryTotal.Sum, "0"),
+            new MonthColumn("Средний размер группы", MeanPartySize, SummaryTotal.Mean),
+            new MonthColumn("Отказов идти с группой", m => m.Count(SimEventType.InvitationDeclined), SummaryTotal.Sum, "0"),
+            new MonthColumn("Постоянных групп", m => m.World.Parties.GetPermanentCount(), SummaryTotal.Last, "0"),
+            new MonthColumn("Групп сложилось", m => m.Count(SimEventType.PermanentPartyFormed), SummaryTotal.Sum, "0"),
+            new MonthColumn("Групп распалось", m => m.Count(SimEventType.PermanentPartyDisbanded), SummaryTotal.Sum, "0"),
         };
 
         private static bool IsPromotion(SimEvent simEvent) => simEvent.TryGet("promotion", out bool promotion) && promotion;
@@ -72,6 +79,26 @@ namespace GuildMaster.Debugging
 
         /// <summary>Раскрытие случилось на задании (его опубликовала система заданий).</summary>
         private static bool OnQuest(SimEvent simEvent) => simEvent.Source == nameof(QuestSystem);
+
+        /// <summary>Сколько человек вышло на законченное задание.</summary>
+        private static int Departed(SimEvent simEvent) => simEvent.TryGet("total", out int total) ? total : 0;
+
+        /// <summary>Средний размер группы на законченных за месяц групповых заданиях; таких не было — 0.</summary>
+        private static string PermanentParty(PersonRecord person) =>
+            person.Adventurer.PermanentPartyId != 0 && person.Game.World.Parties.TryGetParty(person.Adventurer.PermanentPartyId, out Party party) ? party.Name : string.Empty;
+
+        private static double MeanPartySize(MonthRecord month)
+        {
+            double sum = 0;
+            int count = 0;
+            foreach (SimEvent simEvent in month.Events)
+            {
+                if (simEvent.Type != SimEventType.QuestReturned || IsPromotion(simEvent) || Departed(simEvent) < 2) continue;
+                sum += Departed(simEvent);
+                count++;
+            }
+            return count > 0 ? sum / count : 0;
+        }
 
         /// <summary>Средний шанс раундов заданий за месяц; раундов не было — 0.</summary>
         private static double RoundChance(MonthRecord month)
@@ -116,6 +143,7 @@ namespace GuildMaster.Debugging
             new PersonColumn("Выполнено", p => p.Adventurer.QuestsCompleted.ToString()),
             new PersonColumn("Не выполнено", p => p.Adventurer.QuestsFailed.ToString()),
             new PersonColumn("Жив", p => p.Adventurer.LeaveReason == LeaveReason.Died ? "нет" : "да"),
+            new PersonColumn("Постоянная группа", p => PermanentParty(p)),
             new PersonColumn("В гильдии", p => InGuild(p)),
             new PersonColumn("Раскрыто", p => Reveals(p)),
         };

@@ -18,12 +18,16 @@ namespace GuildMaster.Core
     /// Выбранное занятие действует со следующего часа (<see cref="AdventurerState.PlannedActivity"/>).
     /// Лог: решение и причины — <see cref="SimLogLevel.Info"/>, запреты и сон — <see cref="SimLogLevel.Debug"/>, оценки по
     /// вариантам и мотивам — <see cref="SimLogLevel.Trace"/>. Причины обычных решений игроку не показываются.
+    /// Группы (утром постоянные решают первыми, «собрать группу», приглашения) — во второй части класса.
     /// </summary>
-    public sealed class DecisionSystem : ISimSystem
+    public sealed partial class DecisionSystem : ISimSystem
     {
         private readonly List<DecisionAction> candidates = new List<DecisionAction>();
         private readonly List<DecisionAction> allowed = new List<DecisionAction>();
         private readonly List<Option> options = new List<Option>();
+
+        /// <summary>Кто уже решил в этом часу (в том числе ответом на приглашение) — второй раз не решает.</summary>
+        private readonly HashSet<int> decidedThisHour = new HashSet<int>();
 
         public string Name => nameof(DecisionSystem);
 
@@ -35,13 +39,15 @@ namespace GuildMaster.Core
             bool evening = ctx.Rhythm.PhaseAt(hour) == DayPhase.Evening;
             long now = ctx.World.Time.TotalHours;
             var scope = new DecisionScope(ctx);
+            decidedThisHour.Clear();
+            if (ctx.Rhythm.PhaseAt(hour) == DayPhase.Morning) PermanentPartiesDecide(scope);
             foreach (Adventurer adventurer in new List<Adventurer>(ctx.World.Adventurers.Active))
             {
                 AdventurerState state = adventurer.State;
                 if (evening && state.Activity == Activity.Tavern) state.InTavernThisEvening = true;
 
                 bool free = DecisionPoints.CanDecide(state, now);
-                if (free)
+                if (free && !decidedThisHour.Contains(adventurer.Id) && state.PlannedOrderId == 0)
                 {
                     DecisionPoint point = FindPoint(ctx, adventurer);
                     if (point != null) Decide(scope, adventurer, point);
@@ -65,7 +71,8 @@ namespace GuildMaster.Core
             candidates.Clear();
             candidates.AddRange(point.Options);
             if (point.OffersOrders) candidates.AddRange(OrderChoice.Actions(ctx, adventurer));
-            FilterBans(ctx, adventurer, candidates);
+            FilterBans(ctx, adventurer, candidates, allowed);
+            if (point.OffersOrders) AddSeekParty(scope, adventurer, allowed);
             if (allowed.Count == 0)
             {
                 WriteNoOptions(ctx.Log, adventurer, point);
@@ -80,45 +87,25 @@ namespace GuildMaster.Core
                 return;
             }
 
-            options.Clear();
-            foreach (DecisionAction action in allowed)
-            {
-                MotiveWeights weights = Motives.Weigh(adventurer, ctx.Data, action.InTavern);
-                float[] scores = DecisionActions.Scores(scope, adventurer, action);
-                float value = 0f;
-                for (int m = 0; m < scores.Length; m++) value += weights[(Motive)m] * scores[m];
-                options.Add(new Option(action, weights, scores, value, options.Count));
-            }
-            options.Sort((a, b) => a.Value != b.Value ? b.Value.CompareTo(a.Value) : a.Order.CompareTo(b.Order));
-            if (ctx.Log.IsOn(SimLogLevel.Trace)) WriteScores(ctx.Log, adventurer, point, options);
+            Evaluate(scope, adventurer, allowed, options);
+            if (ctx.Log.IsOn(SimLogLevel.Trace)) WriteScores(ctx.Log, adventurer, Point(point), options);
 
-            Option chosen = options[0];
-            bool best = true;
-            if (options.Count > 1 && !ctx.RollChance(ctx.Data.Balance.Decisions.BestChoiceChance, "decision-best", adventurer))
+            if (!Choose(ctx, adventurer, options, out Option chosen, out bool best))
             {
-                chosen = options[1];
-                best = false;
-            }
-
-            // Кошмары: от выбранного заказа можно отказаться — тогда лучший из остальных.
-            while (OrderChoice.RefusesFromNightmares(ctx, adventurer, chosen.Action))
-            {
-                options.Remove(chosen);
-                if (options.Count == 0)
-                {
-                    point.OnDecided?.Invoke(ctx, adventurer);
-                    return;
-                }
-                chosen = options[0];
-                best = true;
+                point.OnDecided?.Invoke(ctx, adventurer);
+                return;
             }
 
             adventurer.State.PlannedActivity = chosen.Action.Activity;
-            if (ctx.Log.IsOn(SimLogLevel.Info)) WriteDecision(ctx.Log, adventurer, point, chosen, best, options, ctx.Data.Balance.Decisions.MaxReasons);
+            if (ctx.Log.IsOn(SimLogLevel.Info)) WriteDecision(ctx.Log, adventurer, Point(point), chosen, best, options, ctx.Data.Balance.Decisions.MaxReasons);
 
             if (chosen.Action.Kind == DecisionActionKind.TakeOrder)
             {
                 OrderChoice.Take(ctx, adventurer, chosen.Action, allowed);
+            }
+            else if (chosen.Action.Kind == DecisionActionKind.SeekParty)
+            {
+                Gather(scope, adventurer, point, chosen, new List<Option>(options), new List<DecisionAction>(allowed));
             }
             else if (point.OffersOrders)
             {
@@ -126,6 +113,45 @@ namespace GuildMaster.Core
                 if (bestOrder.HasValue) OrderChoice.Refused(ctx, adventurer, bestOrder.Value.Action, point.Kind == DecisionPointKind.Morning);
             }
             point.OnDecided?.Invoke(ctx, adventurer);
+        }
+
+        /// <summary>Оценить варианты: ценность каждого для человека; по убыванию ценности, при равенстве — по порядку.</summary>
+        private static void Evaluate(DecisionScope scope, Adventurer adventurer, List<DecisionAction> actions, List<Option> result)
+        {
+            result.Clear();
+            foreach (DecisionAction action in actions)
+            {
+                MotiveWeights weights = Motives.Weigh(adventurer, scope.Ctx.Data, action.InTavern);
+                float[] scores = DecisionActions.Scores(scope, adventurer, action);
+                float value = 0f;
+                for (int m = 0; m < scores.Length; m++) value += weights[(Motive)m] * scores[m];
+                result.Add(new Option(action, weights, scores, value, result.Count));
+            }
+            result.Sort((a, b) => a.Value != b.Value ? b.Value.CompareTo(a.Value) : a.Order.CompareTo(b.Order));
+        }
+
+        /// <summary>
+        /// Лучший вариант с вероятностью <c>bestChoiceChance</c>, иначе второй (один вариант — без броска). Кошмары: от выбранного
+        /// заказа можно отказаться — тогда лучший из остальных. <c>false</c> — отказался от всех вариантов.
+        /// </summary>
+        private static bool Choose(SimContext ctx, Adventurer adventurer, List<Option> sorted, out Option chosen, out bool best)
+        {
+            chosen = sorted[0];
+            best = true;
+            if (sorted.Count > 1 && !ctx.RollChance(ctx.Data.Balance.Decisions.BestChoiceChance, "decision-best", adventurer))
+            {
+                chosen = sorted[1];
+                best = false;
+            }
+
+            while (OrderChoice.RefusesFromNightmares(ctx, adventurer, chosen.Action))
+            {
+                sorted.Remove(chosen);
+                if (sorted.Count == 0) return false;
+                chosen = sorted[0];
+                best = true;
+            }
+            return true;
         }
 
         /// <summary>Самый ценный вариант «взять заказ» (варианты уже по убыванию ценности); нет — <c>null</c>.</summary>
@@ -138,15 +164,15 @@ namespace GuildMaster.Core
             return null;
         }
 
-        private void FilterBans(SimContext ctx, Adventurer adventurer, List<DecisionAction> actions)
+        private static void FilterBans(SimContext ctx, Adventurer adventurer, List<DecisionAction> actions, List<DecisionAction> result)
         {
-            allowed.Clear();
+            result.Clear();
             foreach (DecisionAction action in actions)
             {
                 DecisionBan ban = FindBan(ctx, adventurer, action);
                 if (ban == null)
                 {
-                    allowed.Add(action);
+                    result.Add(action);
                     continue;
                 }
                 if (ctx.Log.IsOn(SimLogLevel.Debug))
@@ -187,12 +213,12 @@ namespace GuildMaster.Core
         }
 
         /// <summary>«decide #3 Имя evening: Tavern 2.21 (best; Rest 1.43) because Comfort 0.95 (stress 72), Safety 1, Companions 0.6».</summary>
-        private static void WriteDecision(SimLogger log, Adventurer adventurer, DecisionPoint point, Option chosen, bool best,
+        private static void WriteDecision(SimLogger log, Adventurer adventurer, string point, Option chosen, bool best,
             List<Option> all, int maxReasons)
         {
             StringBuilder line = log.Begin(SimLogLevel.Info);
             AdventurerLog.AppendName(line.Append("decide "), adventurer)
-                .Append(' ').Append(Point(point)).Append(": ").Append(chosen.Action.Label).Append(' ').Append(AdventurerLog.Number(chosen.Value))
+                .Append(' ').Append(point).Append(": ").Append(chosen.Action.Label).Append(' ').Append(AdventurerLog.Number(chosen.Value))
                 .Append(" (").Append(best ? "best" : "second");
             foreach (Option other in all)
             {
@@ -214,13 +240,13 @@ namespace GuildMaster.Core
         }
 
         /// <summary>«scores #3 Имя evening Tavern=2.21: Money 1x-0.01 Glory 1x0 …».</summary>
-        private static void WriteScores(SimLogger log, Adventurer adventurer, DecisionPoint point, List<Option> all)
+        private static void WriteScores(SimLogger log, Adventurer adventurer, string point, List<Option> all)
         {
             foreach (Option option in all)
             {
                 StringBuilder line = log.Begin(SimLogLevel.Trace);
                 AdventurerLog.AppendName(line.Append("scores "), adventurer)
-                    .Append(' ').Append(Point(point)).Append(' ').Append(option.Action.Label).Append('=').Append(AdventurerLog.Number(option.Value))
+                    .Append(' ').Append(point).Append(' ').Append(option.Action.Label).Append('=').Append(AdventurerLog.Number(option.Value))
                     .Append(':');
                 for (int m = 0; m < option.Scores.Length; m++)
                 {

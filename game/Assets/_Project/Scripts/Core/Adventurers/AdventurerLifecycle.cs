@@ -4,7 +4,8 @@ namespace GuildMaster.Core
     /// Уход из гильдии: человек переходит из активных в архив и остаётся там для отчёта месяца и лент.
     /// Когда и почему уходят, решает вызывающая система; событие
     /// со своим типом и автопаузой публикуют они. Отношения и черты партнёров не трогаются.
-    /// Долг гильдии погибшего или пропавшего списывается (закон о долгах — вне прототипа).
+    /// Долг гильдии погибшего или пропавшего списывается (закон о долгах — вне прототипа). Из постоянной группы человек выходит
+    /// (<see cref="PartyService.OnRetired"/>: события ухода из группы и её распада публикует она).
     /// </summary>
     public static class AdventurerLifecycle
     {
@@ -15,6 +16,7 @@ namespace GuildMaster.Core
             adventurer.LeaveReason = reason;
             adventurer.State.InInfirmary = false;
             if (reason == LeaveReason.Died || reason == LeaveReason.Disappeared) adventurer.State.DebtToGuild = 0; // долг пропадает
+            PartyService.OnRetired(ctx, adventurer);
         }
     }
 }

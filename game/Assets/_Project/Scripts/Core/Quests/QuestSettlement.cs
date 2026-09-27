@@ -10,15 +10,17 @@ namespace GuildMaster.Core
     /// <list type="number">
     /// <item>уровень; заказ — выполнен или провален (архив);</item>
     /// <item>выполнено — награда целиком (у обычного заказа — минус комиссия в казну; событийное задание платит гильдия),
-    /// доплата из казны; делят вернувшиеся по <see cref="Adventurer.PowerScore"/> (погибшие, беглецы, повернувшие назад —
-    /// не получают); из доли награды гасится долг;</item>
+    /// доплата из казны; делят вернувшиеся по <see cref="Adventurer.PowerScore"/>, постоянная группа — поровну (погибшие,
+    /// беглецы, повернувшие назад — не получают); из доли награды гасится долг;</item>
     /// <item>выполнено — трофеи трактирщику (бонус, если не потерян, добыча, если не потеряна, тайник из пещеры): деньги извне,
     /// казну не трогают; Беспринципный утаивает часть; делятся так же;</item>
     /// <item>находка, мимо которой прошли, — рассказать Регистратору: награда из казны и событийное задание;</item>
     /// <item>очки ранга вернувшимся, репутация гильдии (выполнено — плюс, нет — минус, пропорционально рангу; Хвастун +), опыт,
     /// отношения, счётчики;</item>
     /// <item>приобретённые черты (Кошмары, срыв Ветерана), раскрытия (Хвастун, Честный, Беспринципный);</item>
-    /// <item>строки: «вернулись», трофеи; погибли все — «не вернулась», «выжил только беглец»; катастрофа — автопауза.</item>
+    /// <item>строки: «вернулись», трофеи; погибли все — «не вернулась», «выжил только беглец»; катастрофа — автопауза;</item>
+    /// <item>группа: под задание распадается, постоянная считает задание; выполнено — может сложиться постоянная группа
+    /// (<see cref="PartyService.AfterQuest"/>).</item>
     /// </list>
     /// Экзамен на повышение — без награды, трофеев, очков, репутации и опыта.
     /// </summary>
@@ -62,6 +64,8 @@ namespace GuildMaster.Core
             }
             if (run.Result == QuestResult.Catastrophe)
                 QuestParty.Publish(ctx, SimEventType.QuestCatastrophe, run, EventImportance.Important, run.Departed[0]);
+
+            PartyService.AfterQuest(ctx, run, returned);
         }
 
         /// <summary>
@@ -108,7 +112,7 @@ namespace GuildMaster.Core
             TreasuryService.Debit(ctx, LedgerCategories.Surcharges, order.Surcharge, "order #" + order.Id, order.Id);
 
             int pool = reward - commission + order.Surcharge;
-            int[] shares = Split(pool, returned);
+            int[] shares = Split(pool, returned, run.IsPermanentParty);
             for (int i = 0; i < returned.Count; i++)
             {
                 if (shares[i] > 0) WalletService.ReceiveIncome(ctx, returned[i], shares[i], IncomeKind.Reward);
@@ -167,7 +171,7 @@ namespace GuildMaster.Core
                 if (caught) RevealService.TryRevealAxis(ctx, skimmer, AxisId.Principles, RevealTrigger.UnprincipledCaughtSkimming);
             }
 
-            int[] shares = Split(left, returned);
+            int[] shares = Split(left, returned, run.IsPermanentParty);
             for (int i = 0; i < returned.Count; i++)
             {
                 if (shares[i] > 0) WalletService.ReceiveIncome(ctx, returned[i], shares[i], IncomeKind.Loot);
@@ -184,10 +188,10 @@ namespace GuildMaster.Core
         }
 
         /// <summary>
-        /// Делёж суммы пропорционально <see cref="Adventurer.PowerScore"/> (все по нулям — поровну): доли вниз, остаток —
-        /// по одной монете самым сильным.
+        /// Делёж суммы пропорционально <see cref="Adventurer.PowerScore"/> (все по нулям — поровну) или, если
+        /// <paramref name="equal"/>, поровну: доли вниз, остаток — по одной монете самым сильным (поровну — по порядку).
         /// </summary>
-        public static int[] Split(int amount, IReadOnlyList<Adventurer> people)
+        public static int[] Split(int amount, IReadOnlyList<Adventurer> people, bool equal = false)
         {
             var shares = new int[people.Count];
             if (amount <= 0 || people.Count == 0) return shares;
@@ -197,14 +201,14 @@ namespace GuildMaster.Core
             int given = 0;
             for (int i = 0; i < people.Count; i++)
             {
-                float weight = total > 0f ? Math.Max(0f, people[i].PowerScore) / total : 1f / people.Count;
+                float weight = !equal && total > 0f ? Math.Max(0f, people[i].PowerScore) / total : 1f / people.Count;
                 shares[i] = (int)Math.Floor(amount * (double)weight + 1e-6);
                 given += shares[i];
             }
 
             var order = new List<int>();
             for (int i = 0; i < people.Count; i++) order.Add(i);
-            order.Sort((a, b) =>
+            if (!equal) order.Sort((a, b) =>
             {
                 int byPower = people[b].PowerScore.CompareTo(people[a].PowerScore);
                 return byPower != 0 ? byPower : a.CompareTo(b);
@@ -225,7 +229,7 @@ namespace GuildMaster.Core
             DiscoveryDefinition definition = ctx.Data.Get<DiscoveryDefinition>(discovery.DiscoveryId);
             int fee = (int)Math.Round(order.Reward * definition.ReportRewardShare, MidpointRounding.AwayFromZero);
             TreasuryService.Debit(ctx, LedgerCategories.Discoveries, fee, "quest #" + run.Id, run.Id);
-            int[] shares = Split(fee, returned);
+            int[] shares = Split(fee, returned, run.IsPermanentParty);
             for (int i = 0; i < returned.Count; i++)
             {
                 if (shares[i] > 0) WalletService.ReceiveIncome(ctx, returned[i], shares[i], IncomeKind.Loot);
@@ -281,7 +285,7 @@ namespace GuildMaster.Core
         /// <summary>
         /// Опыт по осям типа задания (главные, второстепенные, далеко — Выживание): дошедшим — по итогу, повернувшим назад —
         /// как за провал. Соперники в одной группе — × <c>rivalExperienceMultiplier</c>. Хладнокровие — за задание с провалом
-        /// раунда, Слаженность — за групповое.
+        /// раунда, Слаженность — за групповое (члену постоянной группы, которая шла вместе, — больше).
         /// </summary>
         private static void Experience(SimContext ctx, QuestRun run, List<Adventurer> returned)
         {
@@ -307,7 +311,7 @@ namespace GuildMaster.Core
                 float multiplier = HasRivalAlong(member, everyone, data) ? data.Balance.Traits.RivalExperienceMultiplier : 1f;
                 Growth.ApplyQuestExperience(ctx, member, axes, run.Completed, multiplier);
                 if (run.FailedRounds > 0) Growth.ApplyHardQuestComposure(ctx, member);
-                if (group) Growth.ApplyGroupQuestCohesion(ctx, member, permanentParty: false);
+                if (group) Growth.ApplyGroupQuestCohesion(ctx, member, permanentParty: run.IsPermanentParty && member.PermanentPartyId == run.PartyId);
             }
             foreach (int id in run.TurnedBack)
             {
@@ -324,7 +328,10 @@ namespace GuildMaster.Core
             return false;
         }
 
-        /// <summary>Каждая пара вышедших вместе и живых: +1 совместное задание; выполнили — отношения +, был провал раунда — +.</summary>
+        /// <summary>
+        /// Каждая пара вышедших вместе и живых: +1 совместное задание; выполнили — +1 совместный успех и отношения +, был провал
+        /// раунда — отношения +.
+        /// </summary>
         private static void Relations(SimContext ctx, QuestRun run)
         {
             AdventurersBalance people = ctx.Data.Balance.Adventurers;
@@ -336,7 +343,11 @@ namespace GuildMaster.Core
                     int b = run.Departed[j];
                     if (!ctx.World.Adventurers.IsActive(a) || !ctx.World.Adventurers.IsActive(b)) continue;
                     RelationService.AddJointQuest(ctx, a, b);
-                    if (run.Completed) RelationService.Change(ctx, a, b, people.JointSuccessRelation);
+                    if (run.Completed)
+                    {
+                        RelationService.AddJointSuccess(ctx, a, b);
+                        RelationService.Change(ctx, a, b, people.JointSuccessRelation);
+                    }
                     if (run.FailedRounds > 0) RelationService.Change(ctx, a, b, people.JointHardQuestRelation);
                 }
             }

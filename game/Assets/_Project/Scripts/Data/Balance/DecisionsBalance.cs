@@ -51,6 +51,9 @@ namespace GuildMaster.Data
         [Tooltip("Товарищи: + если группа постоянная")]
         [SerializeField] private float companionsPermanentBonus = 0.2f;
 
+        [Tooltip("Товарищи в группе у одиночки (отрицательный полюс оси Люди): −это × сила полюса")]
+        [SerializeField, Min(0f)] private float lonerGroupCompanions = 0.5f;
+
         [Tooltip("Отдых: 1 − усталость/100 − это")]
         [SerializeField] private float orderRestOffset = 0.5f;
 
@@ -165,6 +168,7 @@ namespace GuildMaster.Data
         public float CompanionsInGroup => companionsInGroup;
         public float CompanionsFriendBonus => companionsFriendBonus;
         public float CompanionsPermanentBonus => companionsPermanentBonus;
+        public float LonerGroupCompanions => lonerGroupCompanions;
         public float OrderRestOffset => orderRestOffset;
         public float PromotionSafety => promotionSafety;
         public float DeadlyFailureSafetyPenalty => deadlyFailureSafetyPenalty;

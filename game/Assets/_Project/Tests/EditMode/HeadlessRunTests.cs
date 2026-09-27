@@ -100,8 +100,9 @@ namespace GuildMaster.Tests
             string numbers = $"no log {none * 1000:0} ms; Info {info * 1000:0} ms, {lines[1]} lines; Trace {trace * 1000:0} ms, {lines[2]} lines";
             TestContext.WriteLine(numbers);
 
-            // На Info — решения людей (по строке на решение), на Trace — ещё и оценки каждого варианта: разница в разы.
-            Assert.That(lines[2], Is.GreaterThan(lines[1] * 4), numbers);
+            // На Info — решения людей (по строке на решение, в том числе ответы на приглашения в группу, сбор групп), на Trace —
+            // ещё и оценки каждого варианта и напарника: разница в разы.
+            Assert.That(lines[2], Is.GreaterThan(lines[1] * 3), numbers);
             Assert.That(info, Is.LessThan(trace), numbers);
             Assert.That(info - none, Is.LessThan((trace - none) / 2), "на Info строки Trace не строятся: " + numbers);
         }
@@ -135,7 +136,7 @@ namespace GuildMaster.Tests
             string csv = SummaryCsv.Write(summary);
             StringAssert.StartsWith("Зерно,Бот,Дней\n360,Простой,360\n\nМесяц,Дней,Людей,", csv);
             StringAssert.Contains("\nИтого,360,", csv);
-            StringAssert.Contains("\nId,Имя,Архетип,Ранг,Ран,Выполнено,Не выполнено,Жив,В гильдии,Раскрыто\n", csv);
+            StringAssert.Contains("\nId,Имя,Архетип,Ранг,Ран,Выполнено,Не выполнено,Жив,Постоянная группа,В гильдии,Раскрыто\n", csv);
         }
 
         [Test]

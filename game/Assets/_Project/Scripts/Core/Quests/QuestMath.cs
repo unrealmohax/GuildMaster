@@ -90,15 +90,13 @@ namespace GuildMaster.Core
             double px = ax + t * bx;
             double py = ay + t * by;
 
-            // Четырёхугольник O, m0·u0, X, m1·u1 — формула шнурков.
-            double[] xs = { 0.0, m0, px, m1 * cos };
-            double[] ys = { 0.0, 0.0, py, m1 * sin };
+            // Четырёхугольник O, m0·u0, X, m1·u1 — формула шнурков (вершины по кругу, без массивов: расчёт идёт очень часто).
+            double x0 = 0.0, y0 = 0.0, x1 = m0, y1 = 0.0, x2 = px, y2 = py, x3 = m1 * cos, y3 = m1 * sin;
             double area = 0.0;
-            for (int k = 0; k < 4; k++)
-            {
-                int next = (k + 1) % 4;
-                area += xs[k] * ys[next] - xs[next] * ys[k];
-            }
+            area += x0 * y1 - x1 * y0;
+            area += x1 * y2 - x2 * y1;
+            area += x2 * y3 - x3 * y2;
+            area += x3 * y0 - x0 * y3;
             return Math.Abs(area) * 0.5;
         }
 
@@ -222,6 +220,10 @@ namespace GuildMaster.Core
             float[] perceived = PerceivedRequirements(order.Profile, order.DescriptionAccuracy, adventurer, data);
             return Overlap(data.Stats.RadarOrder, perceived, GroupProfile(new[] { adventurer }, data));
         }
+
+        /// <summary>Настоящее перекрытие группы (без синергий): профиль группы против настоящих требований.</summary>
+        public static float RealOverlap(IReadOnlyList<Adventurer> party, Order order, DataRegistry data) =>
+            Overlap(data.Stats.RadarOrder, order.Profile, GroupProfile(party, data));
 
         /// <summary>Настоящее перекрытие человека одного: свой профиль против настоящих требований.</summary>
         public static float RealSoloOverlap(Adventurer adventurer, Order order, DataRegistry data) =>

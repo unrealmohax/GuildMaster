@@ -5,8 +5,8 @@
 `TechJob/04-adventurers.md` (GM-04, авантюристы), `TechJob/05-state-health.md` (GM-05, состояние и здоровье),
 `TechJob/06-debug-logging.md` (GM-06, лог и прогон без интерфейса), `TechJob/07-event-feed.md` (GM-07, лента событий),
 `TechJob/08-decision-model.md` (GM-08, модель решений), `TechJob/09-economy.md` (GM-09, экономика гильдии),
-`TechJob/10-orders.md` (GM-10, заказы, доска и репутация), `TechJob/11-quests.md` (GM-11, задания: ход и расчёт);
-этот файл описывает, как они реализованы.
+`TechJob/10-orders.md` (GM-10, заказы, доска и репутация), `TechJob/11-quests.md` (GM-11, задания: ход и расчёт),
+`TechJob/12-groups.md` (GM-12, группы); этот файл описывает, как они реализованы.
 
 ## Комментарии в коде: без ссылок на документацию
 
@@ -51,7 +51,8 @@ _Project/
 │   │   ├── State/       AdventurerState, Activity (+ BreakdownKind, PartyContext), правила StateRules, StateRates,
 │   │   │                службы StateService, StressEvents, WalletService, системы ActivitySystem, StateSystem
 │   │   ├── Health/      Condition, HealthService, HealthSystem, IInfirmary (+ заглушка NoInfirmary)
-│   │   ├── Decisions/   DecisionSystem, DecisionPoints (+ DecisionBans), DecisionActions (+ DecisionScope), OrderChoice, Motives
+│   │   ├── Decisions/   DecisionSystem (+ .Parties — сбор групп и приглашения), DecisionPoints (+ DecisionBans), DecisionActions
+│   │   │                (+ DecisionScope), OrderChoice, Motives
 │   │   │                (+ MotiveWeights, StateFactor), LeaveReasons (+ LeaveCause, PersonTextSource), TavernEvening
 │   │   ├── Economy/     Treasury (+ Bankruptcy, LedgerEntry), LedgerCategory (+ LedgerCategories), TreasuryService,
 │   │   │                EconomySystem, HardTimes, SetCommissionCommand, MonthReport (+ история, разделы, строки),
@@ -64,6 +65,7 @@ _Project/
 │   │   ├── Quests/      QuestSystem, QuestRun (+ QuestBook, QuestDiscovery, Straggler), QuestMath (перекрытие, профиль группы,
 │   │   │                синергии), QuestParty, QuestRounds, QuestTension, QuestChoices, QuestEncounters, QuestSettlement,
 │   │   │                PromotionOrders, EventQuests (+ AnswerEventQuestCommand), QuestReasons
+│   │   ├── Parties/     Party (+ PartyBook), PartyMath (+ PartyLens, ProfileCache, PresumedParty), PartyService, PartyReasons
 │   │   └── World/       WorldState, IdGenerator
 │   ├── UI/          GuildMaster.UI        — UiRoot (экраны — ТЗ 14)
 │   ├── Bootstrap/   GuildMaster.Bootstrap — GameRunner
@@ -74,7 +76,8 @@ _Project/
 │                    Encounters, Buildings, Staff, Decrees, Dilemmas, Text (FeedTemplates, NameList, OrderTextTemplates)
 ├── ClaudeSandbox/   песочница Claude; Editor/GameDataGenerator — генератор ассетов данных, Editor/TimeProbe — время
 │                    в Play Mode из меню, Editor/AdventurerProbe — люди гильдии в консоль, Editor/StateProbe — раны,
-│                    стресс, прогон 90 дней, Editor/HeadlessProbe — прогон в файлы без окна, Editor/QuestProbe — кто какие заказы берёт, Editor/FeedProbe — шаблоны
+│                    стресс, прогон 90 дней, Editor/HeadlessProbe — прогон в файлы без окна, Editor/QuestProbe — кто какие заказы берёт,
+│                    Editor/PartyProbe — группы за 10 лет, Editor/FeedProbe — шаблоны
 │                    и лента за год в файлы (см. её README)
 ├── Prefabs/UI/
 ├── Scenes/Main.unity  — единственная сцена: Main Camera, Global Light 2D, UI (Canvas + UiRoot), EventSystem, GameRunner
@@ -158,7 +161,8 @@ _Project/
   (`TraitInstance`: `TraitId`, `Revealed`, `PartnerId`, `AcquiredAtHours`, `AffectedStat` — параметр Калеки), ранг гильдии
   и `RankPoints` (дробные: частичный успех × 0,5), `PromotionReadyAtHours`, `ArchetypeId` + `PowerScore`, `State`
   (`AdventurerState`, GM-05), `Housing` (пока всегда `City`, Общежитие — GM-13),
-  `JoinedAtHours`, счётчики заданий. Группа (GM-12), память (GM-17) — не заведены.
+  `JoinedAtHours`, счётчики заданий, `PartyId` (группа, с которой собирается или идёт) и `PermanentPartyId` (GM-12). Память (GM-17) —
+  не заведена.
 - **Эффективные параметры** — `AdventurerStats`: `Permanent` = база × постоянные модификаторы (Калека), не ниже
   естественного минимума; `Effective` = `Permanent` × временные (лёгкая рана, усталость выше 70 — GM-05). Новый модификатор —
   строка в `PermanentModifiers` / `TemporaryModifiers`.
@@ -179,7 +183,8 @@ _Project/
 - **Раскрытие** — `RevealService.TryRevealAxis` / `TryRevealTrait(ctx, человек, …, RevealTrigger)`: раскрывает, только если
   триггер совпадает с триггером полюса или черты в данных; событие [В] с автопаузой. Нейтральная ось — сама,
   `AdventurerSystem`, через `neutralRevealDays` в гильдии: `AxisBalanced` [З] без автопаузы.
-- **Отношения** — `RelationService.Change` / `Set` / `AddJointQuest`, метки `LabelsOf` (друзья, неприязнь, давние напарники).
+- **Отношения** — `RelationService.Change` / `Set` / `AddJointQuest` / `AddJointSuccess` (совместные успехи пары — для постоянных групп,
+  GM-12), метки `LabelsOf` (друзья, неприязнь, давние напарники).
 - **Генерация** — `AdventurerGenerator` (internal): пол, имя (по возможности без повторов), возраст → тип (веса
   `ArchetypeDefinition.generationWeight`) → уровень → параметры → оси → черты (с партнёром — только если есть подходящий
   в гильдии) → кошелёк, ранг G, город → архетип → стартовое состояние (GM-05, последние броски). Порядок бросков не менять без причины. Старт — `StartScenario`.
@@ -223,7 +228,7 @@ _Project/
 - **Черты на состояние** — `StateRates.Multiplier(человек, показатель, рост/падение, данные, PartyContext)` читает эффекты
   `StateRate` из данных: у осей — по формуле оси, у особых черт — полностью. Трус — стресс быстрее, Кошмары — усталость
   × 1,3, Потерявший товарища — снятие стресса × 0,5, Преданный / Наёмник — лояльность, Одиночка / Командный — только
-  с `PartyContext.InGroup` / `Solo` (его передаст ТЗ 12/11; вне задания `None`). `PayContentmentSensitivity` (Жадный × 2)
+  с `PartyContext.InGroup` / `Solo` (ставит система заданий при выходе; вне задания `None`). `PayContentmentSensitivity` (Жадный × 2)
   — к вкладу комиссии. Остальное по `TraitHook` — в своих местах: Железные нервы и партнёр Влюблённого — `StressEvents`,
   Семейный — `WalletService` и проверка ухода, Пьяница — `ActivitySystem`, Ветеран — вид срыва и раскрытие, Проверенный —
   `TraitService`.
@@ -507,6 +512,57 @@ _Project/
 - **Прогон года** (10 зёрен, «Простой»): ~1900 заданий (от ~58 в первый месяц до ~215 в двенадцатый), выполнено ~93%, гибелей 4–11,
   экзаменов 54–74, репутация 100 к 4-му месяцу, казна ~54 тыс.; лог `Info` — ~55 тыс. строк за год.
 
+## Группы (GM-12)
+
+Числа — `BalanceSettings.Decisions` («Товарищи» в группе, `lonerGroupCompanions`, оценка напарника, постоянные группы), `Rounds.maxPartySize`,
+`Growth` (Слаженность). Решения 2026-09-27 в `docs/decisions.md`, толкования ❔ — в `TechJob/12-groups.md`.
+
+- **Мир.** `World.Parties` (`PartyBook`): `Active` — группы под задание (от сбора до конца задания) и постоянные; `TryGetParty`,
+  `GetPermanentCount`, `IsNameUsed`, счётчики `PermanentFormed` / `PermanentDisbanded`. `Party`: `Id`, `IsPermanent`, `Name` (у постоянной —
+  «Серые волки»), `MemberIds`, `InitiatorId` (у постоянной — лидер дня), `OrderId`, `JointQuests`, `JointSuccesses`, `GetQuestsTogether`
+  (задания члена с группой — для одиночки), `GetGuestSuccesses`. У человека — `PartyId`, `PermanentPartyId`; у задания — `PartyId`,
+  `IsPermanentParty`, `PartyTitle`; у пары отношений — `JointSuccesses`.
+- **Оценка** (`PartyMath`, случайных чисел нет): `PartyLens` — взгляд одного человека на один заказ (требования, как он их видит, и его веса
+  считаются один раз): `Overlap`, `Chance` (+ синергии), `Scores`, `Value` для любой группы. `ProfileCache` — профили людей (одиночный и × Слаженность),
+  у `DecisionScope` — один на час (`Profiles`). `Companions`, `ExpectedShare` (по `PowerScore` или поровну), `PartnerScore`, `BestPartner`,
+  `Presume` → `PresumedParty` (`Values` по шагам, `MinimumAbove` — приемлемый минимум). Группа из одного даёт те же оценки, что заказ в одиночку.
+- **Решения** (`DecisionSystem.Parties.cs`): в каждом часу сначала `decidedThisHour` чистится; утром — постоянные группы (`PermanentPartiesDecide`);
+  потом люди по порядку, кто уже решил в этом часу (ответом на приглашение) или взял заказ, — пропускается. В точках с заказами к каждому
+  разрешённому заказу (не экзамену) — `SeekParty`, если предполагаемая группа не из одного. Выбран — `Gather`: заказ снят с доски
+  (`OrderChoice.Reserve`), группа создана (`PartyService.StartGathering`), `InviteWhileValueGrows` → `Invite` (вариант `JoinParty` среди вариантов
+  приглашённого, выбор `Choose` с броском `decision-best`; отказ — `InvitationDeclined` с причиной `PartyReasons`, взял заказ один — раскрытие
+  Одиночки), затем `Commit` или отказ (`Release`, Командный). Запрет «экзамен — только одному» и «заказ уже взят» (кроме `JoinParty`) — в
+  `DecisionBans`. `OrderChoice.RefusesFromNightmares` — для любого варианта о заказе.
+- **Выход** (`QuestSystem.Departures`): группа выходит вместе — первым инициатор (лидер), дальше по порядку в гильдии; кто не может выйти,
+  остаётся (`PartyService.Release`); остался один — задание без группы (`PartyService.Attach`). Соперники в одной группе раскрываются при выходе.
+- **Итог** (`QuestSettlement`): постоянная группа делит поровну (`Split(…, equal)` — награда, трофеи, находка), Слаженность члена — +1, гостя —
+  +0,5; выполнено — +1 совместный успех каждой паре. `PartyService.AfterQuest`: группа под задание удаляется, постоянная считает задание,
+  гость копит успехи и становится членом, одиночка уходит, ссоры; из вернувшихся без постоянной группы может сложиться новая (`TryForm`,
+  название — поток `Parties`, `ctx.Streams`). Уход из гильдии и гибель (`AdventurerLifecycle.Retire`) — `PartyService.OnRetired`. Ссоры — ещё и
+  раз в сутки в 00:00 (`QuestSystem` → `PartyService.CheckQuarrels`).
+- **События** (в конец `SimEventType`): `PartyGathered`, `PartyNotGathered`, `InvitationDeclined`, `PermanentPartyFormed`, `PermanentPartyDisbanded`,
+  `PartyMemberLeft` (`cause`: quarrel / loner / gone), `PartyMemberJoined`. Строки ленты гильдии — `guild.party.*` (сбор по числу людей:
+  `.pair`, `.three`, без суффикса — четверо, `.five`, `.six`; `permanentSetOut`, `noPartners(.solo)`, `declined(.solo)`, `permanentFormed(.pair)`,
+  `permanentDisbanded`, `memberLeft.quarrel` / `.loner`, `memberJoined`), причины `reason.invite.*` (валидатор требует). `{группа}` постоянной —
+  `PartyService.NameValue` («группа «Серые волки»» в шести падежах), `{название}` — название без слова «группа» (данные события `title`).
+- **Лог**: `Info` — `party #N seek: …` (предполагаемая группа, минимум, ценности), ответы приглашённых `decide #5 Имя invite #3: JoinParty#12 …`,
+  `party #N gathered for #12: …`, `party #N not gathered: …`, решения постоянной группы `party #N Название decide (#3 Имя): PartyOrder#12 …`,
+  сложилась / ушёл / вступил / распалась; `Debug` — «почему перестал звать»; `Trace` — `party-presume`, `partner-eval`, оценки вариантов приглашённого.
+- **Сводка**: «Заданий соло», «Заданий в группе», «Средний размер группы», «Отказов идти с группой», «Постоянных групп», «Групп сложилось»,
+  «Групп распалось»; по людям — «Постоянная группа». Отладка: `HeadlessRun.Run(…, watch)` — подписка на симуляцию до первого такта;
+  `QuestMath.RealOverlap` — настоящее перекрытие группы.
+- **Что поменялось в GM-04–11**: GM-04 — пары считают совместные успехи, уход из гильдии выводит из постоянной группы; GM-05 — `PartyContext.InGroup`
+  теперь и в игре; GM-06 — сводка (7 столбцов и столбец людей), лог `Info` (+сбор групп и приглашения); GM-07 — метка `{название}`, строки групп;
+  GM-08 — варианты `SeekParty` / `JoinParty`, запреты для них, выбор вынесен в `Evaluate` / `Choose` (броски те же), кто решил в часу — второй раз
+  не решает; GM-11 — задание берёт группа, делёж поровну в постоянной, Слаженность +1, раскрытие Соперника при выходе, шнурки перекрытия без массивов
+  (результат тот же). Решения людей сдвинулись, как только появились варианты групп: люди стали брать заказы группами (броски `decision-best`
+  приглашённых — в потоке `DecisionSystem`), поэтому сдвинулись и броски заданий. Пока групп нет (один человек), код групп случайных чисел не тратит
+  (тест `NoPartyPossible_NoRolls_SameLogAsWithoutParties`). Тесты, изменённые из-за групп: `TraitTests` (утром стартовые люди собирают группы и
+  раскрываются сами — события смотрятся только у проверяемого), `HeadlessRunTests` (столбец «Постоянная группа»; Trace больше Info в 3 раза, а не в 4:
+  на Info теперь и приглашения), `FeedTemplateTests` (значение метки `{название}`), `ArchitectureTests` (новые части мира).
+- **Прогон года** (10 зёрен, «Простой»): ~2000 заданий (73% соло, средняя группа 2,35), выполнено 94%, гибелей ~7, шанс раунда 0,83; постоянных групп
+  ~12 в год, распадается ~4. Год без лога — ~1,65 с (без групп ~1,46 с: основная цена — задания GM-11).
+
 ## Мир меняется только командами
 
 Состояние в `WorldState` и его частях — публичные геттеры, `internal`-сеттеры. Снаружи Core (UI, Bootstrap)
@@ -585,7 +641,12 @@ GM-11: `QuestTests.cs` (`QuestMathTests` — перекрытие; `QuestRoundTe
 продолжить / отступить; `QuestTravelTests` — события в пути, ночлег, повернул назад, находка и событийное задание; `QuestSettlementTests`
 — выплаты, делёж, экзамен; `QuestRevealTests` — триггеры раскрытия; `QuestChoiceTests` — трус / жадный, кошелёк, комиссия и доплата,
 экзамен только владельцу, люди берут заказы сами; `QuestFeedTests`; `QuestDeterminismTests`). Помощник — `QuestWorld` (заказ
-вручную, начать задание группой, `AtSite`, `DoEvents` — события действия на паузе). Всего 386.
+вручную, начать задание группой, `StartParty` — группой `Party`, `MakePermanent` — постоянная группа, `AtSite`, `DoEvents` — события действия
+на паузе);
+GM-12: `PartyTests.cs` (`PartyGatheringTests` — сбор сам, лог и лента, дыры профиля, жадный / командный / одиночка, предел 6, раскрытия Одиночки,
+Командного, Соперника, доля и «Товарищи»; `PermanentPartyTests` — складывается после 3 успехов с названием, не при плохих отношениях, делит поровну,
+ходит вместе, член выходит на день, Слаженность, гость → член, ссора, одиночка, гибель; `PartyDeterminismTests` — одно зерно = один лог, без
+групп броски не тратятся, сводка), помощник `PartyTestSupport.Person`. Всего 408.
 Помощники ленты — `DictionarySource` (метки из словаря), `FeedTestTemplates` (шаблоны в памяти).
 Числа баланса в тесте меняются `GameData.Edit(data.Balance, "time.dayHour", p => p.intValue = 10)`.
 Помощники — `TestSupport.cs`: `TestData` (BalanceSettings без ассета), `NoiseSystem`, `TraceCommand`,

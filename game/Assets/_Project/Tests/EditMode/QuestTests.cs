@@ -59,6 +59,17 @@ namespace GuildMaster.Tests
             return QuestSystem.Depart(ctx, order, party);
         });
 
+        /// <summary>Начать задание группой <paramref name="party"/> (постоянной или под задание) сразу, в обход модели решений.</summary>
+        public QuestRun StartParty(Order order, Party party, params Adventurer[] people) => World.Do(ctx =>
+        {
+            order.Status = OrderStatus.Taken;
+            ctx.World.Orders.MoveToWork(order);
+            return QuestSystem.Depart(ctx, order, people, party);
+        });
+
+        /// <summary>Постоянная группа из этих людей (название — из списка, как в игре).</summary>
+        public Party MakePermanent(params Adventurer[] members) => World.Do(ctx => PartyService.Form(ctx, members.ToList()));
+
         /// <summary>Такты, пока задание не кончится (не дольше <paramref name="maxDays"/>).</summary>
         public List<SimEvent> RunToEnd(QuestRun run, int maxDays = 20) => World.Collect(() =>
         {

@@ -95,6 +95,7 @@ namespace GuildMaster.Tests
                 typeof(MonthReportHistory), typeof(MonthReport), typeof(ReportSection), typeof(ReportLine), typeof(ReportItem),
                 typeof(GuildState), typeof(OrderBoard), typeof(Order),
                 typeof(QuestBook), typeof(QuestRun), typeof(QuestDiscovery), typeof(Straggler),
+                typeof(PartyBook), typeof(Party),
             };
             foreach (Type type in stateTypes)
             {

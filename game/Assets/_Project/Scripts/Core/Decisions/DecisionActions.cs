@@ -13,6 +13,12 @@ namespace GuildMaster.Core
 
         /// <summary>Взять заказ с доски (один) — выход в следующем часу.</summary>
         TakeOrder,
+
+        /// <summary>Взять заказ и собрать под него группу — выход в следующем часу.</summary>
+        SeekParty,
+
+        /// <summary>Пойти на заказ с группой, которая зовёт (приглашение, вариант постоянной группы).</summary>
+        JoinParty,
     }
 
     /// <summary>
@@ -33,8 +39,11 @@ namespace GuildMaster.Core
 
         public DecisionActionKind Kind { get; }
 
-        /// <summary>Заказ варианта «взять заказ»; 0 — вариант не о заказе.</summary>
+        /// <summary>Заказ варианта «взять заказ», «собрать группу», «пойти с группой»; 0 — вариант не о заказе.</summary>
         public int OrderId { get; }
+
+        /// <summary>Вариант о заказе: взять одному, собрать группу или пойти с группой.</summary>
+        public bool IsOrder => OrderId != 0;
 
         /// <summary>Имя для лога: «Rest», «TakeOrder#12».</summary>
         public string Label => OrderId != 0 ? Kind + "#" + OrderId.ToString(System.Globalization.CultureInfo.InvariantCulture) : Kind.ToString();
@@ -59,6 +68,7 @@ namespace GuildMaster.Core
     {
         private readonly Dictionary<int, List<int>> friends = new Dictionary<int, List<int>>();
         private bool friendsReady;
+        private ProfileCache profiles;
 
         public DecisionScope(SimContext ctx)
         {
@@ -66,6 +76,9 @@ namespace GuildMaster.Core
         }
 
         public SimContext Ctx { get; }
+
+        /// <summary>Профили людей для оценки групп в этом часу (параметры за час не меняются).</summary>
+        public ProfileCache Profiles => profiles ?? (profiles = new ProfileCache(Ctx.Data));
 
         /// <summary>
         /// Друзья, которые будут заняты этим со следующего часа: уже выбрали его в этом часу или уже заняты им и не решили

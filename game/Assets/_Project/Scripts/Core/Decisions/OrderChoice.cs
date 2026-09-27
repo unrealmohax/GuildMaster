@@ -55,11 +55,12 @@ namespace GuildMaster.Core
         }
 
         /// <summary>
-        /// Кошмары: выбранный заказ того же типа — бросок отказа. <c>true</c> — отказался (событие с причиной, раскрытие).
+        /// Кошмары: выбранный заказ того же типа (одному или с группой) — бросок отказа. <c>true</c> — отказался (событие
+        /// с причиной, раскрытие).
         /// </summary>
         public static bool RefusesFromNightmares(SimContext ctx, Adventurer adventurer, DecisionAction action)
         {
-            if (action.Kind != DecisionActionKind.TakeOrder || !ctx.World.Orders.TryGetOrder(action.OrderId, out Order order)) return false;
+            if (!action.IsOrder || !ctx.World.Orders.TryGetOrder(action.OrderId, out Order order)) return false;
             TraitInstance nightmares = TraitRules.FindWithHook(adventurer, TraitHook.NightmaresRefuseSimilar, ctx.Data);
             if (nightmares == null || nightmares.SourceQuestTypeId != order.TypeId) return false;
             if (!ctx.RollChance(ctx.Data.Balance.Traits.NightmaresRefuseChance, "nightmares-refuse", adventurer)) return false;
@@ -74,17 +75,40 @@ namespace GuildMaster.Core
         public static void Take(SimContext ctx, Adventurer adventurer, DecisionAction action, IReadOnlyList<DecisionAction> allowed)
         {
             if (!ctx.World.Orders.TryGetOpen(action.OrderId, out Order order)) return;
-            OrderBoard board = ctx.World.Orders;
+            Reserve(ctx, order, adventurer);
+            Commit(ctx, adventurer, order, allowed, 1);
+        }
+
+        /// <summary>Снять заказ с доски за человеком (пока группа собирается, другие его не видят).</summary>
+        internal static void Reserve(SimContext ctx, Order order, Adventurer taker)
+        {
             order.Status = OrderStatus.Taken;
-            order.TakenBy = adventurer.Id;
-            board.MoveToWork(order);
+            order.TakenBy = taker.Id;
+            ctx.World.Orders.MoveToWork(order);
+        }
+
+        /// <summary>Группа не собралась, одному идти не стоит: заказ снова на доске.</summary>
+        internal static void Release(SimContext ctx, Order order)
+        {
+            order.Status = OrderStatus.OnBoard;
+            order.TakenBy = 0;
+            ctx.World.Orders.ReturnToOpen(order);
+        }
+
+        /// <summary>
+        /// Заказ взят окончательно (один или с группой из <paramref name="partySize"/> человек): счётчик, выход в следующем часу,
+        /// событие, раскрытия при взятии (доля — своя часть награды поровну).
+        /// </summary>
+        internal static void Commit(SimContext ctx, Adventurer adventurer, Order order, IReadOnlyList<DecisionAction> allowed, int partySize)
+        {
+            OrderBoard board = ctx.World.Orders;
             if (!order.IsPromotion) board.Totals = board.Totals.AddTaken();
             adventurer.State.PlannedOrderId = order.Id;
             adventurer.IdleOrderDays = 0;
             OrderSystem.Publish(ctx, SimEventType.OrderTaken, order, EventImportance.Normal, adventurer.Id).With("promotion", order.IsPromotion);
 
             AdventurersBalance people = ctx.Data.Balance.Adventurers;
-            float share = QuestChoices.ExpectedShare(order, ctx.World.Treasury.Commission, 1);
+            float share = QuestChoices.ExpectedShare(order, ctx.World.Treasury.Commission, partySize);
             if (!order.IsPromotion && share < people.SelflessShareOfAverage * AverageReward(ctx.Data, order.Rank))
                 RevealService.TryRevealAxis(ctx, adventurer, AxisId.Money, RevealTrigger.SelflessUnderpaidOrder);
 

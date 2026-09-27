@@ -7,10 +7,12 @@ namespace GuildMaster.Core
     /// <summary>
     /// Шаг 4 такта: задания. Каждый час, по порядку:
     /// <list type="number">
-    /// <item>в 00:00 — забыть задания, законченные раньше <c>questFeedKeepDays</c> дней (с их лентой);</item>
+    /// <item>в 00:00 — забыть задания, законченные раньше <c>questFeedKeepDays</c> дней (с их лентой); ссоры в постоянных
+    /// группах (<see cref="PartyService.CheckQuarrels"/>);</item>
     /// <item>люди, идущие домой одни, — вернулись (повернувший назад, беглец) или исчезли (беглец);</item>
     /// <item>в начале утра — задания на повышение тем, кто готов (<see cref="GuildRanks.IsReadyForPromotion"/>);</item>
-    /// <item>выход: кто взял заказ решением в прошлом часу — выходит (<see cref="AdventurerState.PlannedOrderId"/>);</item>
+    /// <item>выход: кто взял заказ решением в прошлом часу — выходит (<see cref="AdventurerState.PlannedOrderId"/>), группа —
+    /// вместе;</item>
     /// <item>каждое идущее задание — ход на час: ночлег, путь (событие в пути, находка), раунд, возвращение.</item>
     /// </list>
     /// Раунды — <see cref="QuestRounds"/>, события в пути и находки — <see cref="QuestEncounters"/>, решения группы —
@@ -26,7 +28,11 @@ namespace GuildMaster.Core
             if (!ctx.Data.HasDefinitions) return;
 
             GameTime time = ctx.World.Time;
-            if (time.Hour == 0) ForgetOld(ctx);
+            if (time.Hour == 0)
+            {
+                ForgetOld(ctx);
+                PartyService.CheckQuarrels(ctx);
+            }
             Stragglers(ctx);
             if (time.Hour == ctx.Data.Balance.Time.MorningHour) PromotionOrders.Offer(ctx);
             Departures(ctx);
@@ -85,6 +91,7 @@ namespace GuildMaster.Core
             state.QuestRunId = 0;
             state.QuestParty = PartyContext.Solo;
             state.Activity = Activity.OnQuestTravel;
+            adventurer.PartyId = 0;
             ctx.World.Quests.AddStraggler(new Straggler(adventurer.Id, run.Id, kind, dueAtHours, returns));
         }
 
@@ -96,6 +103,7 @@ namespace GuildMaster.Core
             state.QuestParty = PartyContext.None;
             state.Activity = Activity.Resting;
             state.PlannedActivity = null;
+            adventurer.PartyId = 0;
         }
 
         // ---------- Выход ----------
@@ -104,35 +112,67 @@ namespace GuildMaster.Core
         {
             foreach (Adventurer adventurer in new List<Adventurer>(ctx.World.Adventurers.Active))
             {
-                AdventurerState state = adventurer.State;
-                if (state.PlannedOrderId == 0) continue;
+                if (adventurer.State.PlannedOrderId == 0) continue;
+                int orderId = adventurer.State.PlannedOrderId;
+                ctx.World.Parties.TryGetParty(adventurer.PartyId, out Party party);
+                List<Adventurer> going = party != null && party.OrderId == orderId ? Going(ctx, party, orderId) : new List<Adventurer> { adventurer };
+                foreach (Adventurer member in going) member.State.PlannedOrderId = 0;
+                if (!ctx.World.Orders.TryGetOrder(orderId, out Order order) || order.Status != OrderStatus.Taken)
+                {
+                    PartyService.Release(ctx, party, going);
+                    continue;
+                }
 
-                int orderId = state.PlannedOrderId;
-                state.PlannedOrderId = 0;
-                if (!ctx.World.Orders.TryGetOrder(orderId, out Order order) || order.Status != OrderStatus.Taken) continue;
-
-                if (!StateRules.CanTakeQuests(state, ctx.Data.Balance.State) || !ctx.Rhythm.CanStartQuest(ctx.World.Time.Hour) || state.IsOnQuest())
+                var ready = new List<Adventurer>(going.Count);
+                foreach (Adventurer member in going)
+                {
+                    AdventurerState state = member.State;
+                    if (StateRules.CanTakeQuests(state, ctx.Data.Balance.State) && ctx.Rhythm.CanStartQuest(ctx.World.Time.Hour) && !state.IsOnQuest())
+                    {
+                        ready.Add(member);
+                        continue;
+                    }
+                    ctx.Log.Write(SimLogLevel.Debug, "quest cancelled: #{0} {1} cannot depart with order #{2}", member.Id, member.Name, order.Id);
+                }
+                if (ready.Count == 0)
                 {
                     order.Status = OrderStatus.OnBoard;
                     order.TakenBy = 0;
                     ctx.World.Orders.ReturnToOpen(order);
-                    ctx.Log.Write(SimLogLevel.Debug, "quest cancelled: #{0} {1} cannot depart with order #{2}", adventurer.Id, adventurer.Name, order.Id);
+                    PartyService.Release(ctx, party, going);
                     continue;
                 }
-                Depart(ctx, order, new[] { adventurer });
+                if (ready.Count < going.Count) PartyService.Release(ctx, null, going.FindAll(m => !ready.Contains(m)));
+                Depart(ctx, order, ready, party);
             }
+        }
+
+        /// <summary>Кто идёт с группой: взявший заказ первым (инициатор или лидер), затем остальные по порядку в гильдии.</summary>
+        private static List<Adventurer> Going(SimContext ctx, Party party, int orderId)
+        {
+            var going = new List<Adventurer>();
+            if (ctx.World.Adventurers.TryGetActive(party.InitiatorId, out Adventurer first) && first.PartyId == party.Id
+                && first.State.PlannedOrderId == orderId)
+                going.Add(first);
+            foreach (Adventurer member in ctx.World.Adventurers.Active)
+            {
+                if (member.PartyId == party.Id && member.State.PlannedOrderId == orderId && !going.Contains(member)) going.Add(member);
+            }
+            return going;
         }
 
         /// <summary>
         /// Начать задание по взятому заказу этой группой: заказ — «идёт», у людей — занятие задания, путь туда
-        /// (длительность, событие в пути, находка — броски сразу, в этом порядке), строка «Выход».
+        /// (длительность, событие в пути, находка — броски сразу, в этом порядке), строка «Выход». <paramref name="group"/> —
+        /// группа, которая собралась под заказ (идёт один — задание без группы). Соперники в одной группе раскрываются.
         /// </summary>
-        internal static QuestRun Depart(SimContext ctx, Order order, IReadOnlyList<Adventurer> party)
+        internal static QuestRun Depart(SimContext ctx, Order order, IReadOnlyList<Adventurer> party, Party group = null)
         {
             QuestBook book = ctx.World.Quests;
             var run = new QuestRun(book.NextId(), order, ctx.World.Time.TotalHours);
             order.Status = OrderStatus.InProgress;
             order.QuestRunId = run.Id;
+            PartyService.Attach(ctx, run, group, party);
 
             PartyContext context = QuestParty.ContextOf(party.Count);
             foreach (Adventurer member in party)
@@ -148,11 +188,28 @@ namespace GuildMaster.Core
             book.AddActive(run);
 
             foreach (Adventurer member in party) NoteOverreach(ctx, run, member, order);
+            if (party.Count > 1) RevealRivals(ctx, party);
             StartLeg(ctx, run, QuestPhase.TravelOut, eventChanceMultiplier: 1f);
             if (!run.IsPromotion) QuestEncounters.PlanDiscovery(ctx, run);
 
             QuestParty.Publish(ctx, SimEventType.QuestDeparted, run, EventImportance.Normal, Ids(party));
             return run;
+        }
+
+        /// <summary>Соперник, чей соперник-партнёр идёт в той же группе, — первое совместное задание раскрывает черту.</summary>
+        private static void RevealRivals(SimContext ctx, IReadOnlyList<Adventurer> party)
+        {
+            foreach (Adventurer member in party)
+            {
+                TraitInstance rival = TraitRules.FindWithHook(member, TraitHook.RivalPartner, ctx.Data);
+                if (rival == null || rival.Revealed) continue;
+                foreach (Adventurer other in party)
+                {
+                    if (other.Id != rival.PartnerId) continue;
+                    RevealService.TryRevealTrait(ctx, member, rival.TraitId, RevealTrigger.RivalFirstClash);
+                    break;
+                }
+            }
         }
 
         /// <summary>

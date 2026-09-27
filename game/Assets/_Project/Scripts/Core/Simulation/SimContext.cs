@@ -4,8 +4,9 @@ namespace GuildMaster.Core
     public sealed class SimContext
     {
         internal SimContext(WorldState world, DataRegistry data, Calendar calendar, DayRhythm rhythm, EventBus events, CommandQueue commands,
-            SimLogger log)
+            SimLogger log, RngService streams)
         {
+            Streams = streams;
             World = world;
             Data = data;
             Calendar = calendar;
@@ -34,6 +35,12 @@ namespace GuildMaster.Core
         public string CurrentSystem { get; internal set; }
 
         internal CommandQueue Commands { get; }
+
+        /// <summary>
+        /// Все потоки случайных чисел: для бросков, которые не должны сдвигать поток текущей системы (например, название
+        /// постоянной группы — свой поток, кто бы её ни создал).
+        /// </summary>
+        internal RngService Streams { get; }
 
         internal bool PauseRequested { get; set; }
 

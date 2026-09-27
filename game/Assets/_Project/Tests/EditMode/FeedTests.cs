@@ -196,7 +196,8 @@ namespace GuildMaster.Tests
                     .Set("число", TextValue.Number(2)).Set("всего", TextValue.Number(4)).Set("сумма", TextValue.Number(50))
                     .Set("доход", TextValue.Number(300)).Set("расход", TextValue.Number(200))
                     .Set("архетип", TextValue.Word(gender == Gender.Male ? "Разведчик" : "Разведчица"))
-                    .Set("причина", TextValue.Word("устал"));
+                    .Set("причина", TextValue.Word("устал"))
+                    .Set("название", TextValue.Word("Серые волки"));
                 foreach (string label in NounLabels) source.Set(label, TextValue.Noun(TestNoun(label, label == "группа" ? GrammaticalGender.Feminine : nounGender)));
 
                 var errors = new List<string>();

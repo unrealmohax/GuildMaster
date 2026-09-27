@@ -141,11 +141,12 @@ namespace GuildMaster.Tests
             Assert.IsTrue(veteran.Revealed);
 
             List<SimEvent> events = SimulationRun.Collect(simulation, sim => sim.Tick());
-            SimEvent revealed = events.Single(e => e.Type == SimEventType.TraitRevealed);
+            // Утром стартовые люди собирают группы — у них бывают свои раскрытия (Одиночка, Командный); смотрим только этого.
+            SimEvent revealed = events.Single(e => e.Type == SimEventType.TraitRevealed && e.Participants[0] == adventurer.Id);
             Assert.AreEqual(EventImportance.Important, revealed.Importance);
             Assert.IsTrue(revealed.TryGet("feedKey", out string key) && key == "reveal.trait.veteran");
             Assert.IsTrue(simulation.PauseRequested, "раскрытие ставит автопаузу");
-            Assert.AreEqual(AutopauseKind.TraitRevealed, simulation.World.Autopause.Triggers.Single().Kind);
+            Assert.IsTrue(simulation.World.Autopause.Triggers.Any(t => t.Kind == AutopauseKind.TraitRevealed));
         }
 
         [Test]
@@ -184,7 +185,7 @@ namespace GuildMaster.Tests
             Assert.IsFalse(adventurer.IsAxisRevealed(AxisId.Money));
 
             List<SimEvent> events = SimulationRun.Collect(simulation, sim => sim.Tick());
-            SimEvent revealed = events.Single(e => e.Type == SimEventType.AxisRevealed);
+            SimEvent revealed = events.Single(e => e.Type == SimEventType.AxisRevealed && e.Participants[0] == adventurer.Id);
             Assert.AreEqual(EventImportance.Important, revealed.Importance);
             Assert.IsTrue(revealed.TryGet("pole", out AxisPole pole) && pole == AxisPole.Negative);
             Assert.IsTrue(revealed.TryGet("extreme", out bool extreme) && !extreme, "−50 — «склонен», не крайний");

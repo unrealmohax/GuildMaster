@@ -44,7 +44,7 @@ namespace GuildMaster.Core
             Commands = new CommandQueue();
             Log = log ?? SimLogger.Disabled;
             Log.Bind(Calendar, World);
-            context = new SimContext(World, Data, Calendar, Rhythm, Events, Commands, Log);
+            context = new SimContext(World, Data, Calendar, Rhythm, Events, Commands, Log, Rng);
 
             // Стартовое состояние мира — до первого такта, каждая часть своим потоком случайных чисел.
             Run(StartScenario.StreamName, StartScenario.Apply);

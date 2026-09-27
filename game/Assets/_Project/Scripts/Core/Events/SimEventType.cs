@@ -251,5 +251,35 @@ namespace GuildMaster.Core
 
         /// <summary>Выплаты задания: <c>reward</c>, <c>commission</c>, <c>surcharge</c>, <c>trophies</c>. [О], без строки.</summary>
         QuestPaid,
+
+        /// <summary>
+        /// Группа под задание собралась: участники — инициатор, затем остальные по порядку согласия; <c>order</c>, <c>count</c> —
+        /// сколько ещё, кроме первых двух, <c>total</c> — всего. [О].
+        /// </summary>
+        PartyGathered,
+
+        /// <summary>Группа не собралась: участник — инициатор; <c>order</c>, <c>solo</c> — пошёл один. [О].</summary>
+        PartyNotGathered,
+
+        /// <summary>
+        /// Приглашённый отказался идти с группой: участники — он, инициатор; <c>order</c>, <c>cause</c> (мотив), <c>reason</c> —
+        /// текст причины, <c>solo</c> — вместо этого взял заказ один. [О].
+        /// </summary>
+        InvitationDeclined,
+
+        /// <summary>Сложилась постоянная группа: участники — члены; <c>party</c>, <c>title</c> — название, <c>count</c> — сколько ещё, кроме первых двух. [З].</summary>
+        PermanentPartyFormed,
+
+        /// <summary>Постоянная группа распалась: участники — кто в ней оставался; <c>party</c>, <c>cause</c>. [З].</summary>
+        PermanentPartyDisbanded,
+
+        /// <summary>
+        /// Человек ушёл из постоянной группы: <c>party</c>, <c>cause</c> — quarrel (ссора, второй участник — с кем), loner
+        /// (одиночка), gone (погиб или ушёл из гильдии). [О].
+        /// </summary>
+        PartyMemberLeft,
+
+        /// <summary>Гость стал членом постоянной группы: <c>party</c>. [О].</summary>
+        PartyMemberJoined,
     }
 }

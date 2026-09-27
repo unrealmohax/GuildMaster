@@ -36,6 +36,14 @@ namespace GuildMaster.Core
             return relation.JointQuests;
         }
 
+        /// <summary>+1 совместно выполненное задание (для постоянных групп).</summary>
+        public static int AddJointSuccess(SimContext ctx, int a, int b)
+        {
+            Relation relation = ctx.World.Relations.GetOrCreate(a, b);
+            relation.JointSuccesses++;
+            return relation.JointSuccesses;
+        }
+
         public static RelationLabels LabelsOf(float value, int jointQuests, AdventurersBalance balance)
         {
             RelationLabels labels = RelationLabels.None;

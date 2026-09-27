@@ -463,6 +463,7 @@ MonoBehaviour:
     companionsInGroup: 0.5
     companionsFriendBonus: 0.3
     companionsPermanentBonus: 0.2
+    lonerGroupCompanions: 0.5
     orderRestOffset: 0.5
     promotionSafety: 1
     deadlyFailureSafetyPenalty: 1

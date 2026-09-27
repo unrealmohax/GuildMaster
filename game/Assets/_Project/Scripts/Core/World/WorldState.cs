@@ -3,7 +3,7 @@ namespace GuildMaster.Core
     /// <summary>
     /// Всё текущее состояние мира. Снаружи Core — только чтение: сеттеры internal, менять мир можно
     /// только системами и командами.
-    /// Персонал, постройки, задания, группы, распоряжения, обращения добавляются по тому же правилу.
+    /// Персонал, постройки, распоряжения, обращения добавляются по тому же правилу.
     /// </summary>
     public sealed class WorldState
     {
@@ -37,5 +37,8 @@ namespace GuildMaster.Core
 
         /// <summary>Задания: идущие, недавно законченные (с лентой задания), люди, идущие домой одни.</summary>
         public QuestBook Quests { get; } = new QuestBook();
+
+        /// <summary>Группы: под задание и постоянные.</summary>
+        public PartyBook Parties { get; } = new PartyBook();
     }
 }

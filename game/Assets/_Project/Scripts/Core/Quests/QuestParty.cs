@@ -102,6 +102,10 @@ namespace GuildMaster.Core
                 "группой " + genitive, "группе " + genitive, GrammaticalGender.Feminine));
         }
 
+        /// <summary>Название группы задания: постоянная — «группа «Серые волки»», иначе — по решающему.</summary>
+        public static TextValue PartyName(QuestRun run, Adventurer leader, DataRegistry data) =>
+            run.IsPermanentParty && !string.IsNullOrEmpty(run.PartyTitle) ? PartyService.NameValue(run.PartyTitle) : PartyName(leader, data);
+
         /// <summary>
         /// Событие задания: участники — люди события; в данных — задание, заказ, тип, ранг, расстояние, «один ли», названия,
         /// группа и решающий.
@@ -124,7 +128,7 @@ namespace GuildMaster.Core
                 .With("rank", run.Rank)
                 .With("distance", run.Distance)
                 .With("solo", run.Departed.Count == 1)
-                .With("party", PartyName(leader, ctx.Data));
+                .With("party", PartyName(run, leader, ctx.Data));
             if (run.Place != null) simEvent.With("place", run.Place);
             if (enemy != null) simEvent.With("enemy", enemy);
             if (run.Client != null) simEvent.With("client", run.Client);

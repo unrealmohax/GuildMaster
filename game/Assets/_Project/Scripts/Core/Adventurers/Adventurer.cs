@@ -99,6 +99,12 @@ namespace GuildMaster.Core
         /// <summary>Сколько утр подряд человек мог взять заказ, был здоров и бодр, но не взял (для раскрытия лени).</summary>
         public int IdleOrderDays { get; internal set; }
 
+        /// <summary>Группа, с которой человек сейчас собирается или идёт на задание; 0 — ни с какой.</summary>
+        public int PartyId { get; internal set; }
+
+        /// <summary>Постоянная группа человека; 0 — не состоит.</summary>
+        public int PermanentPartyId { get; internal set; }
+
         /// <summary>Когда ушёл из гильдии (архив); 0 — в гильдии.</summary>
         public long LeftAtHours { get; internal set; }
 
