@@ -6,7 +6,7 @@ namespace GuildMaster.Data
     /// <summary>
     /// Шесть падежных форм слова и его род для подстановок: <c>{место:р}</c> → «у старой мельницы»,
     /// <c>{постройка} готов[|а|о]@постройка</c> → «Общежитие готово».
-    /// В прототипе пока заполнены именительный падеж и род; остальные формы не заполнены.
+    /// Незаполненная форма — пустая строка; подстановка тогда берёт именительный падеж.
     /// </summary>
     [Serializable]
     public sealed class NounForms
@@ -29,10 +29,23 @@ namespace GuildMaster.Data
             this.gender = gender;
         }
 
+        /// <summary>Все шесть форм: именительный, родительный, дательный, винительный, творительный, предложный.</summary>
+        public NounForms(string nominative, string genitive, string dative, string accusative, string instrumental, string prepositional,
+            GrammaticalGender gender)
+        {
+            this.nominative = nominative;
+            this.genitive = genitive;
+            this.dative = dative;
+            this.accusative = accusative;
+            this.instrumental = instrumental;
+            this.prepositional = prepositional;
+            this.gender = gender;
+        }
+
         public string Nominative => nominative;
         public GrammaticalGender Gender => gender;
 
-        /// <summary>Форма в падеже; пустая, если её ещё не заполнили.</summary>
+        /// <summary>Форма в падеже; пустая, если её не заполнили.</summary>
         public string Get(GrammaticalCase grammaticalCase)
         {
             switch (grammaticalCase)

@@ -67,6 +67,7 @@ namespace GuildMaster.Tests
             DataValidationReport report = DataValidator.Validate(data.Config);
 
             Assert.IsFalse(report.HasErrors, report.ToString());
+            CollectionAssert.IsEmpty(report.Warnings.Where(w => w.Message.Contains("скобк")).Select(w => w.ToString()), "предупреждения о скобках рода");
             TestContext.WriteLine(report.ToString());
         }
 

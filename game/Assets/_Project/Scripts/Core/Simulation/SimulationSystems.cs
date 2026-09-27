@@ -21,6 +21,7 @@ namespace GuildMaster.Core
             new HealthSystem(),
             new AdventurerSystem(),
             new RecruitSystem(),
+            new FeedSystem(), // после всех систем, которые публикуют события
             new AutopauseSystem(), // всегда последняя: видит события всех систем такта
         };
     }

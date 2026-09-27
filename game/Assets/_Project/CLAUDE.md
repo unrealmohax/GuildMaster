@@ -3,7 +3,8 @@
 Правила работы — в корневом `CLAUDE.md`. Здесь — устройство кода игры. Задания — `TechJob/01-architecture.md`
 (GM-01, архитектура), `TechJob/02-data.md` (GM-02, данные), `TechJob/03-time.md` (GM-03, время),
 `TechJob/04-adventurers.md` (GM-04, авантюристы), `TechJob/05-state-health.md` (GM-05, состояние и здоровье),
-`TechJob/06-debug-logging.md` (GM-06, лог и прогон без интерфейса); этот файл описывает, как они реализованы.
+`TechJob/06-debug-logging.md` (GM-06, лог и прогон без интерфейса), `TechJob/07-event-feed.md` (GM-07, лента событий);
+этот файл описывает, как они реализованы.
 
 ## Комментарии в коде: без ссылок на документацию
 
@@ -27,7 +28,7 @@ _Project/
 ├── Scripts/
 │   ├── Data/        GuildMaster.Data      — определения и числа (ScriptableObject)
 │   │   ├── GameConfig.cs    корневой ассет: ссылки на всё остальное
-│   │   ├── Balance/         BalanceSettings + 18 разделов (TimeBalance, OrdersBalance, …)
+│   │   ├── Balance/         BalanceSettings + 19 разделов (TimeBalance, OrdersBalance, …, FeedBalance)
 │   │   ├── Definitions/     Axis, SpecialTrait (+ TraitEffect), Archetype, QuestType, RandomEvent, Discovery,
 │   │   │                    Building, StaffRole, Decree, Dilemma, StatCatalog
 │   │   ├── Text/            FeedTemplateSet, NameList, OrderTextTemplates, TextPlaceholders (словарь меток)
@@ -48,6 +49,8 @@ _Project/
 │   │   ├── State/       AdventurerState, Activity (+ BreakdownKind, PartyContext), правила StateRules, StateRates,
 │   │   │                службы StateService, StressEvents, WalletService, системы ActivitySystem, StateSystem
 │   │   ├── Health/      Condition, HealthService, HealthSystem, IInfirmary (+ заглушка NoInfirmary)
+│   │   ├── Feed/        FeedSystem, FeedState + FeedEntry (лента в мире), FeedKeys (событие → ключ), FeedConditions,
+│   │   │                TextRenderer + TextValue + ITextSource (движок подстановки), EventTextSource (метки из события)
 │   │   └── World/       WorldState, IdGenerator
 │   ├── UI/          GuildMaster.UI        — UiRoot (экраны — ТЗ 14)
 │   ├── Bootstrap/   GuildMaster.Bootstrap — GameRunner
@@ -58,7 +61,8 @@ _Project/
 │                    Encounters, Buildings, Staff, Decrees, Dilemmas, Text (FeedTemplates, NameList, OrderTextTemplates)
 ├── ClaudeSandbox/   песочница Claude; Editor/GameDataGenerator — генератор ассетов данных, Editor/TimeProbe — время
 │                    в Play Mode из меню, Editor/AdventurerProbe — люди гильдии в консоль, Editor/StateProbe — раны,
-│                    стресс, прогон 90 дней, Editor/HeadlessProbe — прогон в файлы без окна (см. её README)
+│                    стресс, прогон 90 дней, Editor/HeadlessProbe — прогон в файлы без окна, Editor/FeedProbe — шаблоны
+│                    и лента за год в файлы (см. её README)
 ├── Prefabs/UI/
 ├── Scenes/Main.unity  — единственная сцена: Main Camera, Global Light 2D, UI (Canvas + UiRoot), EventSystem, GameRunner
 └── Tests/EditMode/  GuildMaster.Tests
@@ -83,9 +87,9 @@ _Project/
 
 `Simulation.Tick()` — один игровой час: системы из списка по порядку, затем `TickCompleted(события)` и очистка шины,
 затем `StateChanged`. Порядок систем — в `SimulationSystems` (комментарий со всеми 16 шагами из ТЗ 01);
-новая система встаёт на своё место в `CreateDefault()`. Сейчас реализованы шаги 1–2, 5–7, 13 и 16: `CommandSystem`,
+новая система встаёт на своё место в `CreateDefault()`. Сейчас реализованы шаги 1–2, 5–7, 13, 15 и 16: `CommandSystem`,
 `TimeSystem`, `ActivitySystem`, `StateSystem`, `HealthSystem`, `AdventurerSystem` + `RecruitSystem` (шаг 13 дополнен
-`AdventurerSystem`, решение 2026-09-26), `AutopauseSystem` (всегда последняя). Тесты, которые добавляют системы в конец `CreateDefault()`,
+`AdventurerSystem`, решение 2026-09-26), `FeedSystem` (после всех систем, которые публикуют события), `AutopauseSystem` (всегда последняя). Тесты, которые добавляют системы в конец `CreateDefault()`,
 ставят их после автопаузы — для проверки случайности это неважно. **Стартовое состояние** готовит конструктор
 `Simulation` до первого такта: `StartScenario` со своим потоком `StartScenario` (стартовые люди), событий не пишет.
 
@@ -217,7 +221,7 @@ _Project/
   `Economy.defaultCommission`, Лазарета нет, причина ухода — без мотивов. Без заданий (ТЗ 11) доходов нет: за 2–3 недели
   кошельки пустеют, довольство падает к 25, лояльность — к 25 (ровно на пороге ухода «ниже 25» — никто не уходит).
 - **События** (`SimEventType`, новые — в конец): `AdventurerWounded`, `WoundComplicated`, `WoundHealed`, `Breakdown`,
-  `DrunkardSkippedDay`, `WalletEmptied`, `AdventurerLeft`, `GrievingEnded`. Строки ленты — GM-07.
+  `DrunkardSkippedDay`, `WalletEmptied`, `AdventurerLeft`, `GrievingEnded`. Строки ленты — см. «Лента событий (GM-07)».
 
 ## Лог и прогон без интерфейса (GM-06)
 
@@ -263,6 +267,30 @@ _Project/
 - **Скорость** (редактор): год с ботом «Простой» — ~0,18 с без лога и на `Info` (62 строки), ~0,21 с на `Trace`
   (~14 тыс. строк); серия из 10 лет на `Info` — ~3 с.
 
+## Лента событий (GM-07)
+
+- **Мир.** `World.Feed` (`FeedState`): `Guild` — строки `FeedEntry` (`TimeHours` события, `Feed`, `Importance`, `Text`, `Links` —
+  участники события, `TemplateKey`), не больше `Feed.guildFeedLimit` (500), старые выбрасываются; `GetAddedCount(важность)` —
+  сколько строк добавлено за игру (для сводки); `TryGetLastVariant(ключ)` — последний вариант строки ключа.
+- **`FeedSystem`** (шаг 15, перед автопаузой): по каждому событию такта — ключ (`FeedKeys.Of`; нет ключа — нет строки) →
+  шаблоны ключа из `DataRegistry.FeedTemplates` → `FeedConditions.Select` (все условия выполнены, больше условий — конкретнее,
+  при равенстве — первый в данных) → случайный вариант, кроме последнего у ключа (поток `FeedSystem`; один вариант — без броска)
+  → `TextRenderer.Render` со значениями `EventTextSource` → лента и лог `Info`: `feed [В] guild.adventurer.left: Ян ушёл из гильдии`.
+  Ошибки шаблона (нет шаблона, метка без источника, скобка без владельца) — `Error` в лог, строка всё равно пишется с меткой как есть.
+  Реестр только из чисел строк не даёт. Важность строки — из шаблона.
+- **Новое событие со строкой** — строка в `FeedKeys.Keys` (+ константа в `Fixed`, если ключ не из данных — его проверит
+  валидатор) и шаблон в генераторе. Ключи раскрытия — из данных: `revealFeedKey` полюса и черты, `balancedFeedKey` оси.
+  Срыв — свой ключ на вид (`guild.breakdown.*`, драка без противника — `brawlAlone`); «поправился» — только когда ран не осталось.
+- **Условия шаблонов** — `FeedConditions.Checks` (вид → проверка): `Archetype`, `RevealedAxisPole` / `RevealedTrait` (скрытая
+  черта не называется), `MaimedStat`. Новое условие — значение `FeedConditionKind` в конец и строка в `Checks`; условие без
+  проверки не выполняется.
+- **Движок подстановки** `TextRenderer` (общий, не только лента): `{метка}` / `{метка:р|д|в|т|п}`; `[м|ж]` — род ближайшего
+  предыдущего человека в предложении, иначе ближайшего следующего; `[…]@метка` — явная привязка; у названий `[м|ж|ср|мн]@метка`,
+  нет формы — мужская; значение в начале предложения — с заглавной. Значения — `ITextSource` → `TextValue` (`Person`, `Noun`,
+  `Word`, `Number`; нет формы падежа — именительный). Метки из события — `EventTextSource.Sources` (имя/напарник — участники,
+  остальное — ключи данных события `medic`, `place`, `count`…). Падежи имён — `DataRegistry.NameForms(имя)`.
+- **Сводка**: столбцы «Лента [О]», «Лента [З]», «Лента [В]» — строк за месяц (`MonthRecord.FeedLines`).
+
 ## Мир меняется только командами
 
 Состояние в `WorldState` и его частях — публичные геттеры, `internal`-сеттеры. Снаружи Core (UI, Bootstrap)
@@ -286,13 +314,14 @@ _Project/
 - **Кодовые id правил**: особые правила черт — `TraitHook`, триггеры раскрытия — `RevealTrigger`, триггеры дилемм —
   `DilemmaTrigger`. Данные говорят «какое правило», код реализует его в своей системе (ТЗ 04, 11, 17).
 - **Тексты**: подстановки `{имя}`, `{место:р}`, род `[м|ж]`, `[его|её]@имя` (ТЗ 07). Словарь меток —
-  `TextPlaceholders`. У имён, мест, врагов, построек, распоряжений — `NounForms` (6 падежей); заполнен пока
-  только именительный и род (`GrammaticalGender`), остальное и падежи в шаблонах — GM-07. Скобка рода у названий — `[м|ж|ср|мн]@постройка` (решение 2026-09-26). Ключи ленты (`quest.departed`, `reveal.risk.negative`…)
+  `TextPlaceholders`. У имён, мест, врагов, построек, распоряжений — `NounForms` (6 падежей и род `GrammaticalGender`);
+  у имён `NameList` заполнены все шесть форм (валидатор требует), у названий заказов — пока только именительный. Падежи в шаблонах расставлены. Скобка рода у названий — `[м|ж|ср|мн]@постройка` (решение 2026-09-26). Ключи ленты (`quest.departed`, `reveal.risk.negative`…)
   — строки; определения ссылаются на них полями `…FeedKey`.
 - **Валидатор** — GuildMaster → Validate Data (`DataValidator.Validate(config)`): обход сериализуемых полей
   отражением (пустые ссылки, кроме `[OptionalReference]`; `[Range]`/`[Min]`; `IntRange`/`FloatRange` с min > max),
   дубли id, связи (постройка ↔ должность, ключи ленты, шансы исходов в сумме 1…), разметка текстов.
-  Ошибка — данные битые; предупреждение — подозрительно (сейчас 17: скобки рода без человека в предложении — GM-07).
+  Ошибка — данные битые; предупреждение — подозрительно (сейчас 0). Проверяет и то, что у каждого ключа `FeedKeys.Fixed`
+  есть шаблон, у оси — `balancedFeedKey`, у имён — все шесть падежей.
   Консоль MCP видит итоговую строку только в `read_console` с `types: ["all"]`; полный отчёт — вывод теста
   `DataValidatorTests.RealConfig_HasNoErrors`.
 - **Ассеты заполняет генератор в песочнице** (GuildMaster → Sandbox → Generate Game Data); он перезаписывает
@@ -312,7 +341,13 @@ GM-05: `StateTests` (старт, занятия, обрезка, расписа�
 GM-06: `LoggingTests.cs` (`SimLoggerTests` — формат, уровни, выключенный уровень не форматирует, событие после бросков;
 `SimulationLogTests` — лог не меняет мир, одно зерно + бот = один лог, сценарий повторяет игру, по логу видно,
 почему срыв и уход), `HeadlessRunTests.cs` (`HeadlessRunTests` — боты, год меньше минуты, Info против Trace по цене лога,
-сводка, свёртка, файлы; `ScenarioScriptTests` — разбор, запись, ошибки с номером строки). Всего 210.
+сводка, свёртка, файлы; `ScenarioScriptTests` — разбор, запись, ошибки с номером строки);
+GM-07: `FeedTests.cs` (`TextRendererTests` — падежи, правило рода, `@`, четыре рода названий, метка без источника;
+`FeedTemplateTests` — все шаблоны × 2 пола × 4 рода названий без разметки и склеек, выборочные строки, шесть падежей у имён,
+черта в строке только после раскрытия, архетип; `FeedSystemTests` — событие → строка нужной важности со ссылками, срывы,
+раскрытия, варианты не повторяются, лог, лимит, год: каждое событие с ключом даёт строку; `FeedDeterminismTests` — одно
+зерно = одна лента, лента не сдвигает чужие броски, сводка). Всего 253.
+Помощники ленты — `DictionarySource` (метки из словаря), `FeedTestTemplates` (шаблоны в памяти).
 Числа баланса в тесте меняются `GameData.Edit(data.Balance, "time.dayHour", p => p.intValue = 10)`.
 Помощники — `TestSupport.cs`: `TestData` (BalanceSettings без ассета), `NoiseSystem`, `TraceCommand`,
 `SimulationLog.Record` (лог событий прогона строкой), `ActionCommand` и `SimulationRun` (`Do` — вызвать службу Core

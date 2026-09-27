@@ -28,6 +28,7 @@ namespace GuildMaster.Data
         [SerializeField] private EconomyBalance economy = new EconomyBalance();
         [SerializeField] private DecreesBalance decrees = new DecreesBalance();
         [SerializeField] private DilemmasBalance dilemmas = new DilemmasBalance();
+        [SerializeField] private FeedBalance feed = new FeedBalance();
 
         public TimeBalance Time => time;
         public OrdersBalance Orders => orders;
@@ -47,5 +48,6 @@ namespace GuildMaster.Data
         public EconomyBalance Economy => economy;
         public DecreesBalance Decrees => decrees;
         public DilemmasBalance Dilemmas => dilemmas;
+        public FeedBalance Feed => feed;
     }
 }

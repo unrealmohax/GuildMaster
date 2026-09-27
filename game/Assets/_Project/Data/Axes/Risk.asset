@@ -137,3 +137,4 @@ MonoBehaviour:
       stats: 
     revealTrigger: 2
     revealFeedKey: reveal.risk.positive
+  balancedFeedKey: reveal.risk.balanced

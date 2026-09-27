@@ -12,7 +12,8 @@ namespace GuildMaster.Debugging
     /// </summary>
     public static class SummaryColumns
     {
-        /// <summary>По месяцам: люди, приход и уход, срывы, раны, раскрытия, средние показатели на конец месяца, кошельки.</summary>
+        /// <summary>По месяцам: люди, приход и уход, срывы, раны, раскрытия, средние показатели на конец месяца, кошельки,
+        /// строки ленты гильдии по важности.</summary>
         public static readonly IReadOnlyList<MonthColumn> Monthly = new[]
         {
             new MonthColumn("Людей", m => m.World.Adventurers.Active.Count, SummaryTotal.Last, "0"),
@@ -29,6 +30,9 @@ namespace GuildMaster.Debugging
             new MonthColumn("Лояльность", m => Average(m, a => a.State.Loyalty), SummaryTotal.Mean),
             new MonthColumn("Кошелёк", m => Average(m, a => a.State.Wallet), SummaryTotal.Mean),
             new MonthColumn("Пустых кошельков", m => CountActive(m, a => a.State.IsWalletEmpty), SummaryTotal.Last, "0"),
+            new MonthColumn("Лента [О]", m => m.FeedLines(EventImportance.Normal), SummaryTotal.Sum, "0"),
+            new MonthColumn("Лента [З]", m => m.FeedLines(EventImportance.Notable), SummaryTotal.Sum, "0"),
+            new MonthColumn("Лента [В]", m => m.FeedLines(EventImportance.Important), SummaryTotal.Sum, "0"),
         };
 
         /// <summary>По людям: архетип, ранг, раны, в гильдии ли на конец, какие черты раскрылись и когда.</summary>

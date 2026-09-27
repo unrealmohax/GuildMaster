@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using GuildMaster.Core;
 using GuildMaster.Data;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -237,6 +238,7 @@ namespace GuildMaster.Debugging
                 {
                     CheckPole(axis, "negativePole", axis.NegativePole);
                     CheckPole(axis, "positivePole", axis.PositivePole);
+                    RequireFeedKey(axis, "balancedFeedKey", axis.BalancedFeedKey);
                 }
             }
 
@@ -519,6 +521,11 @@ namespace GuildMaster.Debugging
                     }
                     CheckConditions(feed, path, template.Conditions);
                 }
+
+                foreach (string key in FeedKeys.Fixed)
+                {
+                    if (!feedKeys.Contains(key)) report.Error(feed, "templates", $"нет шаблона «{key}»: его строку даёт событие симуляции");
+                }
             }
 
             private void CheckConditions(Object asset, string path, IReadOnlyList<FeedCondition> conditions)
@@ -558,6 +565,16 @@ namespace GuildMaster.Debugging
                 const int minNames = 60;
                 if (list.Count < minNames) report.Warning(names, path, $"имён {list.Count}, нужно {minNames}+");
                 CheckNouns(names, path, list);
+                for (int i = 0; i < list.Count; i++)
+                {
+                    NounForms name = list[i];
+                    if (name == null || string.IsNullOrWhiteSpace(name.Nominative)) continue;
+                    foreach (GrammaticalCase grammaticalCase in Enum.GetValues(typeof(GrammaticalCase)))
+                    {
+                        if (string.IsNullOrWhiteSpace(name.Get(grammaticalCase)))
+                            report.Error(names, $"{path}[{i}]", $"«{name.Nominative}»: нет формы {grammaticalCase}");
+                    }
+                }
                 foreach (IGrouping<string, NounForms> duplicate in list.Where(n => n != null).GroupBy(n => n.Nominative).Where(g => g.Count() > 1))
                 {
                     report.Warning(names, path, $"имя «{duplicate.Key}» повторяется");

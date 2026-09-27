@@ -5,12 +5,12 @@ using GuildMaster.Data;
 namespace GuildMaster.ClaudeSandbox
 {
     // Новые данные, которых нет в документах: имена, названия групп, тексты заказов и намёки — предложение Claude, правит автор.
-    // Заполнен только именительный падеж; остальные формы не заполнены.
+    // У имён — все шесть падежей (правила склонения ниже); у названий заказов пока только именительный падеж.
     public static partial class GameDataGenerator
     {
         private static void FillNames(NameList names)
         {
-            Set(names, "maleNames", Nouns(M,
+            Set(names, "maleNames", MaleNames(
                 "Бран", "Ян", "Годрик", "Ведран", "Мирко", "Вацлав", "Отто", "Ульрих", "Радек", "Зденек",
                 "Бертольд", "Любош", "Горан", "Эрих", "Ратибор", "Дитрих", "Мирослав", "Карл", "Станек", "Вит",
                 "Любор", "Ганс", "Борек", "Вальтер", "Милош", "Конрад", "Добрило", "Генрих", "Людек", "Тибор",
@@ -18,7 +18,7 @@ namespace GuildMaster.ClaudeSandbox
                 "Бронек", "Вольф", "Домаш", "Хельмут", "Мстиш", "Альбрехт", "Будивой", "Руперт", "Злат", "Вилем",
                 "Томаш", "Людвиг", "Пшемысл", "Гюнтер", "Драган", "Анзельм", "Велимир", "Рихард", "Божек", "Ортвин",
                 "Славек", "Бодо", "Матей", "Стойко"));
-            Set(names, "femaleNames", Nouns(F,
+            Set(names, "femaleNames", FemaleNames(
                 "Ида", "Мара", "Вера", "Хельга", "Ярослава", "Грета", "Мила", "Зденка", "Берта", "Люба",
                 "Ирма", "Бланка", "Добрава", "Эльза", "Радка", "Гертруда", "Власта", "Марта", "Божена", "Хильда",
                 "Ленка", "Ута", "Драгана", "Агнеш", "Ружена", "Фрида", "Милена", "Ганна", "Катрин", "Злата",
@@ -92,6 +92,66 @@ namespace GuildMaster.ClaudeSandbox
             Set(texts, "farHint", "Путь неблизкий");
             Set(texts, "partySizeCeilingHint", "Лишнего внимания не нужно");
         }
+
+        // ---------- Склонение имён ----------
+
+        // Не склоняются: мужские на -о и -и (кроме Добрило), женские на согласную.
+        private static readonly HashSet<string> IndeclinableNames = new HashSet<string> { "Отто", "Бодо", "Мирко", "Стойко", "Иржи", "Агнеш", "Ингрид", "Катрин" };
+
+        private static readonly string Hushing = "жшчщц";
+        private static readonly string VelarOrHushing = "гкхжшчщ";
+
+        private static List<NounForms> MaleNames(params string[] names) => names.Select(DeclineMale).ToList();
+
+        private static List<NounForms> FemaleNames(params string[] names) => names.Select(DeclineFemale).ToList();
+
+        /// <summary>Мужское имя: на согласную — как «Ян», на -й — как «Матей», на -о (Добрило) — как «Данила».</summary>
+        internal static NounForms DeclineMale(string name)
+        {
+            if (IndeclinableNames.Contains(name)) return Forms(name, name, name, name, name, name, M);
+            char last = name[name.Length - 1];
+            if (last == 'о')
+            {
+                string stem = name.Substring(0, name.Length - 1);
+                return Forms(name, stem + "ы", stem + "е", stem + "у", stem + "ой", stem + "е", M);
+            }
+            if (last == 'й')
+            {
+                string stem = name.Substring(0, name.Length - 1);
+                return Forms(name, stem + "я", stem + "ю", stem + "я", stem + "ем", stem + "е", M);
+            }
+            string instrumental = Hushing.IndexOf(last) >= 0 ? "ем" : "ом";
+            return Forms(name, name + "а", name + "у", name + "а", name + instrumental, name + "е", M);
+        }
+
+        /// <summary>Женское имя: на -а — как «Мара» / «Ольга» / «Любица», на -я — как «Даря», на -ия — как «Отилия».</summary>
+        internal static NounForms DeclineFemale(string name)
+        {
+            if (IndeclinableNames.Contains(name)) return Forms(name, name, name, name, name, name, F);
+            if (name.EndsWith("ия"))
+            {
+                string stem = name.Substring(0, name.Length - 1);
+                return Forms(name, stem + "и", stem + "и", stem + "ю", stem + "ей", stem + "и", F);
+            }
+            if (name.EndsWith("я"))
+            {
+                string stem = name.Substring(0, name.Length - 1);
+                return Forms(name, stem + "и", stem + "е", stem + "ю", stem + "ей", stem + "е", F);
+            }
+            if (name.EndsWith("а"))
+            {
+                string stem = name.Substring(0, name.Length - 1);
+                char last = stem[stem.Length - 1];
+                string genitive = VelarOrHushing.IndexOf(last) >= 0 ? "и" : "ы";
+                string instrumental = Hushing.IndexOf(last) >= 0 ? "ей" : "ой";
+                return Forms(name, stem + genitive, stem + "е", stem + "у", stem + instrumental, stem + "е", F);
+            }
+            throw new System.ArgumentException($"Не знаю, как склонять женское имя «{name}»: добавьте его в IndeclinableNames или правило");
+        }
+
+        private static NounForms Forms(string nominative, string genitive, string dative, string accusative, string instrumental, string prepositional,
+            GrammaticalGender gender) =>
+            new NounForms(nominative, genitive, dative, accusative, instrumental, prepositional, gender);
 
         private static QuestTypeTexts TypeTexts(QuestTypeDefinition questType, List<NounForms> places, List<NounForms> enemies, List<NounForms> cargo, params string[] descriptions) =>
             Make<QuestTypeTexts>(("questType", questType), ("places", places), ("enemies", enemies),

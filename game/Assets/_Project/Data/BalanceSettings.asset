@@ -591,3 +591,5 @@ MonoBehaviour:
     loversMinDaysInGuild: 7
     feastAverageStress: 45
     feastRecentDeathDays: 7
+  feed:
+    guildFeedLimit: 500

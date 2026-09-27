@@ -71,3 +71,4 @@ MonoBehaviour:
       stats: 
     revealTrigger: 10
     revealFeedKey: reveal.loyalty.positive
+  balancedFeedKey: reveal.loyalty.balanced

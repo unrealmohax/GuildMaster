@@ -22,13 +22,16 @@ namespace GuildMaster.Debugging
     {
         private readonly Dictionary<SimEventType, int> counts;
 
-        internal MonthRecord(int year, int month, int days, ISimulationClient game, Dictionary<SimEventType, int> counts)
+        private readonly long[] feedLines;
+
+        internal MonthRecord(int year, int month, int days, ISimulationClient game, Dictionary<SimEventType, int> counts, long[] feedLines)
         {
             Year = year;
             Month = month;
             Days = days;
             Game = game;
             this.counts = counts;
+            this.feedLines = feedLines;
         }
 
         public int Year { get; }
@@ -42,6 +45,9 @@ namespace GuildMaster.Debugging
 
         /// <summary>Сколько событий этого типа было за месяц.</summary>
         public int Count(SimEventType type) => counts.TryGetValue(type, out int count) ? count : 0;
+
+        /// <summary>Сколько строк этой важности добавлено в ленту гильдии за месяц.</summary>
+        public long FeedLines(EventImportance importance) => feedLines[(int)importance];
     }
 
     /// <summary>Что видит столбец человека: сам человек (в гильдии или в архиве) и события, где он первый участник.</summary>
@@ -188,6 +194,7 @@ namespace GuildMaster.Debugging
         private readonly List<MonthRow> months = new List<MonthRow>();
         private readonly Dictionary<SimEventType, int> monthCounts = new Dictionary<SimEventType, int>();
         private readonly Dictionary<int, List<SimEvent>> personEvents = new Dictionary<int, List<SimEvent>>();
+        private readonly long[] feedAtMonthStart = new long[Enum.GetValues(typeof(EventImportance)).Length];
         private long monthTicks;
 
         public SummaryRecorder(Simulation simulation, IReadOnlyList<MonthColumn> monthColumns = null, IReadOnlyList<PersonColumn> personColumns = null)
@@ -195,6 +202,7 @@ namespace GuildMaster.Debugging
             this.simulation = simulation ?? throw new ArgumentNullException(nameof(simulation));
             this.monthColumns = monthColumns ?? SummaryColumns.Monthly;
             this.personColumns = personColumns ?? SummaryColumns.People;
+            for (int i = 0; i < feedAtMonthStart.Length; i++) feedAtMonthStart[i] = simulation.World.Feed.GetAddedCount((EventImportance)i);
             simulation.TickCompleted += OnTick;
         }
 
@@ -247,7 +255,14 @@ namespace GuildMaster.Debugging
             GameTime time = simulation.World.Time;
             int hoursPerDay = simulation.Calendar.HoursPerDay;
             int days = (int)((monthTicks + hoursPerDay / 2) / hoursPerDay); // первый месяц начинается не с полуночи
-            var record = new MonthRecord(time.Year, time.Month, days, simulation, monthCounts);
+            var feedLines = new long[feedAtMonthStart.Length];
+            for (int i = 0; i < feedLines.Length; i++)
+            {
+                long total = simulation.World.Feed.GetAddedCount((EventImportance)i);
+                feedLines[i] = total - feedAtMonthStart[i];
+                feedAtMonthStart[i] = total;
+            }
+            var record = new MonthRecord(time.Year, time.Month, days, simulation, monthCounts, feedLines);
             var values = new double[monthColumns.Count];
             for (int c = 0; c < values.Length; c++) values[c] = monthColumns[c].Value(record);
 

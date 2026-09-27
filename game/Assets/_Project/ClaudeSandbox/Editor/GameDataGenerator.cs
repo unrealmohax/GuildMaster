@@ -184,6 +184,7 @@ namespace GuildMaster.ClaudeSandbox
             Set(asset, "axis", axis);
             Set(asset, "negativePole", negative);
             Set(asset, "positivePole", positive);
+            Set(asset, "balancedFeedKey", $"reveal.{axis.ToString().ToLowerInvariant()}.balanced");
         }
 
         private static AxisPoleDefinition Pole(string name, string nameFemale, RevealTrigger trigger, string feedKey, params TraitEffect[] effects) =>

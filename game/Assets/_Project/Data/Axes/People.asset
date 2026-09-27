@@ -104,3 +104,4 @@ MonoBehaviour:
       stats: 
     revealTrigger: 6
     revealFeedKey: reveal.people.positive
+  balancedFeedKey: reveal.people.balanced

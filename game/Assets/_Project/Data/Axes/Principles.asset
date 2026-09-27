@@ -27,3 +27,4 @@ MonoBehaviour:
     effects: []
     revealTrigger: 12
     revealFeedKey: reveal.principles.positive
+  balancedFeedKey: reveal.principles.balanced

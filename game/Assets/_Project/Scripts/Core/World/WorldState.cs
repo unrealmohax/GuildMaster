@@ -4,7 +4,7 @@ namespace GuildMaster.Core
     /// Всё текущее состояние мира. Снаружи Core — только чтение: сеттеры internal, менять мир можно
     /// только системами и командами.
     /// Казна, репутация, персонал, постройки, заказы, задания, группы, распоряжения, обращения
-    /// и ленты добавляются по тому же правилу.
+    /// добавляются по тому же правилу.
     /// </summary>
     public sealed class WorldState
     {
@@ -20,5 +20,8 @@ namespace GuildMaster.Core
 
         /// <summary>Отношения между людьми.</summary>
         public RelationBook Relations { get; } = new RelationBook();
+
+        /// <summary>Ленты событий: лента гильдии.</summary>
+        public FeedState Feed { get; } = new FeedState();
     }
 }

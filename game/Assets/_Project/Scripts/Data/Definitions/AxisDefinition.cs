@@ -12,9 +12,13 @@ namespace GuildMaster.Data
         [SerializeField] private AxisPoleDefinition negativePole = new AxisPoleDefinition();
         [SerializeField] private AxisPoleDefinition positivePole = new AxisPoleDefinition();
 
+        [Tooltip("Ключ строки ленты, когда ось раскрывается как нейтральная («уравновешен»)")]
+        [SerializeField] private string balancedFeedKey;
+
         public AxisId Axis => axis;
         public AxisPoleDefinition NegativePole => negativePole;
         public AxisPoleDefinition PositivePole => positivePole;
+        public string BalancedFeedKey => balancedFeedKey;
 
         public AxisPoleDefinition Pole(AxisPole pole) => pole == AxisPole.Negative ? negativePole : positivePole;
     }

@@ -71,3 +71,4 @@ MonoBehaviour:
       stats: 
     revealTrigger: 4
     revealFeedKey: reveal.money.positive
+  balancedFeedKey: reveal.money.balanced

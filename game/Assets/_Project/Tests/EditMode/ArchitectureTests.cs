@@ -90,6 +90,7 @@ namespace GuildMaster.Tests
                 typeof(WorldState), typeof(IdGenerator), typeof(AutopauseState),
                 typeof(AdventurerRoster), typeof(Adventurer), typeof(AdventurerState), typeof(Condition), typeof(TraitInstance), typeof(Candidate),
                 typeof(RelationBook), typeof(Relation),
+                typeof(FeedState), typeof(FeedEntry),
             };
             foreach (Type type in stateTypes)
             {

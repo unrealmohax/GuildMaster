@@ -49,3 +49,4 @@ MonoBehaviour:
       stats: 
     revealTrigger: 8
     revealFeedKey: reveal.work.positive
+  balancedFeedKey: reveal.work.balanced

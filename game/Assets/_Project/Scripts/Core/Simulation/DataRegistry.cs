@@ -17,6 +17,7 @@ namespace GuildMaster.Core
         private readonly Dictionary<Type, List<Definition>> byType = new Dictionary<Type, List<Definition>>();
         private readonly Dictionary<AxisId, AxisDefinition> axes = new Dictionary<AxisId, AxisDefinition>();
         private readonly Dictionary<string, List<FeedTemplate>> feedByKey = new Dictionary<string, List<FeedTemplate>>(StringComparer.Ordinal);
+        private readonly Dictionary<string, NounForms> nameForms = new Dictionary<string, NounForms>(StringComparer.Ordinal);
 
         /// <summary>Только числа баланса, без определений — для тестов и систем, которым хватает чисел.</summary>
         public DataRegistry(BalanceSettings balance)
@@ -30,6 +31,11 @@ namespace GuildMaster.Core
             Stats = config.StatCatalog;
             Names = config.NameList;
             OrderTexts = config.OrderTexts;
+            if (Names != null)
+            {
+                AddNames(Names.MaleNames);
+                AddNames(Names.FemaleNames);
+            }
 
             foreach (Definition definition in config.AllDefinitions())
             {
@@ -108,6 +114,19 @@ namespace GuildMaster.Core
             key != null && feedByKey.TryGetValue(key, out List<FeedTemplate> list) ? list : NoTemplates;
 
         public bool HasFeedKey(string key) => key != null && feedByKey.ContainsKey(key);
+
+        /// <summary>Падежные формы имени из списка имён; нет такого имени — <c>null</c>.</summary>
+        public NounForms NameForms(string name) =>
+            name != null && nameForms.TryGetValue(name, out NounForms forms) ? forms : null;
+
+        private void AddNames(IReadOnlyList<NounForms> names)
+        {
+            foreach (NounForms name in names)
+            {
+                if (name != null && !string.IsNullOrEmpty(name.Nominative) && !nameForms.ContainsKey(name.Nominative))
+                    nameForms.Add(name.Nominative, name);
+            }
+        }
 
         private void Add(GameConfig config, Definition definition)
         {
