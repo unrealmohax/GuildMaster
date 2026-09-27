@@ -221,6 +221,8 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("guild.salary.paid", O, None, "Жалованье выплачено"));
             t.Add(Guild("guild.salary.unpaid", V, None, "Жалованье не выплачено. Персонал недоволен"));
             t.Add(Guild("guild.bankruptcy.started", V, None, "Казна пуста уже месяц. Начинается банкротство"));
+            // Новое (предложение, в event-feed.md — 💡): закрытие гильдии по истечении срока банкротства.
+            t.Add(Guild("guild.closed", V, None, "Гильдия закрыта. Долги так и не отдали"));
 
             // Правка: «пришла новичок» — в женском роде «новенькая».
             t.Add(Guild("guild.adventurer.joined", O, None, "В гильдию приш[ёл новичок|ла новенькая] — {имя}"));
@@ -246,6 +248,24 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("reason.hardAfterWound", O, None, "тяжело после ранения"));
             t.Add(Guild("reason.hardAfterBreakdown", O, None, "тяжело после срыва"));
             t.Add(Guild("reason.heavyHeart", O, None, "тяжело на душе"));
+
+            // ===== Отчёт месяца (docs/content/event-feed.md → «Отчёт месяца», 💡): не строки ленты, а подписи отчёта =====
+
+            t.Add(Guild("report.money", O, None, "Деньги"));
+            t.Add(Guild("report.money.start", O, None, "Казна на начало месяца"));
+            t.Add(Guild("report.money.income", O, None, "Доходы"));
+            t.Add(Guild("report.money.expense", O, None, "Расходы"));
+            t.Add(Guild("report.money.end", O, None, "Казна на конец месяца"));
+            t.Add(Guild("report.people", O, None, "Люди"));
+            t.Add(Guild("report.people.joined", O, None, "Пришли"));
+            t.Add(Guild("report.people.left", O, None, "Ушли"));
+            t.Add(Guild("report.people.died", O, None, "Погибли"));
+            t.Add(Guild("report.people.disappeared", O, None, "Пропали"));
+            t.Add(Guild("report.people.expelled", O, None, "Изгнаны"));
+            t.Add(Guild("report.people.revealed", O, None, "Раскрылись"));
+            t.Add(Guild("report.axis.balanced", O, None, "уравновешенность"));
+            // Названия статей журнала казны.
+            t.Add(Guild("ledger.tavern", O, None, "Таверна"));
 
             t.Add(Guild("guild.decree.enabled", O, None, "Объявлено: {распоряжение}"));
             t.Add(Guild("guild.decree.benefitCancelled", Z, None, "Новость об отмене {распоряжение:р} встретили молча"));

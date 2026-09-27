@@ -4,7 +4,7 @@
 (GM-01, архитектура), `TechJob/02-data.md` (GM-02, данные), `TechJob/03-time.md` (GM-03, время),
 `TechJob/04-adventurers.md` (GM-04, авантюристы), `TechJob/05-state-health.md` (GM-05, состояние и здоровье),
 `TechJob/06-debug-logging.md` (GM-06, лог и прогон без интерфейса), `TechJob/07-event-feed.md` (GM-07, лента событий),
-`TechJob/08-decision-model.md` (GM-08, модель решений);
+`TechJob/08-decision-model.md` (GM-08, модель решений), `TechJob/09-economy.md` (GM-09, экономика гильдии);
 этот файл описывает, как они реализованы.
 
 ## Комментарии в коде: без ссылок на документацию
@@ -52,6 +52,9 @@ _Project/
 │   │   ├── Health/      Condition, HealthService, HealthSystem, IInfirmary (+ заглушка NoInfirmary)
 │   │   ├── Decisions/   DecisionSystem, DecisionPoints (+ DecisionBans), DecisionActions (+ DecisionScope), Motives
 │   │   │                (+ MotiveWeights, StateFactor), LeaveReasons (+ LeaveCause, PersonTextSource), TavernEvening
+│   │   ├── Economy/     Treasury (+ Bankruptcy, LedgerEntry), LedgerCategory (+ LedgerCategories), TreasuryService,
+│   │   │                EconomySystem, HardTimes, SetCommissionCommand, MonthReport (+ история, разделы, строки),
+│   │   │                MonthReportSections (+ ReportPeriod), MonthReportSystem, MonthReportText
 │   │   ├── Feed/        FeedSystem, FeedState + FeedEntry (лента в мире), FeedKeys (событие → ключ), FeedConditions,
 │   │   │                TextRenderer + TextValue + ITextSource (движок подстановки), EventTextSource (метки из события)
 │   │   └── World/       WorldState, IdGenerator
@@ -90,11 +93,14 @@ _Project/
 
 `Simulation.Tick()` — один игровой час: системы из списка по порядку, затем `TickCompleted(события)` и очистка шины,
 затем `StateChanged`. Порядок систем — в `SimulationSystems` (комментарий со всеми 16 шагами из ТЗ 01);
-новая система встаёт на своё место в `CreateDefault()`. Сейчас реализованы шаги 1–2, 5–8, 13, 15 и 16: `CommandSystem`,
-`TimeSystem`, `ActivitySystem`, `StateSystem`, `HealthSystem`, `DecisionSystem`, `AdventurerSystem` + `RecruitSystem` (шаг 13 дополнен
-`AdventurerSystem`, решение 2026-09-26), `FeedSystem` (после всех систем, которые публикуют события), `AutopauseSystem` (всегда последняя). Тесты, которые добавляют системы в конец `CreateDefault()`,
+новая система встаёт на своё место в `CreateDefault()`. Сейчас реализованы шаги 1–2, 5–8, 11, 13, 15 и 16: `CommandSystem`,
+`TimeSystem`, `ActivitySystem`, `StateSystem`, `HealthSystem`, `DecisionSystem`, `EconomySystem`, `AdventurerSystem` + `RecruitSystem`
+(шаг 13 дополнен `AdventurerSystem`, решение 2026-09-26), `MonthReportSystem` (отчёт месяца — после всех систем, которые меняют мир,
+решение 2026-09-27), `FeedSystem` (после всех систем, которые публикуют события), `AutopauseSystem` (всегда последняя). Тесты, которые добавляют системы в конец `CreateDefault()`,
 ставят их после автопаузы — для проверки случайности это неважно. **Стартовое состояние** готовит конструктор
-`Simulation` до первого такта: `StartScenario` со своим потоком `StartScenario` (стартовые люди), событий не пишет.
+`Simulation` до первого такта: казна (`Guild.startMoney`, `Economy.defaultCommission`) и `StartScenario` со своим потоком
+`StartScenario` (стартовые люди), событий не пишет. **Гильдия закрыта** (`Simulation.IsFinished`, он же
+`ISimulationClient.IsFinished`) — `Tick()` и `ApplyCommandsNow()` ничего не делают.
 
 - **Время.** `GameTime.TotalHours` — часы от 00:00 дня 1 месяца 1 года 1 (не от старта игры). Старт —
   `TotalHours = StartHour` (06:00). Календарь — `Calendar` по `BalanceSettings.Time`. `TimeSystem` сначала
@@ -128,8 +134,8 @@ _Project/
   забирает флаг `ConsumePauseRequest()` и ставит паузу. **Новое событие с автопаузой — одна строка
   `{ SimEventType.Тип, AutopauseKind.Вид }` в `AutopauseRules`.** Переключатели — команда `SetAutopauseCommand`
   (пишет `AutopauseChanged`), по умолчанию все включены. Сейчас в правилах — раскрытия (`AxisRevealed`, `TraitRevealed`
-  → `TraitRevealed`) и уход из гильдии (`AdventurerLeft` → `MemberLeftGuild`); остальные события таблицы ТЗ 03
-  появятся в ТЗ 09, 11, 13, 17.
+  → `TraitRevealed`), уход из гильдии (`AdventurerLeft` → `MemberLeftGuild`) и начало банкротства (`BankruptcyStarted`);
+  остальные события таблицы ТЗ 03 появятся в ТЗ 11, 13, 17.
 
 ## Авантюристы (GM-04)
 
@@ -223,8 +229,9 @@ _Project/
   `AdventurerStats.Effective` (лёгкая рана × 0,85, усталость > 70 × 0,8).
 - **Лояльность словами** — `StateRules.LoyaltyWordIndex` (границы `loyaltyWordThresholds`, на границе — верхний интервал)
   и `LoyaltyWord(лояльность, пол, …)`; ❔ тексты пока в коде (`LoyaltyWordsMale` / `Female`).
-- **Заглушки** (решение 2026-09-26): платы гильдии не зачисляются в казну (таверна — ТЗ 09, Общежитие, двор, Лазарет — ТЗ 13; места в коде — с комментарием «казны пока нет»), комиссия —
-  `Economy.defaultCommission`, Лазарета нет. Без заданий (ТЗ 11) доходов нет: за 2–3 недели
+- **Заглушки** (решение 2026-09-26): платы Общежития, двора и Лазарета не зачисляются в казну (ТЗ 13; построек нет), Лазарета нет.
+  Таверна и комиссия доделаны в GM-09: еда и выпивка — порции в доход таверны (`TreasuryService.CountTavernFood/Drink`
+  в `StateSystem` и `ActivitySystem`, если заплачено хоть что-то), цель довольства — текущая `Treasury.Commission`. Без заданий (ТЗ 11) доходов нет: за 2–3 недели
   кошельки пустеют, довольство падает к 25, лояльность — к 25 (ровно на пороге ухода «ниже 25» — никто не уходит).
 - **События** (`SimEventType`, новые — в конец): `AdventurerWounded`, `WoundComplicated`, `WoundHealed`, `Breakdown`,
   `DrunkardSkippedDay`, `WalletEmptied`, `AdventurerLeft`, `GrievingEnded`. Строки ленты — см. «Лента событий (GM-07)».
@@ -270,6 +277,11 @@ _Project/
 - **Окно** GuildMaster → Run Headless…: Game Config, зерно (случайное по кнопке), дней (360), уровень лога (Info),
   лог в консоль, бот («Простой»; «Сценарий» — с файлом, зерно берётся из `# seed=`), прогонов (1–100). Итог — отчёт,
   таблицы сводки (при серии — среднее ± разброс), «Открыть папку Logs».
+- **Доработка GM-09**: «Простой» первым ходом ставит комиссию 20% (`SetCommissionOnceRule`); команда сценария
+  `commission 0.2`; прогон кончается раньше срока, если гильдия закрылась (`Result.GuildClosed`, строка
+  `guild closed at …`, в окне — «Гильдия закрыта»); в сводке — «Казна» (на конец месяца), «Доходы», «Расходы»,
+  «Банкротство» (0/1) и по статье журнала «Доход: {статья}» / «Расход: {статья}» (`SummaryColumns.MonthlyFor(data)` —
+  названия из шаблонов `ledger.*`; `MonthRecord.Ledger(направление, статья)` — записи тактов месяца).
 - **Скорость** (редактор): год с ботом «Простой» — ~0,18 с без лога и на `Info` (62 строки), ~0,21 с на `Trace`
   (~14 тыс. строк); серия из 10 лет на `Info` — ~3 с.
 
@@ -296,6 +308,8 @@ _Project/
   `Word`, `Number`; нет формы падежа — именительный). Метки из события — `EventTextSource.Sources` (имя/напарник — участники,
   остальное — ключи данных события `medic`, `place`, `count`…). Падежи имён — `DataRegistry.NameForms(имя)`.
 - **Сводка**: столбцы «Лента [О]», «Лента [З]», «Лента [В]» — строк за месяц (`MonthRecord.FeedLines`).
+- **Строки GM-09**: `guild.bankruptcy.started` [В], `guild.bankruptcy.lifted` [З], `guild.closed` [В] (💡), `guild.month.summary` [З]
+  (событие `MonthReportReady`: `income`, `expense`, `count` — погибших).
 
 ## Модель решений (GM-08)
 
@@ -338,6 +352,46 @@ _Project/
   (выпивка) и `StateSystem` (срывы и уход зависят от стресса и порядка бросков). Тесты GM-05, которые проверяют расходы
   и расписание, ставят `decisions.bestChoiceChance = 1` (вечером всегда таверна); пропуск дня Пьяницы считается
   по `SkipsDayUntilHours`.
+
+## Экономика гильдии (GM-09)
+
+Числа — `BalanceSettings.Economy` (комиссия и пределы, `tavernIncomePerServing`, `bankruptcyStartDays`, `bankruptcyMonths`,
+`closedBestPeople`), `Guild.startMoney`; пороги черт — `Traits.testedMinDays/testedMinLoyalty`, `Adventurers.loyalStayLoyaltyBelow`.
+Решение 2026-09-27 в `docs/decisions.md`.
+
+- **Мир.** `World.Treasury` (`Treasury`): `Money` (может быть < 0), `StartMoney` (начальный остаток, не запись журнала),
+  `Ledger` (`LedgerEntry`: время, статья, сумма со знаком, комментарий, `RelatedId`, `BalanceAfter`), `Commission`,
+  `Bankruptcy` (`NegativeSinceHours`, `Active`, `StartedAtHours`, `EndsAtHours`), `IsClosed` + `ClosedAtHours`.
+  Инвариант: `StartMoney` + Σ журнала = `Money`. `World.Reports` (`MonthReportHistory`) — отчёты месяца, `GetLast()`.
+- **Статьи журнала** — `LedgerCategory` (код, `LedgerFlow` доход / расход, `ExpenseKind`: `Mandatory` — в минус,
+  `IfAffordable` — не списывается без денег). **Новая статья — поле и строка в `LedgerCategories.All` + шаблон `ledger.{код}`
+  в генераторе** (валидатор требует). Сейчас — `Tavern`. Расходов в игре пока нет; тесты заводят свои статьи (`TestLedger`).
+- **`TreasuryService`** — единственный путь изменить деньги: `Credit(ctx, статья, сумма, комментарий, связанный)`,
+  `Debit(…)` → bool; каждая запись — лог `Debug` (`ledger tavern +3 money=2014 food=4 drinks=2`); отмечает, с какого часа
+  казна в минусе (стартовый минус — с начала игры). Таверна: `CountTavernFood/Drink` копят порции, `SettleTavern` в 00:00 —
+  одна запись за сутки, целые монеты, дробный остаток переносится.
+- **`EconomySystem`** (шаг 11, свой поток, бросков нет): в 00:00 — доход таверны; каждый час — банкротство (30 × 24 часа в минусе
+  → `BankruptcyStarted` [В], автопауза, срок `bankruptcyMonths` × `HoursPerMonth`; казна ≥ 0 или минус начался заново →
+  `BankruptcyLifted` [З]; срок истёк в минусе → `GuildClosed` [В]: участники — лучшие люди, `days`, `died`, `left`, `money`);
+  в начале месяца — `HardTimes`.
+- **`HardTimes`**: `IsNow` — банкротство или уход (`LeaveReason.Left`) за месяц до этого часа включительно (не раньше начала игры);
+  `Apply` — «Проверенный» (`TraitHook.TestedOnAcquire`) у тех, кто в гильдии ≥ 180 суток и с лояльностью ≥ 50; раскрытие
+  Преданного (`RevealTrigger.LoyalStayedInHardTimes`) у тех, у кого лояльность ниже 40; лог `Info` `hard times: …`.
+- **Комиссия** — `SetCommissionCommand` (обрезка до `commissionLimits`, то же значение — без события, смена — `CommissionChanged` [О]).
+- **Отчёт месяца** — `MonthReportSystem` (перед `FeedSystem`): в 00:00 первого числа `Build` → `ReportPeriod` (от прошлого отчёта до
+  текущего часа включительно; журнал — по индексам; уже попавшее в прошлый отчёт не повторяется; стартовый состав — не новость)
+  → разделы `MonthReportSections.Default` (заголовок, ключи подписей, сборка строк). **Новый раздел — строка в `Default`**,
+  его ключи попадают в `TextKeys` (валидатор требует шаблоны). «Деньги» — из журнала; «Люди» — пришли, ушли, погибли, пропали,
+  изгнаны, раскрылись (время раскрытия — `TraitInstance.RevealedAtHours`, `Adventurer.GetAxisRevealedAtHours`, ставит
+  `RevealService`). `ReportLine` — подпись и сумма (`Signed`) или люди (`ReportItem`: id и подробность `trait:{id}` /
+  `axis:{ось}:{полюс|Balanced}`). Текстом — `MonthReportText.Lines` (подписи — первый вариант шаблона); в лог `Info`
+  (`report 1.1: Таверна: +14`); событие `MonthReportReady` [З] без автопаузы.
+- **Что поменялось в GM-05–08**: доход таверны идёт в казну; цель довольства — текущая комиссия; бот «Простой» шлёт команду комиссии
+  (в сценарии и логе — строка `send commission 0.2`); лог `Info` — +8 строк отчёта в месяц. Броски чужих систем не сдвинуты
+  (тест `EconomySystems_DoNotShiftOtherSystems`); тест `AutopauseSystem_DoesNotShiftOtherSystems` отбрасывает строки
+  `MonthReportSystem` — отчёт пишется и в пустом мире.
+- **Прогон года** (10 зёрен, «Простой»): казна 2000 → ~2040; таверна +14 в первый месяц, дальше 0–7 — без заданий кошельки пустеют
+  и в таверне почти не едят и не пьют. Трудных времён нет (никто не уходит, банкротства нет).
 
 ## Мир меняется только командами
 
@@ -399,7 +453,13 @@ GM-08: `DecisionTests.cs` (`DecisionTests` — точки и лог, дейст�
 `DecisionMotiveTests` — усталые: Командный и стресс → таверна, днём — Пьяница и стресс > 60, веса, оценки таверны;
 `LeaveReasonTests` — скрытая / раскрытая черта, род, состояние, событие и строка ухода, Наёмник; `TavernEveningTests` — +0,5,
 ссоры 5% только у пар ниже −20, Соперники; `DecisionDeterminismTests` — одно зерно = один лог и лента, приток кандидатов
-не сдвигается). Всего 272.
+не сдвигается);
+GM-09: `EconomyTests.cs` (`TreasuryTests` — старт, запись журнала, виды расхода; `CommissionTests` — обрезка, довольство выше 25%;
+`TavernIncomeTests` — 0,5 с порции и перенос остатка, раз в сутки, пустой кошелёк; `BankruptcyTests` — начало через 30 суток
+с автопаузой и строкой, сброс счётчика, снятие, закрытие по сроку и остановка, досрочный конец прогона; `MonthReportTests` —
+отчёт совпадает с журналом, люди и раскрытия, строка ленты, следующий отчёт продолжает; `HardTimesTests` — Проверенный и Преданный
+при уходе и банкротстве, без трудных времён ничего; `EconomyDeterminismTests` — одно зерно = та же казна, журнал, отчёты, лента;
+чужие броски не сдвигаются; сводка года; `EconomyScenarioTests` — команда `commission`, бот «Простой»). Всего 297.
 Помощники ленты — `DictionarySource` (метки из словаря), `FeedTestTemplates` (шаблоны в памяти).
 Числа баланса в тесте меняются `GameData.Edit(data.Balance, "time.dayHour", p => p.intValue = 10)`.
 Помощники — `TestSupport.cs`: `TestData` (BalanceSettings без ассета), `NoiseSystem`, `TraceCommand`,

@@ -4,7 +4,7 @@ using UnityEngine;
 namespace GuildMaster.Data
 {
     /// <summary>
-    /// Раздел <c>Economy</c>: комиссия, доход таверны, банкротство.
+    /// Раздел <c>Economy</c>: комиссия, доход таверны, банкротство и итог закрытия гильдии.
     /// Доходы от Общежития, Лазарета и двора — те же суммы, что расходы авантюристов (<see cref="ExpensesBalance"/>).
     /// </summary>
     [Serializable]
@@ -25,10 +25,14 @@ namespace GuildMaster.Data
         [Tooltip("Срок на исправление, месяцев")]
         [SerializeField, Min(1)] private int bankruptcyMonths = 4;
 
+        [Tooltip("Итог закрытия гильдии: сколько лучших людей назвать")]
+        [SerializeField, Min(0)] private int closedBestPeople = 3;
+
         public float DefaultCommission => defaultCommission;
         public FloatRange CommissionLimits => commissionLimits;
         public float TavernIncomePerServing => tavernIncomePerServing;
         public int BankruptcyStartDays => bankruptcyStartDays;
         public int BankruptcyMonths => bankruptcyMonths;
+        public int ClosedBestPeople => closedBestPeople;
     }
 }

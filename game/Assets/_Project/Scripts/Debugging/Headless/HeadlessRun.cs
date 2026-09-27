@@ -12,7 +12,8 @@ namespace GuildMaster.Debugging
     /// <summary>
     /// Прогон симуляции без интерфейса, так быстро, как получится. Перед каждым тактом ходит бот игрока — отдаёт команды
     /// через очередь, как игрок; его команды пишутся в лог (<see cref="BotSource"/>) и в сценарий, которым игру можно повторить.
-    /// Во время прогона собирается сводка (<see cref="SummaryRecorder"/>).
+    /// Во время прогона собирается сводка (<see cref="SummaryRecorder"/>). Если гильдия закрылась (игра проиграна), прогон
+    /// кончается раньше срока.
     /// </summary>
     public static class HeadlessRun
     {
@@ -37,6 +38,9 @@ namespace GuildMaster.Debugging
             public long Ticks { get; }
             public long Events { get; }
             public GameTime FinalTime => Simulation.World.Time;
+
+            /// <summary>Гильдия закрылась — прогон кончился раньше срока.</summary>
+            public bool GuildClosed => Simulation.IsFinished;
             public double ElapsedSeconds { get; }
             public long LogLines => Simulation.Log.LinesWritten;
             public RunSummary Summary { get; }
@@ -73,13 +77,17 @@ namespace GuildMaster.Debugging
                 long ticks = simulation.Calendar.DaysToHours(days);
                 using (var summary = new SummaryRecorder(simulation))
                 {
-                    for (long i = 0; i < ticks; i++)
+                    for (long i = 0; i < ticks && !simulation.IsFinished; i++)
                     {
                         turn.Tick = simulation.TicksDone;
                         bot.Act(turn);
                         simulation.Tick();
                     }
                     stopwatch.Stop();
+                    ticks = simulation.TicksDone;
+                    if (simulation.IsFinished)
+                        log.WriteFrom(RunSource, SimLogLevel.Info, string.Format(CultureInfo.InvariantCulture,
+                            "guild closed at {0} after {1} ticks", simulation.World.Time, ticks));
                     return new Result(simulation, ticks, events, stopwatch.Elapsed.TotalSeconds, summary.Finish(bot.Name, days), scenario);
                 }
             }

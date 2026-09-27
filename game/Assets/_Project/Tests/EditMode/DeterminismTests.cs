@@ -75,11 +75,13 @@ namespace GuildMaster.Tests
                 Assert.AreEqual(withAutopause, systems.Any(s => s is AutopauseSystem));
                 systems.Add(new NoiseSystem("Noise"));
                 var simulation = new Simulation(data.Registry, 9u, systems);
-                return SimulationLog.Record(simulation, sim =>
+                string log = SimulationLog.Record(simulation, sim =>
                 {
                     sim.Send(new TraceCommand("first"));
                     TickDays(sim, Days);
                 });
+                // Отчёт месяца пишется и в пустом мире; сравниваются время, команды и шум.
+                return string.Join("\n", log.Split('\n').Where(line => !line.Contains("[MonthReportSystem]")));
             }
 
             string without = Run(withAutopause: false);

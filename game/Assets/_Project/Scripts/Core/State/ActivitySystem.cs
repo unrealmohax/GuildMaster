@@ -16,7 +16,8 @@ namespace GuildMaster.Core
     /// Выбранное решением занятие ставится только здесь, поэтому за час решения показатели считаются по прежнему занятию.
     /// Расходы занятия — раз в сутки, в первый его час: таверна — выпивка 2–5 (если стресс выше 30 или Пьяница) и еда
     /// в таверне (если кошелёк не меньше расходов на неделю; платится в 00:00); запой — выпивка <c>bingeDrinkPerDay</c>;
-    /// Лазарет — <c>infirmary</c>. Утром Пьяница может пропустить день (10%, при стрессе выше 50 — 20%).
+    /// Лазарет — <c>infirmary</c>. Выпивка в таверне и в запое, за которую заплачено хоть что-то, — порция в доход таверны
+    /// (<see cref="TreasuryService"/>). Утром Пьяница может пропустить день (10%, при стрессе выше 50 — 20%).
     /// </summary>
     public sealed class ActivitySystem : ISimSystem
     {
@@ -94,21 +95,23 @@ namespace GuildMaster.Core
                     if (!state.DrankToday && WantsToDrink(adventurer, ctx.Data))
                     {
                         state.DrankToday = true;
-                        WalletService.Pay(ctx, adventurer, ctx.Rng.RangeInclusive(expenses.Drink.Min, expenses.Drink.Max));
+                        if (WalletService.Pay(ctx, adventurer, ctx.Rng.RangeInclusive(expenses.Drink.Min, expenses.Drink.Max)) > 0)
+                            TreasuryService.CountTavernDrink(ctx);
                     }
                     break;
                 case Activity.Binge:
                     if (!state.DrankToday)
                     {
-                        state.DrankToday = true;
-                        WalletService.Pay(ctx, adventurer, WalletService.Coins(ctx.Data.Balance.State.BingeDrinkPerDay));
+                        state.DrankToday = true; // запой — в таверне
+                        if (WalletService.Pay(ctx, adventurer, WalletService.Coins(ctx.Data.Balance.State.BingeDrinkPerDay)) > 0)
+                            TreasuryService.CountTavernDrink(ctx);
                     }
                     break;
                 case Activity.Infirmary:
                     if (!state.PaidInfirmaryToday)
                     {
                         state.PaidInfirmaryToday = true;
-                        WalletService.Pay(ctx, adventurer, WalletService.Coins(expenses.Infirmary)); // недостача не списывается
+                        WalletService.Pay(ctx, adventurer, WalletService.Coins(expenses.Infirmary)); // недостача не списывается; в казну не идёт — построек нет
                     }
                     break;
             }

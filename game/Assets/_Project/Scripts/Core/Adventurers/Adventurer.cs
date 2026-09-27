@@ -37,6 +37,7 @@ namespace GuildMaster.Core
         private readonly float[] stats = new float[Vocabulary.StatCount];
         private readonly float[] axes = new float[Vocabulary.AxisCount];
         private readonly bool[] revealedAxes = new bool[Vocabulary.AxisCount];
+        private readonly long[] axisRevealedAtHours = new long[Vocabulary.AxisCount];
         private readonly List<TraitInstance> traits = new List<TraitInstance>();
 
         internal Adventurer(int id)
@@ -99,6 +100,9 @@ namespace GuildMaster.Core
 
         public bool IsAxisRevealed(AxisId axis) => revealedAxes[(int)axis];
 
+        /// <summary>Когда ось раскрыта (для отчёта месяца); 0 — не раскрыта.</summary>
+        public long GetAxisRevealedAtHours(AxisId axis) => axisRevealedAtHours[(int)axis];
+
         public bool HasTrait(string traitId) => TryGetTrait(traitId, out _);
 
         public bool TryGetTrait(string traitId, out TraitInstance trait)
@@ -119,7 +123,11 @@ namespace GuildMaster.Core
 
         internal void SetAxis(AxisId axis, float value) => axes[(int)axis] = value;
 
-        internal void SetAxisRevealed(AxisId axis) => revealedAxes[(int)axis] = true;
+        internal void SetAxisRevealed(AxisId axis, long atHours = 0)
+        {
+            revealedAxes[(int)axis] = true;
+            axisRevealedAtHours[(int)axis] = atHours;
+        }
 
         internal void AddTrait(TraitInstance trait) => traits.Add(trait);
 

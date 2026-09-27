@@ -91,6 +91,8 @@ namespace GuildMaster.Tests
                 typeof(AdventurerRoster), typeof(Adventurer), typeof(AdventurerState), typeof(Condition), typeof(TraitInstance), typeof(Candidate),
                 typeof(RelationBook), typeof(Relation),
                 typeof(FeedState), typeof(FeedEntry),
+                typeof(Treasury), typeof(Bankruptcy), typeof(LedgerEntry),
+                typeof(MonthReportHistory), typeof(MonthReport), typeof(ReportSection), typeof(ReportLine), typeof(ReportItem),
             };
             foreach (Type type in stateTypes)
             {

@@ -49,6 +49,9 @@ namespace GuildMaster.Debugging
                     var autopause = (SetAutopauseCommand)command;
                     return autopause.Kind + (autopause.Enabled ? " on" : " off");
                 }),
+            new ScenarioCommandFormat("commission", typeof(SetCommissionCommand),
+                args => new SetCommissionCommand(ParseFloat(args, 0)),
+                command => ((SetCommissionCommand)command).Commission.ToString("R", CultureInfo.InvariantCulture)),
         };
 
         public static ICommand Parse(string keyword, string[] args)
@@ -83,6 +86,11 @@ namespace GuildMaster.Debugging
             int.TryParse(Arg(args, index), NumberStyles.Integer, CultureInfo.InvariantCulture, out int value)
                 ? value
                 : throw new FormatException($"'{args[index]}' is not an integer");
+
+        private static float ParseFloat(string[] args, int index) =>
+            float.TryParse(Arg(args, index), NumberStyles.Float, CultureInfo.InvariantCulture, out float value)
+                ? value
+                : throw new FormatException($"'{args[index]}' is not a number");
 
         private static T ParseEnum<T>(string[] args, int index) where T : struct =>
             Enum.TryParse(Arg(args, index), false, out T value) && Enum.IsDefined(typeof(T), value)

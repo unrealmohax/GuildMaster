@@ -91,5 +91,25 @@ namespace GuildMaster.Core
 
         /// <summary>Ссора вечером в таверне: <c>relation</c> — отношения после, <c>rivals</c> — пара Соперников. [З].</summary>
         Quarrel,
+
+        // Экономика гильдии.
+
+        /// <summary>Игрок сменил комиссию: <c>from</c>, <c>to</c> — доли. [О].</summary>
+        CommissionChanged,
+
+        /// <summary>Казна в минусе дольше срока — началось банкротство: <c>endsAt</c> — час, когда истечёт срок. [В], автопауза.</summary>
+        BankruptcyStarted,
+
+        /// <summary>Казна снова не в минусе — банкротство снято. [З].</summary>
+        BankruptcyLifted,
+
+        /// <summary>
+        /// Срок банкротства истёк при минусе — гильдия закрыта, игра проиграна, симуляция остановлена. Участники — лучшие люди
+        /// гильдии; итоги — <c>days</c> (сколько прожили), <c>died</c>, <c>left</c>, <c>money</c>. [В].
+        /// </summary>
+        GuildClosed,
+
+        /// <summary>Готов отчёт за прошедший месяц (<see cref="MonthReport"/>): <c>income</c>, <c>expense</c>, <c>count</c> — погибших. [З], без автопаузы.</summary>
+        MonthReportReady,
     }
 }

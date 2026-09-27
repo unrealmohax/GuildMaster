@@ -25,10 +25,14 @@ namespace GuildMaster.Debugging
         private readonly long[] feedLines;
         private readonly long[] activityHours;
         private readonly long personHours;
+        private readonly int ledgerFrom;
+        private readonly int ledgerTo;
 
         internal MonthRecord(int year, int month, int days, ISimulationClient game, Dictionary<SimEventType, int> counts, long[] feedLines,
-            long[] activityHours, long personHours)
+            long[] activityHours, long personHours, int ledgerFrom, int ledgerTo)
         {
+            this.ledgerFrom = ledgerFrom;
+            this.ledgerTo = ledgerTo;
             this.activityHours = activityHours;
             this.personHours = personHours;
             Year = year;
@@ -57,6 +61,19 @@ namespace GuildMaster.Debugging
         /// <summary>Доля часов людей в гильдии за месяц (со сном), проведённых за этим занятием, %; людей не было — 0.</summary>
         public double ActivityShare(Activity activity) =>
             personHours > 0 ? 100.0 * activityHours[(int)activity] / personHours : 0;
+
+        /// <summary>Сумма записей журнала казны за месяц со знаком: по статье; <c>null</c> — по всем статьям этого направления.</summary>
+        public long Ledger(LedgerFlow flow, LedgerCategory category = null)
+        {
+            IReadOnlyList<LedgerEntry> ledger = World.Treasury.Ledger;
+            long sum = 0;
+            for (int i = ledgerFrom; i < ledgerTo; i++)
+            {
+                LedgerEntry entry = ledger[i];
+                if (entry.Category.Flow == flow && (category == null || entry.Category == category)) sum += entry.Amount;
+            }
+            return sum;
+        }
     }
 
     /// <summary>Что видит столбец человека: сам человек (в гильдии или в архиве) и события, где он первый участник.</summary>
@@ -193,7 +210,8 @@ namespace GuildMaster.Debugging
     /// <summary>
     /// Сбор сводки во время прогона. Строка — календарный месяц: закрывается после последнего часа месяца, значения
     /// столбцов — по миру в этот момент и событиям месяца. Последний неполный месяц идёт в сводку, если в нём прошли
-    /// целые сутки; остаток короче суток отбрасывается.
+    /// целые сутки; остаток короче суток отбрасывается. Записи журнала казны — те, что сделаны в тактах месяца (запись
+    /// в 00:00 первого числа — уже следующий месяц, хотя отчёт месяца относит её к прошедшему).
     /// </summary>
     public sealed class SummaryRecorder : IDisposable
     {
@@ -207,13 +225,15 @@ namespace GuildMaster.Debugging
         private long monthTicks;
         private long[] activityHours = new long[Enum.GetValues(typeof(Activity)).Length];
         private long personHours;
+        private int ledgerAtMonthStart;
 
         public SummaryRecorder(Simulation simulation, IReadOnlyList<MonthColumn> monthColumns = null, IReadOnlyList<PersonColumn> personColumns = null)
         {
             this.simulation = simulation ?? throw new ArgumentNullException(nameof(simulation));
-            this.monthColumns = monthColumns ?? SummaryColumns.Monthly;
+            this.monthColumns = monthColumns ?? SummaryColumns.MonthlyFor(simulation.Data);
             this.personColumns = personColumns ?? SummaryColumns.People;
             for (int i = 0; i < feedAtMonthStart.Length; i++) feedAtMonthStart[i] = simulation.World.Feed.GetAddedCount((EventImportance)i);
+            ledgerAtMonthStart = simulation.World.Treasury.Ledger.Count;
             simulation.TickCompleted += OnTick;
         }
 
@@ -278,7 +298,10 @@ namespace GuildMaster.Debugging
                 feedLines[i] = total - feedAtMonthStart[i];
                 feedAtMonthStart[i] = total;
             }
-            var record = new MonthRecord(time.Year, time.Month, days, simulation, monthCounts, feedLines, activityHours, personHours);
+            int ledgerCount = simulation.World.Treasury.Ledger.Count;
+            var record = new MonthRecord(time.Year, time.Month, days, simulation, monthCounts, feedLines, activityHours, personHours,
+                ledgerAtMonthStart, ledgerCount);
+            ledgerAtMonthStart = ledgerCount;
             var values = new double[monthColumns.Count];
             for (int c = 0; c < values.Length; c++) values[c] = monthColumns[c].Value(record);
 

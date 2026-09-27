@@ -531,6 +531,10 @@ namespace GuildMaster.Debugging
                 {
                     if (!feedKeys.Contains(key)) report.Error(feed, "templates", $"нет шаблона «{key}»: это текст причины ухода");
                 }
+                foreach (string key in MonthReportSections.TextKeys)
+                {
+                    if (!feedKeys.Contains(key)) report.Error(feed, "templates", $"нет шаблона «{key}»: это текст отчёта месяца");
+                }
             }
 
             private void CheckConditions(Object asset, string path, IReadOnlyList<FeedCondition> conditions)

@@ -6,7 +6,8 @@ namespace GuildMaster.Core
     /// <summary>
     /// Точка входа симуляции. <see cref="Tick"/> — один игровой час: системы по порядку, затем очистка событий.
     /// Работает без сцены и без интерфейса. То же зерно + те же команды в те же такты = тот же мир.
-    /// При создании готовит стартовое состояние (<see cref="StartScenario"/>: стартовые авантюристы).
+    /// При создании готовит стартовое состояние (казна; <see cref="StartScenario"/>: стартовые авантюристы).
+    /// Когда гильдия закрыта (<see cref="IsFinished"/>), такты больше ничего не делают.
     /// Лог (<see cref="SimLogger"/>) получает события сразу после шага системы, которая их опубликовала, — вслед за её
     /// бросками; уровень события — <see cref="EventLogLevels"/>.
     /// </summary>
@@ -36,6 +37,7 @@ namespace GuildMaster.Core
             Rhythm = new DayRhythm(Calendar, data.Balance.Time);
             Rng = new RngService(masterSeed);
             World = new WorldState { Time = Calendar.At(Calendar.StartTotalHours) };
+            World.Treasury.Initialize(data.Balance.Guild.StartMoney, data.Balance.Economy.DefaultCommission, World.Time.TotalHours);
             Events = new EventBus(World);
             Commands = new CommandQueue();
             Log = log ?? SimLogger.Disabled;
@@ -60,6 +62,9 @@ namespace GuildMaster.Core
         public IReadOnlyList<ISimSystem> Systems => systems;
         public uint MasterSeed => Rng.MasterSeed;
 
+        /// <summary>Игра окончена — гильдия закрыта: такты и команды больше ничего не делают.</summary>
+        public bool IsFinished => World.Treasury.IsClosed;
+
         /// <summary>Сколько тактов прошло с начала игры.</summary>
         public long TicksDone { get; private set; }
 
@@ -77,6 +82,8 @@ namespace GuildMaster.Core
 
         public void Tick()
         {
+            if (IsFinished) return;
+
             BeginRun();
             try
             {
@@ -103,7 +110,7 @@ namespace GuildMaster.Core
         /// </summary>
         public void ApplyCommandsNow()
         {
-            if (Commands.Count == 0) return;
+            if (Commands.Count == 0 || IsFinished) return;
 
             BeginRun();
             try

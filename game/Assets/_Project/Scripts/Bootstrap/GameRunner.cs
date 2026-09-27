@@ -12,6 +12,7 @@ namespace GuildMaster.Bootstrap
     /// Запуск игры в сцене: создаёт симуляцию, отдаёт её интерфейсу, копит реальное время и крутит такты.
     /// Пауза и скорость — <see cref="GameClock"/>; горячие клавиши: Пробел — пауза / продолжить, 1 / 2 / 3 — скорости.
     /// Отладочная скорость — только в редакторе и Development Build (<see cref="Debug.isDebugBuild"/>).
+    /// Гильдия закрыта (игра проиграна) — пауза, такты больше не идут.
     /// </summary>
     public sealed class GameRunner : MonoBehaviour
     {
@@ -66,6 +67,11 @@ namespace GuildMaster.Bootstrap
         private void Update()
         {
             if (Simulation == null) return;
+            if (Simulation.IsFinished)
+            {
+                if (!Clock.Paused) Clock.Pause();
+                return;
+            }
 
             ReadHotkeys();
 
@@ -79,6 +85,12 @@ namespace GuildMaster.Bootstrap
             for (int i = 0; i < ticks; i++)
             {
                 Simulation.Tick();
+                if (Simulation.IsFinished)
+                {
+                    Clock.Pause();
+                    Debug.Log($"[GuildMaster] Guild closed at {Simulation.World.Time}: game over", this);
+                    break;
+                }
                 if (Simulation.ConsumePauseRequest())
                 {
                     Clock.Pause();

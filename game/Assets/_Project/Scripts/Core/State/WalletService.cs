@@ -16,8 +16,9 @@ namespace GuildMaster.Core
     /// <summary>
     /// Личные деньги. Кошелёк целочисленный: доли (Семейный, долг) округляются вниз,
     /// цены из <see cref="ExpensesBalance"/> — до целого. Не хватает — платит сколько может, остаток не списывается,
-    /// ставится флаг «кошелёк пуст». Платы гильдии (Общежитие, двор, Лазарет, таверна) в казну не зачисляются (казны пока нет) —
-    /// только списываются из кошелька.
+    /// ставится флаг «кошелёк пуст». Сам кошелёк казну не трогает: долю таверны с еды и выпивки засчитывают системы, которые
+    /// за них берут плату (<see cref="TreasuryService"/>); остальные платы гильдии (Общежитие, двор, Лазарет) только списываются
+    /// из кошелька — построек нет.
     /// </summary>
     public static class WalletService
     {
@@ -35,7 +36,6 @@ namespace GuildMaster.Core
                 ctx.Events.Publish(SimEventType.WalletEmptied, EventImportance.Notable, adventurer.Id)
                     .With("unpaid", amount - paid);
             }
-            // Платы гильдии в казну не идут: казны пока нет.
             return paid;
         }
 
@@ -55,7 +55,7 @@ namespace GuildMaster.Core
             int debt = kind == IncomeKind.Reward ? Math.Min(state.DebtToGuild, Share(amount, ctx.Data.Balance.State.DebtRepaymentShare)) : 0;
 
             int kept = amount - home - debt;
-            state.DebtToGuild -= debt;   // казны пока нет
+            state.DebtToGuild -= debt;   // погашение долга в казну не зачисляется
             state.Wallet += kept;
             if (state.Wallet > 0) state.IsWalletEmpty = false;
             return kept;
@@ -98,8 +98,8 @@ namespace GuildMaster.Core
         public static float MoneyMotiveMultiplier(Adventurer adventurer, BalanceSettings balance) =>
             IsBelowWeeklyExpenses(adventurer, balance.Expenses) ? balance.State.LowWalletMoneyMultiplier : 1f;
 
-        /// <summary>Суточные расходы (00:00): еда за прошедшие сутки и жильё.</summary>
-        internal static void PayDaily(SimContext ctx, Adventurer adventurer) =>
+        /// <summary>Суточные расходы (00:00): еда за прошедшие сутки и жильё. Возвращает, сколько заплачено.</summary>
+        internal static int PayDaily(SimContext ctx, Adventurer adventurer) =>
             Pay(ctx, adventurer, DailyLivingCost(adventurer, adventurer.State.AteInTavernToday, ctx.Data.Balance.Expenses));
     }
 }

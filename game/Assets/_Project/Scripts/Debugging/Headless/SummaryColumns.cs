@@ -8,12 +8,13 @@ namespace GuildMaster.Debugging
 {
     /// <summary>
     /// Столбцы сводки прогона. Новый показатель — строка в <see cref="Monthly"/> или <see cref="People"/>:
-    /// имя и функция от месяца или человека.
+    /// имя и функция от месяца или человека. Столбцы статей журнала казны строятся по списку статей
+    /// (<see cref="LedgerCategories.All"/>) — <see cref="MonthlyFor"/>.
     /// </summary>
     public static class SummaryColumns
     {
         /// <summary>По месяцам: люди, приход и уход, срывы, раны, раскрытия, средние показатели на конец месяца, кошельки,
-        /// строки ленты гильдии по важности.</summary>
+        /// строки ленты гильдии по важности, казна на конец месяца, доходы и расходы, банкротство.</summary>
         public static readonly IReadOnlyList<MonthColumn> Monthly = new[]
         {
             new MonthColumn("Людей", m => m.World.Adventurers.Active.Count, SummaryTotal.Last, "0"),
@@ -35,7 +36,29 @@ namespace GuildMaster.Debugging
             new MonthColumn("Лента [О]", m => m.FeedLines(EventImportance.Normal), SummaryTotal.Sum, "0"),
             new MonthColumn("Лента [З]", m => m.FeedLines(EventImportance.Notable), SummaryTotal.Sum, "0"),
             new MonthColumn("Лента [В]", m => m.FeedLines(EventImportance.Important), SummaryTotal.Sum, "0"),
+            new MonthColumn("Казна", m => m.World.Treasury.Money, SummaryTotal.Last, "0"),
+            new MonthColumn("Доходы", m => m.Ledger(LedgerFlow.Income), SummaryTotal.Sum, "0"),
+            new MonthColumn("Расходы", m => -m.Ledger(LedgerFlow.Expense), SummaryTotal.Sum, "0"),
+            new MonthColumn("Банкротство", m => m.World.Treasury.Bankruptcy.Active ? 1 : 0, SummaryTotal.Last, "0"),
         };
+
+        /// <summary>
+        /// Столбцы месяцев с доходами и расходами по каждой статье журнала: «Доход: Таверна», «Расход: …» (названия статей —
+        /// из шаблонов данных; без данных — код статьи).
+        /// </summary>
+        public static IReadOnlyList<MonthColumn> MonthlyFor(DataRegistry data)
+        {
+            var columns = new List<MonthColumn>(Monthly);
+            foreach (LedgerCategory category in LedgerCategories.All)
+            {
+                string name = MonthReportText.Label(data, category.TextKey);
+                if (category.Flow == LedgerFlow.Income)
+                    columns.Add(new MonthColumn("Доход: " + name, m => m.Ledger(LedgerFlow.Income, category), SummaryTotal.Sum, "0"));
+                else
+                    columns.Add(new MonthColumn("Расход: " + name, m => -m.Ledger(LedgerFlow.Expense, category), SummaryTotal.Sum, "0"));
+            }
+            return columns;
+        }
 
         /// <summary>По людям: архетип, ранг, раны, в гильдии ли на конец, какие черты раскрылись и когда.</summary>
         public static readonly IReadOnlyList<PersonColumn> People = new[]

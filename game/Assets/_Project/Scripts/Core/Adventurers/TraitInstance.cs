@@ -19,6 +19,9 @@ namespace GuildMaster.Core
         /// <summary>Черта видна игроку. Все черты скрыты до триггера раскрытия (<see cref="RevealService"/>).</summary>
         public bool Revealed { get; internal set; }
 
+        /// <summary>Когда черта раскрыта (для отчёта месяца); 0 — не раскрыта.</summary>
+        public long RevealedAtHours { get; internal set; }
+
         /// <summary>С кем связана черта: партнёр Соперника и Влюблённого, погибший у Потерявшего товарища. 0 — ни с кем.</summary>
         public int PartnerId { get; internal set; }
 

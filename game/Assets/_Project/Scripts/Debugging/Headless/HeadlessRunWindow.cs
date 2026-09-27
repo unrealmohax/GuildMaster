@@ -200,12 +200,16 @@ namespace GuildMaster.Debugging
             {
                 text.AppendFormat(CultureInfo.InvariantCulture, "Зерно {0}: {1} тактов, {2} событий, {3} строк лога, конец — {4}, за {5:0.000} с",
                     first.Seed, first.Ticks, first.Events, lines, first.FinalTime, seconds);
+                if (first.GuildClosed) text.Append($"\nГильдия закрыта {first.FinalTime}: игра проиграна.");
                 if (first.Scenario.Unrecorded > 0) text.Append($"\nКоманд вне сценария: {first.Scenario.Unrecorded} — сценарий игру не повторит.");
             }
             else
             {
                 text.AppendFormat(CultureInfo.InvariantCulture, "{0} прогонов по {1} тактов, {2} строк лога, за {3:0.000} с (в среднем {4:0.000} с)",
                     batch.Results.Count, first.Ticks, lines, seconds, seconds / batch.Results.Count);
+                int closed = 0;
+                foreach (HeadlessRun.Result result in batch.Results) closed += result.GuildClosed ? 1 : 0;
+                if (closed > 0) text.Append($"\nГильдия закрылась в {closed} прогонах.");
             }
             if (batch.Cancelled) text.Append("\nПрервано.");
 

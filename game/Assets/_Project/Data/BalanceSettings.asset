@@ -559,6 +559,7 @@ MonoBehaviour:
     tavernIncomePerServing: 0.5
     bankruptcyStartDays: 30
     bankruptcyMonths: 4
+    closedBestPeople: 3
   decrees:
     weekDurationDays: 7
     monthDurationDays: 30

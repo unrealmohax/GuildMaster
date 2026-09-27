@@ -26,7 +26,7 @@ namespace GuildMaster.Core
             AxisPoleDefinition poleDefinition = ctx.Data.Axis(axis).Pole(pole);
             if (trigger == RevealTrigger.None || poleDefinition.RevealTrigger != trigger) return false;
 
-            adventurer.SetAxisRevealed(axis);
+            adventurer.SetAxisRevealed(axis, ctx.World.Time.TotalHours);
             ctx.Events.Publish(SimEventType.AxisRevealed, EventImportance.Important, adventurer.Id)
                 .With("axis", axis)
                 .With("pole", pole)
@@ -52,7 +52,7 @@ namespace GuildMaster.Core
         {
             if (adventurer.IsAxisRevealed(axis) || !AxisMath.IsNeutral(adventurer.GetAxis(axis), ctx.Data.Balance.Adventurers)) return false;
 
-            adventurer.SetAxisRevealed(axis);
+            adventurer.SetAxisRevealed(axis, ctx.World.Time.TotalHours);
             ctx.Events.Publish(SimEventType.AxisBalanced, EventImportance.Notable, adventurer.Id)
                 .With("axis", axis);
             return true;
@@ -61,6 +61,7 @@ namespace GuildMaster.Core
         internal static void Reveal(SimContext ctx, Adventurer adventurer, TraitInstance instance, SpecialTraitDefinition trait)
         {
             instance.Revealed = true;
+            instance.RevealedAtHours = ctx.World.Time.TotalHours;
             SimEvent revealed = instance.PartnerId != 0
                 ? ctx.Events.Publish(SimEventType.TraitRevealed, EventImportance.Important, adventurer.Id, instance.PartnerId)
                 : ctx.Events.Publish(SimEventType.TraitRevealed, EventImportance.Important, adventurer.Id);

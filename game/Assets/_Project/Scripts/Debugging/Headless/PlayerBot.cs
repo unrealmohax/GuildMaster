@@ -86,11 +86,34 @@ namespace GuildMaster.Debugging
         /// <summary>Ничего не делает: мир живёт сам.</summary>
         public static PlayerBot Passive() => new PlayerBot(PassiveName);
 
-        /// <summary>Принимает всех кандидатов в авантюристы.</summary>
-        public static PlayerBot Simple() => new PlayerBot(SimpleName, new AcceptAllCandidatesRule());
+        /// <summary>Комиссия бота «Простой».</summary>
+        public const float SimpleCommission = 0.2f;
+
+        /// <summary>Ставит комиссию 20% и принимает всех кандидатов в авантюристы.</summary>
+        public static PlayerBot Simple() =>
+            new PlayerBot(SimpleName, new SetCommissionOnceRule(SimpleCommission), new AcceptAllCandidatesRule());
 
         /// <summary>Повторяет команды сценария в их такты.</summary>
         public static PlayerBot Scenario(ScenarioScript script) => new PlayerBot(ScenarioName, new ScenarioRule(script));
+    }
+
+    /// <summary>Поставить комиссию один раз, в первый ход.</summary>
+    public sealed class SetCommissionOnceRule : IBotRule
+    {
+        private readonly float commission;
+        private bool sent;
+
+        public SetCommissionOnceRule(float commission)
+        {
+            this.commission = commission;
+        }
+
+        public void Act(BotTurn turn)
+        {
+            if (sent) return;
+            sent = true;
+            turn.Send(new SetCommissionCommand(commission));
+        }
     }
 
     /// <summary>Принять каждого ожидающего кандидата в авантюристы.</summary>
