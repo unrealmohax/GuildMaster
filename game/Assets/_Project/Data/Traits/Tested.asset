@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 074f9b3a8fd93bc46989b18dd4ca1d9d, type: 3}
+  m_Name: Tested
+  m_EditorClassIdentifier: GuildMaster.Data::GuildMaster.Data.SpecialTraitDefinition
+  id: Tested
+  displayName: "\u041F\u0440\u043E\u0432\u0435\u0440\u0435\u043D\u043D\u044B\u0439"
+  displayNameFemale: "\u041F\u0440\u043E\u0432\u0435\u0440\u0435\u043D\u043D\u0430\u044F"
+  category: 4
+  isAcquired: 1
+  effects: []
+  codeHooks: 0c000000i
+  requiresPartner: 0
+  incompatibleWith: []
+  revealTrigger: 29
+  revealFeedKey: reveal.trait.tested

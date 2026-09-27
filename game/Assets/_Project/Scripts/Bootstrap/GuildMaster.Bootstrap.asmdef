@@ -1,0 +1,19 @@
+{
+    "name": "GuildMaster.Bootstrap",
+    "rootNamespace": "GuildMaster.Bootstrap",
+    "references": [
+        "GuildMaster.Core",
+        "GuildMaster.Data",
+        "GuildMaster.UI",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

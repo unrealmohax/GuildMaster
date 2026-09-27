@@ -1,0 +1,593 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: faac4a5b3e25b3a429a87d61b2e31fa7, type: 3}
+  m_Name: BalanceSettings
+  m_EditorClassIdentifier: GuildMaster.Data::GuildMaster.Data.BalanceSettings
+  time:
+    hoursPerDay: 24
+    daysPerMonth: 30
+    monthsPerYear: 12
+    startHour: 6
+    morningHour: 6
+    dayHour: 9
+    eveningHour: 18
+    nightHour: 22
+    campHour: 20
+    latestDepartureHour: 14
+    realSecondsPerHour: 1
+    speedMultipliers: 010000000200000004000000i
+    debugSpeedMultiplier: 50
+    maxTicksPerFrame: 10
+  orders:
+    baseOrdersPerDay: 1
+    reputationPerExtraOrder: 10
+    boardDays:
+      min: 3
+      max: 7
+    hardEarlyChance: 0.05
+    hardEarlyRankBonus: 2
+    rankMix:
+    - fromReputation: 0
+      weights:
+      - 0.85
+      - 0.15
+      - 0
+      - 0
+      - 0
+    - fromReputation: 20
+      weights:
+      - 0.2
+      - 0.5
+      - 0.3
+      - 0
+      - 0
+    - fromReputation: 40
+      weights:
+      - 0
+      - 0.1
+      - 0.5
+      - 0.4
+      - 0
+    - fromReputation: 60
+      weights:
+      - 0
+      - 0
+      - 0.2
+      - 0.5
+      - 0.3
+    farChance: 0.3
+    requirementFloor: 10
+    axisVariance:
+      min: 0.8
+      max: 1.2
+    farRewardMultiplier: 1.5
+    rewardRounding: 5
+    bonusRewardShare: 0.25
+    lootShare:
+      min: 0
+      max: 0.3
+    hintCount:
+      min: 1
+      max: 2
+    importantRewardThreshold: 250
+    playerResponseDays: 2
+    startOrders: 3
+    startOrderRank: 0
+  ranks:
+    ranks:
+    - rank: 0
+      mainAxes:
+        min: 20
+        max: 30
+      secondaryAxes:
+        min: 10
+        max: 15
+      reward:
+        min: 30
+        max: 60
+      rankPoints: 1
+      pointsToNext: 10
+    - rank: 1
+      mainAxes:
+        min: 30
+        max: 45
+      secondaryAxes:
+        min: 15
+        max: 25
+      reward:
+        min: 70
+        max: 130
+      rankPoints: 2
+      pointsToNext: 25
+    - rank: 2
+      mainAxes:
+        min: 45
+        max: 65
+      secondaryAxes:
+        min: 25
+        max: 35
+      reward:
+        min: 140
+        max: 260
+      rankPoints: 3
+      pointsToNext: 50
+    - rank: 3
+      mainAxes:
+        min: 65
+        max: 90
+      secondaryAxes:
+        min: 35
+        max: 50
+      reward:
+        min: 280
+        max: 520
+      rankPoints: 4
+      pointsToNext: 90
+    - rank: 4
+      mainAxes:
+        min: 90
+        max: 130
+      secondaryAxes:
+        min: 50
+        max: 70
+      reward:
+        min: 550
+        max: 1000
+      rankPoints: 5
+      pointsToNext: 0
+    promotionRetryDays: 30
+    brilliantPointsMultiplier: 2
+    partialPointsMultiplier: 0.5
+  rounds:
+    maxPartySize: 6
+    soloProfileMultiplier: 1
+    descriptionAccuracy:
+      min: 0.9
+      max: 1.1
+    friendsSynergy: 0.05
+    longPartnersSynergy: 0.05
+    loversSynergy: 0.1
+    rivalsSynergy: -0.1
+    dislikeSynergy: -0.05
+    maxTotalSynergy: 0.2
+    failureLadder:
+    - stress: 5
+      lightWoundChance: 0.3
+      heavyWoundChance: 0
+      maimChance: 0
+      bonusLossChance: 0.5
+      gearDamageChance: 0
+      lootLossChance: 0
+      death: 0
+    - stress: 5
+      lightWoundChance: 0.35
+      heavyWoundChance: 0.15
+      maimChance: 0
+      bonusLossChance: 1
+      gearDamageChance: 0.3
+      lootLossChance: 0
+      death: 0
+    - stress: 8
+      lightWoundChance: 0
+      heavyWoundChance: 0.7
+      maimChance: 0.15
+      bonusLossChance: 1
+      gearDamageChance: 0
+      lootLossChance: 0.5
+      death: 0
+    - stress: 0
+      lightWoundChance: 0
+      heavyWoundChance: 0
+      maimChance: 0
+      bonusLossChance: 1
+      gearDamageChance: 0
+      lootLossChance: 0
+      death: 1
+    - stress: 0
+      lightWoundChance: 0
+      heavyWoundChance: 0
+      maimChance: 0
+      bonusLossChance: 1
+      gearDamageChance: 0
+      lootLossChance: 0
+      death: 2
+    medicSaveDivisor: 200
+    medicSaveMax: 0.5
+    extraRoundsPerFailure: 1
+  travel:
+    nearHours: 3
+    farHours:
+      min: 24
+      max: 36
+    eventChanceNear: 0.1
+    eventChanceFar: 0.25
+    eventChanceAfterRetreatMultiplier: 1.5
+    eventFailStress: 5
+    discoveryChance: 0.05
+  adventurers:
+    maleChance: 0.5
+    age:
+      min: 17
+      max: 35
+    levels:
+    - level: 0
+      weight: 0.5
+      characteristics:
+        min: 10
+        max: 30
+      skills:
+        min: 10
+        max: 25
+      mainStats:
+        min: 40
+        max: 55
+      secondaryStats:
+        min: 30
+        max: 40
+      jackOfAllTrades:
+        min: 25
+        max: 40
+    - level: 1
+      weight: 0.35
+      characteristics:
+        min: 20
+        max: 40
+      skills:
+        min: 15
+        max: 35
+      mainStats:
+        min: 55
+        max: 70
+      secondaryStats:
+        min: 40
+        max: 50
+      jackOfAllTrades:
+        min: 35
+        max: 50
+    - level: 2
+      weight: 0.15
+      characteristics:
+        min: 30
+        max: 50
+      skills:
+        min: 25
+        max: 45
+      mainStats:
+        min: 70
+        max: 85
+      secondaryStats:
+        min: 50
+        max: 60
+      jackOfAllTrades:
+        min: 45
+        max: 60
+    startMaxLevel: 1
+    noviceCharacteristics:
+      min: 10
+      max: 25
+    noviceSkills:
+      min: 10
+      max: 20
+    novicePeakCount:
+      min: 1
+      max: 2
+    novicePeak:
+      min: 20
+      max: 30
+    cohesion:
+      min: 20
+      max: 60
+    naturalMinimum: 10
+    statCap: 99
+    wallet:
+      min: 20
+      max: 100
+    roleMainWeight: 0.7
+    roleSecondaryWeight: 0.2
+    roleRestWeight: 0.1
+    noviceThreshold: 25
+    jackOfAllTradesThreshold: 10
+    axisMean: 0
+    axisStdDev: 45
+    extremePoleThreshold: 70
+    neutralThreshold: 30
+    neutralRevealDays: 60
+    maxSpecialTraits: 4
+    birthTraitsAtStart:
+      min: 0
+      max: 1
+    birthTraitsLater:
+      min: 0
+      max: 2
+    startAdventurers: 6
+    startRankF:
+      min: 1
+      max: 2
+    rankFBoost: 10
+    startTraitsTotal:
+      min: 2
+      max: 3
+    startPairs:
+      min: 1
+      max: 2
+    oldFriendsRelation: 50
+    maxStartPerExtremePole: 2
+    candidateWaitDays: 3
+    friendsThreshold: 40
+    dislikeThreshold: -40
+    longPartnersQuests: 10
+    tavernEveningRelation: 0.5
+    jointSuccessRelation: 3
+    jointHardQuestRelation: 2
+    quarrelRelation: -10
+    quarrelChance: 0.05
+    quarrelRelationBelow: -20
+    fleeAbandonedRelation: -20
+    selflessShareOfAverage: 0.5
+    lazyIdleDays: 7
+    loyalStayLoyaltyBelow: 40
+    skimCaughtChance: 0.3
+    honestNoSkimDays: 60
+  growth:
+    trainSkillPerDay: 0.3
+    characteristicSlowdown: 3
+    above99Multiplier: 0.1
+    trainingHoursPerDay: 8
+    questExperienceSuccess: 0.5
+    questExperienceFailure: 0.3
+    composurePerHardQuest: 0.3
+    cohesionPerGroupQuest: 0.5
+    cohesionPerPermanentPartyQuest: 1
+  expenses:
+    food: 2
+    tavernFood: 3
+    cityHousing: 3
+    dormHousing: 1
+    infirmary: 5
+    training: 2
+    drink:
+      min: 2
+      max: 5
+    drinkStressThreshold: 30
+    gearRepair:
+      min: 10
+      max: 40
+    reserveDays: 7
+  state:
+    startFatigue: 10
+    startStress:
+      min: 10
+      max: 30
+    startContentment: 50
+    startLoyalty:
+      min: 40
+      max: 60
+    questFatigue: 3
+    campFatigue: -4
+    trainingFatigue: 2
+    restFatigue: -3
+    sleepFatigue: -8
+    tavernFatigue: -1
+    infirmaryFatigue: -3
+    bingeFatigue: 0
+    passiveStress: -0.2
+    restStress: -0.5
+    sleepStress: -0.5
+    tavernStress: -1
+    infirmaryStress: -0.5
+    bingeStress: -1
+    fatigueProfileThreshold: 70
+    fatigueProfileMultiplier: 0.8
+    fatigueQuestBanThreshold: 90
+    ownLightWoundStress: 10
+    ownHeavyWoundStress: 20
+    comradeWoundStress: 5
+    comradeDeathStress: 25
+    friendDeathStress: 40
+    loverDeathStress: 60
+    breakdownThreshold: 80
+    breakdownChancePerDay: 0.1
+    stressAfterBreakdown: -30
+    breakdownAxisThreshold: 30
+    bingeDays: 2
+    bingeDrinkPerDay: 5
+    brawlRelation: -10
+    brawlWoundChance: 0.2
+    refuseQuestsDays: 3
+    collapseDays: 2
+    contentmentBase: 50
+    contentmentDailyStep: 1
+    cityHousingContentment: -10
+    dormHousingContentment: 0
+    tavernFoodContentment: 5
+    emptyWalletContentment: -15
+    commissionThreshold: 0.25
+    commissionStep: 0.05
+    commissionStepContentment: -5
+    highStressThreshold: 70
+    highStressContentment: -5
+    loyaltyDailyStep: 0.1
+    leaveCheckThreshold: 25
+    leaveChance: 0.2
+    loyaltyWordThresholds:
+    - 25
+    - 45
+    - 65
+    - 85
+    lowWalletMoneyMultiplier: 2
+    debtRepaymentShare: 0.2
+  health:
+    lightWoundDays:
+      min: 3
+      max: 5
+    heavyWoundDays:
+      min: 14
+      max: 21
+    lightWoundProfileMultiplier: 0.85
+    infirmaryTimeMultiplier: 0.7
+    noInfirmaryTimeMultiplier: 1.5
+    complicationChance: 0.2
+    complicationExtraDays: 7
+    complicationStress: 10
+    fieldMedicChance: 0.3
+  decisions:
+    bestChoiceChance: 0.8
+    defaultMotiveWeight: 1
+    strongUpMultiplier: 2
+    upMultiplier: 1.5
+    downMultiplier: 0.5
+    strongDownMultiplier: 0.25
+    fatigueRestThreshold: 50
+    fatigueRestDivisor: 25
+    stressComfortThreshold: 40
+    stressComfortDivisor: 30
+    stressSafetyMultiplier: 1.3
+    lightWoundSafetyMultiplier: 1.3
+    moneyExpenseDays: 7
+    promotionGloryBonus: 0.2
+    companionsInGroup: 0.5
+    companionsFriendBonus: 0.3
+    companionsPermanentBonus: 0.2
+    orderRestOffset: 0.5
+    trainingGlory: 0.4
+    trainingSafety: 1
+    trainingCompanions: 0.2
+    trainingRest: -0.3
+    restSafety: 1
+    restComfort: 0.3
+    healSafety: 1
+    healRest: 0.8
+    healComfort: 0.3
+    tavernSafety: 1
+    tavernCompanions: 0.6
+    tavernCompanionsPerFriend: 0.1
+    tavernRest: 0.3
+    tavernComfortBonus: 0.2
+    daytimeTavernStress: 60
+    partnerOverlapGainWeight: 3
+    partnerRelationDivisor: 100
+    partnerFriendBonus: 0.3
+    partnerRankDifferencePenalty: 0.2
+    permanentPartySuccesses: 3
+    permanentPartyMinRelation: 20
+    permanentPartyBreakRelation: -40
+    lonerLeavesAfterQuests: 3
+    newMemberSuccesses: 3
+  tension:
+    panicOffset: 20
+    panicDivisor: 100
+    panicProfileMultiplier: 0.5
+    rushProfileMultiplier: 1.3
+    heroChance: 0.1
+    heroMinComposure: 60
+    heroMinPeopleAxis: 30
+    heroRelation: 20
+    abandonedStress: 5
+    fugitiveReturnChance: 0.5
+    fugitiveReturnDays:
+      min: 1
+      max: 3
+    redemptionChance: 0.5
+    redemptionHeroMultiplier: 3
+    relapseFleeMultiplier: 1.5
+  traits:
+    veteranBingeChance: 0.05
+    drunkardSkipChance: 0.1
+    drunkardSkipChanceStressed: 0.2
+    drunkardStressThreshold: 50
+    braggartReputationPerSuccess: 1
+    braggartRevealPerceivedOverlap: 0.6
+    braggartRevealRealOverlap: 0.4
+    ironNervesComradeDeathMultiplier: 0.5
+    familySendHomeShare: 0.3
+    familyLeaveChanceMultiplier: 1.5
+    familyRevealPerceivedOverlap: 0.5
+    rivalExperienceMultiplier: 1.2
+    nightmaresAcquireChance: 0.3
+    nightmaresRefuseChance: 0.5
+    grievingFriendRelation: 40
+    grievingDays: 30
+    grievingBreakChance: 0.5
+    grievingBreakStress: 30
+    grievingHardenComposure: 5
+    testedMinDays: 180
+    testedMinLoyalty: 50
+    testedLoyaltyBonus: 10
+    testedCohesionBonus: 5
+  guild:
+    startMoney: 2000
+    startReputation: 5
+    maxReputation: 100
+    successReputationPerRank: 1
+    brilliantReputationMultiplier: 2
+    failureReputationPerRank: -1
+    catastropheReputationPerRank: -3
+    deathReputation: -2
+    influxBaseChance: 0.03
+    influxChancePerReputation: 0.003
+    maxAdventurers: 30
+  staff:
+    candidateLevel:
+      min: 30
+      max: 70
+    salaryLevelBase: 0.7
+    salaryLevelDivisor: 100
+    levelEffectBase: 0.8
+    levelEffectDivisor: 250
+    candidatesPerVisit: 2
+    candidateIntervalDays: 3
+    candidateWaitDays: 3
+    negotiationTolerance: 0.3
+    negotiationReputationDivisor: 200
+    unpaidMonthsToQuit: 1
+  economy:
+    defaultCommission: 0.2
+    commissionLimits:
+      min: 0
+      max: 0.5
+    tavernIncomePerServing: 0.5
+    bankruptcyStartDays: 30
+    bankruptcyMonths: 4
+  decrees:
+    weekDurationDays: 7
+    monthDurationDays: 30
+    benefitCancelContentment: -5
+    newcomerDailyCost: 5
+    newcomerPeriodDays: 30
+    newcomerInfluxMultiplier: 1.5
+    freeloaderWorkShift: -20
+    groupOnlyLonerContentment: -3
+    groupOnlyLonerAxis: -30
+    compensationLightWound: 20
+    compensationHeavyWound: 100
+    compensationMaimed: 300
+    compensationSafetyMultiplier: 0.85
+    compensationLoyaltyPerDay: 0.05
+    prohibitionTavernIncomeMultiplier: 0.6
+    prohibitionStressReliefMultiplier: 0.7
+    prohibitionDrunkardContentment: -10
+    prohibitionDrunkardSkipChance: 0
+  dilemmas:
+    responseDays: 2
+    maxOpen: 3
+    defaultCooldownDays: 30
+    checkHour: 12
+    loanWalletDays: 3
+    loanWeeklyChance: 0.1
+    loanSumDays: 30
+    lootDisputeMoneyAxis: 50
+    lootDisputeRelationBelow: 0
+    lootDisputeChance: 0.3
+    woundedWalletDays: 7
+    loversMinDaysInGuild: 7
+    feastAverageStress: 45
+    feastRecentDeathDays: 7

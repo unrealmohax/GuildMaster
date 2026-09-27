@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 074f9b3a8fd93bc46989b18dd4ca1d9d, type: 3}
+  m_Name: Nightmares
+  m_EditorClassIdentifier: GuildMaster.Data::GuildMaster.Data.SpecialTraitDefinition
+  id: Nightmares
+  displayName: "\u041A\u043E\u0448\u043C\u0430\u0440\u044B"
+  displayNameFemale: 
+  category: 4
+  isAcquired: 1
+  effects:
+  - kind: 1
+    condition: 0
+    conditionThreshold: 0
+    motive: 0
+    stateStat: 3
+    direction: 0
+    arrow: 0
+    value: 1.3
+    tension: 0
+    partyPreference: 0
+    stats: 
+  codeHooks: 0a000000i
+  requiresPartner: 0
+  incompatibleWith:
+  - {fileID: 11400000, guid: 8dcc9c7d224f66a458c603523e3c146e, type: 2}
+  revealTrigger: 28
+  revealFeedKey: reveal.trait.nightmares

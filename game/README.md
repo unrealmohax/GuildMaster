@@ -13,13 +13,8 @@
 
 ## Репозиторий
 
-Репозиторий — в корне `GuildMaster/` (вместе с `docs/` и `TechJob/`), пока только локальный. Git LFS включён для картинок, звука, моделей и шрифтов (см. `.gitattributes`).
+Репозиторий — в корне `GuildMaster/` (вместе с `docs/` и `TechJob/`), удалённый — `https://github.com/unrealmohax/GuildMaster.git`. Git LFS включён для картинок, звука, моделей и шрифтов (см. `.gitattributes`).
 
-Чтобы отправить на сервер: создать пустой репозиторий (GitHub и т.п.), затем в корне `GuildMaster/`:
-
-```bash
-git remote add origin <адрес репозитория>
-git push -u origin main
-```
+Ветки: `main` — стабильная, `develop` — рабочая, задачи — `GM-XX_название` (правила — в корневом `CLAUDE.md`).
 
 `Library/`, `Logs/`, `UserSettings/`, `*.sln`, `*.csproj` исключены в `.gitignore`.

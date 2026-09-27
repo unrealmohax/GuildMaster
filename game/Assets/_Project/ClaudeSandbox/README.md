@@ -5,4 +5,50 @@
 
 ## Содержимое
 
-Пока пусто.
+### `Editor/GameDataGenerator*.cs` — генератор данных прототипа (GM-02)
+
+Меню **GuildMaster → Sandbox → Generate Game Data**. Заводит и заполняет все ассеты в `Assets/_Project/Data/`
+по документам (numbers.md, trait-effects.md, archetypes.md, quests.md, event-feed.md, ТЗ 04–14) и собирает `GameConfig`.
+
+- **Перезаписывает целиком** определения, шаблоны ленты, имена и тексты заказов — правки, сделанные руками
+  в этих ассетах, пропадут. После ручной правки данных генератор не запускать (или сначала перенести правку в него).
+- **`BalanceSettings` не перезаписывает**: числа в ассете остаются как есть; новые разделы, которых в ассете ещё нет,
+  получают стартовые значения из кода (поля по умолчанию) и сохраняются на диск.
+- Приватные поля ставит отражением: у классов данных нет сеттеров — и не должно быть.
+- Части: `GameDataGenerator.cs` — параметры, оси, черты, архетипы, типы заданий, события, постройки, персонал,
+  распоряжения; `.Dilemmas.cs` — дилеммы; `.Feed.cs` — шаблоны ленты; `.Texts.cs` — имена и тексты заказов (💡 предложение).
+- После запуска — **GuildMaster → Validate Data** (или тест `DataValidatorTests.RealConfig_HasNoErrors`).
+
+### `Editor/TimeProbe.cs` — время в Play Mode из меню (GM-03)
+
+Меню **GuildMaster → Sandbox → Time**: `Log State` (время, фаза, такты, пауза, скорость, кадр), `Toggle Pause`,
+`Speed 1/2/3`, `Debug Speed`. Нужен для проверки через MCP (`execute_menu_item`), где горячие клавиши не нажать.
+
+- Редактор без фокуса не крутит кадры Play Mode: в настройках проекта `runInBackground` выключен.
+  `Toggle Run In Background` включает его на время проверки. **В редакторе это меняет и `PlayerSettings` в памяти** —
+  перед выходом из Play Mode выключить тем же пунктом (в лог пишутся оба значения) и проверить, что
+  `ProjectSettings.asset` на диске не изменился.
+
+### `Editor/AdventurerProbe.cs` — люди гильдии из меню (GM-04)
+
+Меню **GuildMaster → Sandbox → Adventurers**: `Log Roster` (активные, кандидаты, отношения: параметры, оси с пометкой
+раскрытия `!`, черты с партнёром и пометкой «скрыта»), `Accept First Candidate`, `Reject First Candidate` — в Play Mode;
+`Preview Start Lineups` — стартовые шестёрки для зёрен 1–3 без Play Mode (симуляция в памяти, сцена не трогается).
+Пишет через `Debug.Log` — в MCP читать `read_console` с `types: ["all"]`.
+
+Там же (GM-05) — строка состояния у каждого: занятие, усталость, стресс, довольство, лояльность (числом и словами),
+кошелёк, долг, флаги, раны.
+
+### `Editor/StateProbe.cs` — состояние и здоровье из меню (GM-05)
+
+Меню **GuildMaster → Sandbox → State**: `Light Wound First`, `Heavy Wound First`, `Stress +50 First` — первому в гильдии,
+командой (как это будет вызывать ТЗ 11), в Play Mode; `Preview 90 Days` — 90 дней для зёрен 1–3 без Play Mode
+(симуляция в памяти, кандидаты принимаются): счётчики событий систем состояния и состояние каждого в конце.
+Пишет через `Debug.Log` — в MCP читать `read_console` с `types: ["all"]`.
+
+### `Editor/HeadlessProbe.cs` — прогон без интерфейса из меню (GM-06)
+
+Меню **GuildMaster → Sandbox → Headless**: `Year Seed 1 Debug`, `Year Seed 1 Trace` — год с ботом «Простой» в файлы;
+`Year Seeds 1-10 Info` — серия из 10 лет (зёрна 1–10) со свёрткой. То же, что кнопка окна **Run Headless…**, но без
+окна — для проверки через MCP (`execute_menu_item`). Файлы — в `Logs/` проекта (папка в `.gitignore`), пути и время —
+в консоль (`read_console` с `types: ["all"]`). После проверки файлы прогона (`sim_*`, `summary_*`, `scenario_*`) удалить.
