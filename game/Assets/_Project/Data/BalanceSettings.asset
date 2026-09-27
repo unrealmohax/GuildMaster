@@ -473,6 +473,8 @@ MonoBehaviour:
     tavernRest: 0.3
     tavernComfortBonus: 0.2
     daytimeTavernStress: 60
+    maxReasons: 3
+    recentBreakdownDays: 30
     partnerOverlapGainWeight: 3
     partnerRelationDivisor: 100
     partnerFriendBonus: 0.3

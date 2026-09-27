@@ -80,6 +80,13 @@ namespace GuildMaster.Data
         [Tooltip("Днём в таверну — только Пьяница или стресс выше")]
         [SerializeField, Range(0f, 100f)] private float daytimeTavernStress = 60f;
 
+        [Header("Причины решения")]
+        [Tooltip("Сколько главных причин записывать у решения")]
+        [SerializeField, Min(1)] private int maxReasons = 3;
+
+        [Tooltip("Причина «тяжело после срыва»: срыв был не раньше стольких дней назад")]
+        [SerializeField, Min(0)] private int recentBreakdownDays = 30;
+
         [Header("Оценка напарника")]
         [Tooltip("Прирост воспринимаемого перекрытия ×")]
         [SerializeField] private float partnerOverlapGainWeight = 3f;
@@ -151,6 +158,8 @@ namespace GuildMaster.Data
         public float TavernRest => tavernRest;
         public float TavernComfortBonus => tavernComfortBonus;
         public float DaytimeTavernStress => daytimeTavernStress;
+        public int MaxReasons => maxReasons;
+        public int RecentBreakdownDays => recentBreakdownDays;
         public float PartnerOverlapGainWeight => partnerOverlapGainWeight;
         public float PartnerRelationDivisor => partnerRelationDivisor;
         public float PartnerFriendBonus => partnerFriendBonus;

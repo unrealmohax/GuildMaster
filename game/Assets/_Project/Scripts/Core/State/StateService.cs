@@ -73,6 +73,7 @@ namespace GuildMaster.Core
                 if (kind == BreakdownKind.Binge || kind == BreakdownKind.Collapse) state.SkipsDayUntilHours = 0;
             }
 
+            state.LastBreakdownAtHours = now;
             float stressBefore = state.Stress;
             state.Stress = StateRules.Clamp(state.Stress + balance.StressAfterBreakdown);
 

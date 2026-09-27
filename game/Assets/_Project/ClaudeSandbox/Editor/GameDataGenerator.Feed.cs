@@ -225,7 +225,27 @@ namespace GuildMaster.ClaudeSandbox
             // Правка: «пришла новичок» — в женском роде «новенькая».
             t.Add(Guild("guild.adventurer.joined", O, None, "В гильдию приш[ёл новичок|ла новенькая] — {имя}"));
             t.Add(Guild("guild.adventurer.leaving", Z, None, "{имя} собрал[|а] вещи. Говорит, хватит"));
-            t.Add(Guild("guild.adventurer.left", V, None, "{имя} уш[ёл|ла] из гильдии"));
+            // Правка: причина ухода видна игроку — {причина} (тексты причин ниже).
+            t.Add(Guild("guild.adventurer.left", V, None, "{имя} уш[ёл|ла] из гильдии: {причина}"));
+
+            // ===== Причины ухода (TechJob/08-decision-model.md → «Причины»): не строки ленты, а текст для {причина} =====
+            // Шаблон с условием «черта раскрыта» называет черту; без него — текст без черты.
+
+            t.Add(Guild("reason.lowLoyalty", O, None, "ничто [его|её]@имя здесь не держит"));
+            t.Add(Guild("reason.emptyWallet", O, None, "пустой кошелёк"));
+            t.Add(Guild("reason.lowPay", O, None, "мало платят для [его|её]@имя ранга"));
+            t.Add(Guild("reason.lowPay", O, IfPole(AxisId.Money, AxisPole.Positive), "жадн[ый|ая]@имя — мало платят"));
+            t.Add(Guild("reason.glory", O, None, "здесь не вырасти"));
+            t.Add(Guild("reason.glory", O, IfPole(AxisId.Work, AxisPole.Positive), "амбициозн[ый|ая]@имя — здесь не вырасти"));
+            t.Add(Guild("reason.danger", O, None, "слишком опасно, по [его|её]@имя мнению"));
+            t.Add(Guild("reason.danger", O, IfPole(AxisId.Risk, AxisPole.Negative), "[трус|трусиха]@имя — не пойдёт на такое"));
+            t.Add(Guild("reason.wounded", O, None, "рана ещё не зажила"));
+            t.Add(Guild("reason.companions", O, None, "не с кем здесь быть"));
+            t.Add(Guild("reason.companions", O, IfPole(AxisId.People, AxisPole.Positive), "командн[ый|ая]@имя — не с кем здесь быть"));
+            t.Add(Guild("reason.tired", O, None, "устал[|а]@имя"));
+            t.Add(Guild("reason.hardAfterWound", O, None, "тяжело после ранения"));
+            t.Add(Guild("reason.hardAfterBreakdown", O, None, "тяжело после срыва"));
+            t.Add(Guild("reason.heavyHeart", O, None, "тяжело на душе"));
 
             t.Add(Guild("guild.decree.enabled", O, None, "Объявлено: {распоряжение}"));
             t.Add(Guild("guild.decree.benefitCancelled", Z, None, "Новость об отмене {распоряжение:р} встретили молча"));
@@ -329,6 +349,9 @@ namespace GuildMaster.ClaudeSandbox
 
         private static FeedCondition[] IfType(QuestTypeDefinition questType) =>
             new[] { Make<FeedCondition>(("kind", FeedConditionKind.QuestType), ("questType", questType)) };
+
+        private static FeedCondition[] IfPole(AxisId axis, AxisPole pole) =>
+            new[] { Make<FeedCondition>(("kind", FeedConditionKind.RevealedAxisPole), ("axis", axis), ("pole", pole)) };
 
         private static FeedCondition[] IfStat(StatId stat) =>
             new[] { Make<FeedCondition>(("kind", FeedConditionKind.MaimedStat), ("stat", stat)) };

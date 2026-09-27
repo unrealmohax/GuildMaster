@@ -10,7 +10,8 @@ namespace GuildMaster.Core
     /// <item>Раз в сутки (00:00), по каждому в гильдии: расходы на жизнь за прошедшие сутки (еда, жильё); довольство — к цели
     /// на 1; лояльность — к довольству на 0,1 (ось «Верность»); учёт суток сбрасывается; срыв при стрессе выше 80
     /// (шанс 10%, вид — по чертам); конец спада «Потерявшего товарища».</item>
-    /// <item>В начале месяца — проверка ухода: лояльность ниже 25 — шанс 20% (Семейный × 1,5). Уход — [В], автопауза.</item>
+    /// <item>В начале месяца — проверка ухода: лояльность ниже 25 — шанс 20% (Семейный × 1,5). Уход — [В], автопауза, с причинами
+    /// из мотивов и состояния.</item>
     /// </list>
     /// Люди на задании в суточных срывах и проверке ухода не участвуют.
     /// </summary>
@@ -85,7 +86,11 @@ namespace GuildMaster.Core
             TraitService.TryRemove(ctx, adventurer, grieving.TraitId);
         }
 
-        /// <summary>Ежемесячная проверка ухода. Причина — «низкая лояльность».</summary>
+        /// <summary>
+        /// Ежемесячная проверка ухода. У каждого, кто в неё попал, — причины из мотивов и состояния (<see cref="LeaveReasons"/>):
+        /// если главная — деньги, раскрывается Наёмник, даже если человек останется. Уход — важное решение: причины видны
+        /// игроку текстом, скрытые черты не называются.
+        /// </summary>
         private static void CheckLeaving(SimContext ctx)
         {
             StateBalance balance = ctx.Data.Balance.State;
@@ -93,23 +98,23 @@ namespace GuildMaster.Core
             {
                 if (adventurer.State.Loyalty >= balance.LeaveCheckThreshold || adventurer.State.IsOnQuest()) continue;
 
+                List<LeaveCause> causes = LeaveReasons.Of(adventurer, ctx.Data, ctx.World.Time.TotalHours, ctx.Calendar);
+                if (LeaveReasons.IsMoney(causes[0])) RevealService.TryRevealAxis(ctx, adventurer, AxisId.Loyalty, RevealTrigger.MercenaryLeaveCheck);
+
                 float chance = balance.LeaveChance;
                 if (TraitRules.FindWithHook(adventurer, TraitHook.FamilyLeaveChance, ctx.Data) != null)
                     chance *= ctx.Data.Balance.Traits.FamilyLeaveChanceMultiplier;
                 if (!ctx.RollChance(chance, "leave", adventurer, "loyalty", adventurer.State.Loyalty)) continue;
 
                 float loyalty = adventurer.State.Loyalty;
+                string reason = LeaveReasons.Text(ctx, adventurer, causes);
                 AdventurerLifecycle.Retire(ctx, adventurer, LeaveReason.Left);
                 ctx.Events.Publish(SimEventType.AdventurerLeft, EventImportance.Important, adventurer.Id)
-                    .With("cause", LeaveCause.LowLoyalty)
-                    .With("loyalty", loyalty);
+                    .With("cause", causes[0])
+                    .With("causes", string.Join(",", causes))
+                    .With("loyalty", loyalty)
+                    .With("reason", reason);
             }
         }
-    }
-
-    /// <summary>Почему человек ушёл сам.</summary>
-    public enum LeaveCause
-    {
-        LowLoyalty,
     }
 }

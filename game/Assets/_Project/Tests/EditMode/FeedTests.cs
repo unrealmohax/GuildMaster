@@ -195,7 +195,8 @@ namespace GuildMaster.Tests
                     .Set("решающий", TextValue.Person(subject.Nominative, subject, gender))
                     .Set("число", TextValue.Number(2)).Set("всего", TextValue.Number(4)).Set("сумма", TextValue.Number(50))
                     .Set("доход", TextValue.Number(300)).Set("расход", TextValue.Number(200))
-                    .Set("архетип", TextValue.Word(gender == Gender.Male ? "Разведчик" : "Разведчица"));
+                    .Set("архетип", TextValue.Word(gender == Gender.Male ? "Разведчик" : "Разведчица"))
+                    .Set("причина", TextValue.Word("устал"));
                 foreach (string label in NounLabels) source.Set(label, TextValue.Noun(TestNoun(label, label == "группа" ? GrammaticalGender.Feminine : nounGender)));
 
                 var errors = new List<string>();
@@ -362,7 +363,8 @@ namespace GuildMaster.Tests
             using (var world = new StateWorld())
             {
                 Adventurer yan = AddNamed(world, "Ян", Gender.Male);
-                FeedEntry entry = Publish(world, ctx => ctx.Events.Publish(type, importance, yan.Id));
+                // Причина ухода — текст из события; остальным событиям лишнее поле не мешает.
+                FeedEntry entry = Publish(world, ctx => ctx.Events.Publish(type, importance, yan.Id).With("reason", "устал"));
 
                 Assert.AreEqual(importance, entry.Importance);
                 Assert.AreEqual(FeedKind.Guild, entry.Feed);
@@ -540,7 +542,7 @@ namespace GuildMaster.Tests
             {
                 FeedEntry entry = Publish(world, ctx => ctx.Events.Publish(SimEventType.AdventurerLeft, EventImportance.Important));
 
-                Assert.AreEqual("{имя} ушёл из гильдии", entry.Text);
+                Assert.AreEqual("{имя} ушёл из гильдии: {причина}", entry.Text);
                 StringAssert.Contains("[FeedSystem] [Error] feed guild.adventurer.left: метка {имя} без источника", writer.ToString());
             }
         }

@@ -228,6 +228,7 @@ namespace GuildMaster.Tests
         {
             world = new StateWorld();
             world.Data.Set("health.complicationChance", 0f);
+            world.Data.Set("decisions.bestChoiceChance", 1f); // вечером — всегда в таверну (лучший вариант)
             Adventurer adventurer = world.Add();
             Condition condition = Wound(world, adventurer, ConditionKind.HeavyWound);
 
@@ -236,7 +237,7 @@ namespace GuildMaster.Tests
             Assert.AreEqual(adventurer.Id, healed.Participants[0]);
             Assert.AreEqual(EventImportance.Normal, healed.Importance);
 
-            world.TickToHour(world.Balance.Time.EveningHour);
+            world.TickToHour(world.Balance.Time.EveningHour + 1); // решение в начале вечера — таверна со следующего часа
             Assert.AreEqual(Activity.Tavern, adventurer.State.Activity);
         }
     }

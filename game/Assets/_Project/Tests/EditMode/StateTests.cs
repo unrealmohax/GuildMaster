@@ -83,9 +83,11 @@ namespace GuildMaster.Tests
         }
 
         [Test]
-        public void Schedule_NightSleep_DayRest_EveningTavern()
+        public void Schedule_NightSleep_DecisionTakesEffectNextHour()
         {
+            // Ровный человек с деньгами: днём таверна ему запрещена, вечером лучший вариант — таверна; выбор всегда лучший.
             world = new StateWorld();
+            world.Data.Set("decisions.bestChoiceChance", 1f);
             Adventurer adventurer = world.Add();
             TimeBalance time = world.Balance.Time;
 
@@ -99,7 +101,7 @@ namespace GuildMaster.Tests
             for (int hour = 0; hour < 24; hour++)
             {
                 Activity expected = hour >= time.NightHour || hour < time.MorningHour ? Activity.Sleeping
-                    : hour >= time.EveningHour ? Activity.Tavern
+                    : hour > time.EveningHour ? Activity.Tavern // решение в начале вечера действует со следующего часа
                     : Activity.Resting;
                 Assert.AreEqual(expected, byHour[hour], $"{hour}:00");
             }
@@ -310,6 +312,7 @@ namespace GuildMaster.Tests
         public void Contentment_MovesToTargetByOneADay()
         {
             world = new StateWorld();
+            world.Data.Set("decisions.bestChoiceChance", 1f); // вечером — всегда в таверну (лучший вариант)
             Adventurer rich = world.Add();       // город −10, ест в таверне +5 → цель 45
             Adventurer poor = world.Add();       // город −10, кошелёк меньше недели — не ест в таверне → цель 40
             poor.State.Wallet = 20;

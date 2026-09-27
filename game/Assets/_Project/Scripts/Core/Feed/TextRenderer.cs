@@ -11,7 +11,8 @@ namespace GuildMaster.Core
     /// <item><c>[м|ж]</c> — форма по роду человека: ближайшего предыдущего человека-метки в том же предложении,
     /// а если перед скобкой его нет — ближайшего следующего.</item>
     /// <item><c>[м|ж]@имя</c> — явная привязка к метке. Названия — только с привязкой и тремя-четырьмя формами
-    /// <c>[м|ж|ср|мн]@постройка</c>; нужной формы нет — мужская.</item>
+    /// <c>[м|ж|ср|мн]@постройка</c>; нужной формы нет — мужская. Метки нет в строке — род берётся из источника
+    /// (текст, который потом встаёт в другую строку: «жадн[ый|ая]@имя — мало платят»).</item>
     /// </list>
     /// Метка без источника остаётся в строке как есть, скобка без владельца — мужская форма; обе — ошибка в списке.
     /// Значение в начале предложения пишется с заглавной буквы.
@@ -84,7 +85,7 @@ namespace GuildMaster.Core
                         sentenceStart = false;
                         break;
                     case TokenKind.Bracket:
-                        string form = BracketForm(tokens, i, template, errors);
+                        string form = BracketForm(tokens, i, template, source, errors);
                         result.Append(form);
                         sentenceStart = UpdateSentenceStart(sentenceStart, form);
                         break;
@@ -103,7 +104,7 @@ namespace GuildMaster.Core
             return sentenceStart;
         }
 
-        private static string BracketForm(List<Token> tokens, int index, string template, List<string> errors)
+        private static string BracketForm(List<Token> tokens, int index, string template, ITextSource source, List<string> errors)
         {
             Token bracket = tokens[index];
             string[] forms = bracket.Forms;
@@ -112,6 +113,7 @@ namespace GuildMaster.Core
             if (bracket.Owner != null)
             {
                 owner = FindLabel(tokens, bracket.Owner);
+                if (owner == null && !HasLabel(tokens, bracket.Owner) && source.TryGet(bracket.Owner, out TextValue outside)) owner = outside;
                 if (owner == null)
                 {
                     if (!HasLabel(tokens, bracket.Owner)) errors?.Add($"{bracket.Text}: метки {{{bracket.Owner}}} в строке нет: «{template}»");

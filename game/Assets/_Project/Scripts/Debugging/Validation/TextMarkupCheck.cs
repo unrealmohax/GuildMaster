@@ -16,7 +16,10 @@ namespace GuildMaster.Debugging
         private static readonly Regex GenderBracket = new Regex(@"\[([^\[\]]*)\](?:@(\w+))?");
         private static readonly char[] SentenceEnds = { '.', '!', '?', '…' };
 
-        public static void Run(string text, bool allowDilemmaOnly, Object asset, string path, DataValidationReport report)
+        /// <param name="ownerOutside">Привязка <c>@метка</c> может указывать на метку вне строки: текст встаёт в другую строку,
+        /// а род берётся из источника (тексты причин ухода).</param>
+        public static void Run(string text, bool allowDilemmaOnly, Object asset, string path, DataValidationReport report,
+            bool ownerOutside = false)
         {
             if (string.IsNullOrEmpty(text)) return;
 
@@ -47,7 +50,7 @@ namespace GuildMaster.Debugging
                     report.Error(asset, path, $"{match.Value}: после @ нужна метка с родом — человек или название: «{text}»");
                     continue;
                 }
-                if (owner != null && !text.Contains("{" + owner))
+                if (owner != null && !ownerOutside && !text.Contains("{" + owner))
                     report.Error(asset, path, $"{match.Value}: метки {{{owner}}} в строке нет: «{text}»");
 
                 bool person = owner == null || TextPlaceholders.IsPerson(owner);

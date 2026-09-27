@@ -172,8 +172,10 @@ namespace GuildMaster.Tests
                 foreach (Adventurer adventurer in stressed) adventurer.State.Stress = 60f;
 
                 world.TickToHour(world.Balance.Time.DayHour + 1);
-                calmSkips += calm.Count(a => a.State.Activity == Activity.Tavern);
-                stressedSkips += stressed.Count(a => a.State.Activity == Activity.Tavern);
+                // Днём в таверну Пьяница ходит и по своему решению — считаем именно пропуск дня.
+                long now = world.Time.TotalHours;
+                calmSkips += calm.Count(a => now < a.State.SkipsDayUntilHours);
+                stressedSkips += stressed.Count(a => now < a.State.SkipsDayUntilHours);
             }
 
             int trials = 30 * days;

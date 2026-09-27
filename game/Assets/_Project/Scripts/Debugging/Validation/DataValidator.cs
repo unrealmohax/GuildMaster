@@ -515,9 +515,10 @@ namespace GuildMaster.Debugging
                     string path = $"templates[{i}] «{template.Key}»";
                     if (string.IsNullOrWhiteSpace(template.Key)) report.Error(feed, path, "нет ключа");
                     if (template.Variants.Count == 0) report.Error(feed, path, "нет вариантов строки");
+                    bool isReason = LeaveReasons.Keys.Contains(template.Key); // текст встаёт в строку ухода, {имя} — там
                     for (int v = 0; v < template.Variants.Count; v++)
                     {
-                        TextMarkupCheck.Run(template.Variants[v], false, feed, $"{path} variants[{v}]", report);
+                        TextMarkupCheck.Run(template.Variants[v], false, feed, $"{path} variants[{v}]", report, isReason);
                     }
                     CheckConditions(feed, path, template.Conditions);
                 }
@@ -525,6 +526,10 @@ namespace GuildMaster.Debugging
                 foreach (string key in FeedKeys.Fixed)
                 {
                     if (!feedKeys.Contains(key)) report.Error(feed, "templates", $"нет шаблона «{key}»: его строку даёт событие симуляции");
+                }
+                foreach (string key in LeaveReasons.Keys)
+                {
+                    if (!feedKeys.Contains(key)) report.Error(feed, "templates", $"нет шаблона «{key}»: это текст причины ухода");
                 }
             }
 

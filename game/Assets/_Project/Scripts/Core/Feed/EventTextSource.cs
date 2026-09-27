@@ -13,6 +13,7 @@ namespace GuildMaster.Core
     /// <item>Названия — в данных события под ключами <c>party</c>, <c>place</c>, <c>enemy</c>, <c>client</c>, <c>cargo</c>,
     /// <c>decree</c>, <c>building</c>: <see cref="NounForms"/>, <see cref="TextValue"/> или строка.</item>
     /// <item>Числа — под ключами <c>count</c>, <c>total</c>, <c>amount</c>, <c>income</c>, <c>expense</c>.</item>
+    /// <item><c>{причина}</c> — текст причин ухода, строка в данных события под ключом <c>reason</c>.</item>
     /// <item><c>{архетип}</c> — название архетипа в роде первого участника: id из данных события (<c>to</c>, <c>archetype</c>)
     /// или текущий архетип человека.</item>
     /// </list>
@@ -41,6 +42,7 @@ namespace GuildMaster.Core
                 ["доход"] = s => s.NumberFromPayload("income"),
                 ["расход"] = s => s.NumberFromPayload("expense"),
                 ["архетип"] = s => s.Archetype(),
+                ["причина"] = s => s.NounFromPayload("reason"),
             };
 
         private readonly SimEvent simEvent;

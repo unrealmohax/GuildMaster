@@ -98,7 +98,8 @@ namespace GuildMaster.Tests
             string numbers = $"no log {none * 1000:0} ms; Info {info * 1000:0} ms, {lines[1]} lines; Trace {trace * 1000:0} ms, {lines[2]} lines";
             TestContext.WriteLine(numbers);
 
-            Assert.That(lines[2], Is.GreaterThan(lines[1] * 10), numbers);
+            // На Info — решения людей (по строке на решение), на Trace — ещё и оценки каждого варианта: разница в разы.
+            Assert.That(lines[2], Is.GreaterThan(lines[1] * 4), numbers);
             Assert.That(info, Is.LessThan(trace), numbers);
             Assert.That(info - none, Is.LessThan((trace - none) / 2), "на Info строки Trace не строятся: " + numbers);
         }

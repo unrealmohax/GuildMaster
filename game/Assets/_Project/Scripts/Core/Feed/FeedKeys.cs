@@ -24,6 +24,7 @@ namespace GuildMaster.Core
         public const string BreakdownBrawlAlone = "guild.breakdown.brawlAlone";
         public const string BreakdownRefuse = "guild.breakdown.refuse";
         public const string BreakdownCollapse = "guild.breakdown.collapse";
+        public const string Quarrel = "guild.relation.quarrel";
 
         /// <summary>Ключи, которые события дают всегда (не из данных) — их шаблоны обязаны быть в данных.</summary>
         public static IReadOnlyList<string> Fixed { get; } = new[]
@@ -31,6 +32,7 @@ namespace GuildMaster.Core
             CandidateArrived, CandidateLeft, AdventurerJoined, ArchetypeChanged, AdventurerLeft, WalletEmptied,
             Recovered, WoundComplicated,
             BreakdownBinge, BreakdownBrawl, BreakdownBrawlAlone, BreakdownRefuse, BreakdownCollapse,
+            Quarrel,
         };
 
         private static readonly Dictionary<SimEventType, Func<SimEvent, WorldState, DataRegistry, string>> Keys =
@@ -48,6 +50,7 @@ namespace GuildMaster.Core
                 { SimEventType.WalletEmptied, (e, w, d) => WalletEmptied },
                 { SimEventType.WoundHealed, Healed },
                 { SimEventType.WoundComplicated, (e, w, d) => WoundComplicated },
+                { SimEventType.Quarrel, (e, w, d) => Quarrel },
             };
 
         /// <summary>Ключ строки события; <c>null</c> — событие строки не даёт.</summary>

@@ -30,6 +30,8 @@ namespace GuildMaster.Debugging
             new MonthColumn("Лояльность", m => Average(m, a => a.State.Loyalty), SummaryTotal.Mean),
             new MonthColumn("Кошелёк", m => Average(m, a => a.State.Wallet), SummaryTotal.Mean),
             new MonthColumn("Пустых кошельков", m => CountActive(m, a => a.State.IsWalletEmpty), SummaryTotal.Last, "0"),
+            new MonthColumn("Отдых, %", m => m.ActivityShare(Activity.Resting), SummaryTotal.Mean, "0.#"),
+            new MonthColumn("Таверна, %", m => m.ActivityShare(Activity.Tavern), SummaryTotal.Mean, "0.#"),
             new MonthColumn("Лента [О]", m => m.FeedLines(EventImportance.Normal), SummaryTotal.Sum, "0"),
             new MonthColumn("Лента [З]", m => m.FeedLines(EventImportance.Notable), SummaryTotal.Sum, "0"),
             new MonthColumn("Лента [В]", m => m.FeedLines(EventImportance.Important), SummaryTotal.Sum, "0"),

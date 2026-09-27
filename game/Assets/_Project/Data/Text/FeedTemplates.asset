@@ -642,7 +642,125 @@ MonoBehaviour:
     importance: 2
     conditions: []
     variants:
-    - "{\u0438\u043C\u044F} \u0443\u0448[\u0451\u043B|\u043B\u0430] \u0438\u0437 \u0433\u0438\u043B\u044C\u0434\u0438\u0438"
+    - "{\u0438\u043C\u044F} \u0443\u0448[\u0451\u043B|\u043B\u0430] \u0438\u0437 \u0433\u0438\u043B\u044C\u0434\u0438\u0438: {\u043F\u0440\u0438\u0447\u0438\u043D\u0430}"
+  - key: reason.lowLoyalty
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u043D\u0438\u0447\u0442\u043E [\u0435\u0433\u043E|\u0435\u0451]@\u0438\u043C\u044F \u0437\u0434\u0435\u0441\u044C \u043D\u0435 \u0434\u0435\u0440\u0436\u0438\u0442"
+  - key: reason.emptyWallet
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u043F\u0443\u0441\u0442\u043E\u0439 \u043A\u043E\u0448\u0435\u043B\u0451\u043A"
+  - key: reason.lowPay
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u043C\u0430\u043B\u043E \u043F\u043B\u0430\u0442\u044F\u0442 \u0434\u043B\u044F [\u0435\u0433\u043E|\u0435\u0451]@\u0438\u043C\u044F \u0440\u0430\u043D\u0433\u0430"
+  - key: reason.lowPay
+    feed: 1
+    importance: 0
+    conditions:
+    - kind: 6
+      archetype: {fileID: 0}
+      questType: {fileID: 0}
+      axis: 1
+      pole: 1
+      trait: {fileID: 0}
+      stat: 0
+    variants:
+    - "\u0436\u0430\u0434\u043D[\u044B\u0439|\u0430\u044F]@\u0438\u043C\u044F \u2014 \u043C\u0430\u043B\u043E \u043F\u043B\u0430\u0442\u044F\u0442"
+  - key: reason.glory
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u0437\u0434\u0435\u0441\u044C \u043D\u0435 \u0432\u044B\u0440\u0430\u0441\u0442\u0438"
+  - key: reason.glory
+    feed: 1
+    importance: 0
+    conditions:
+    - kind: 6
+      archetype: {fileID: 0}
+      questType: {fileID: 0}
+      axis: 3
+      pole: 1
+      trait: {fileID: 0}
+      stat: 0
+    variants:
+    - "\u0430\u043C\u0431\u0438\u0446\u0438\u043E\u0437\u043D[\u044B\u0439|\u0430\u044F]@\u0438\u043C\u044F \u2014 \u0437\u0434\u0435\u0441\u044C \u043D\u0435 \u0432\u044B\u0440\u0430\u0441\u0442\u0438"
+  - key: reason.danger
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u0441\u043B\u0438\u0448\u043A\u043E\u043C \u043E\u043F\u0430\u0441\u043D\u043E, \u043F\u043E [\u0435\u0433\u043E|\u0435\u0451]@\u0438\u043C\u044F \u043C\u043D\u0435\u043D\u0438\u044E"
+  - key: reason.danger
+    feed: 1
+    importance: 0
+    conditions:
+    - kind: 6
+      archetype: {fileID: 0}
+      questType: {fileID: 0}
+      axis: 0
+      pole: 0
+      trait: {fileID: 0}
+      stat: 0
+    variants:
+    - "[\u0442\u0440\u0443\u0441|\u0442\u0440\u0443\u0441\u0438\u0445\u0430]@\u0438\u043C\u044F \u2014 \u043D\u0435 \u043F\u043E\u0439\u0434\u0451\u0442 \u043D\u0430 \u0442\u0430\u043A\u043E\u0435"
+  - key: reason.wounded
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u0440\u0430\u043D\u0430 \u0435\u0449\u0451 \u043D\u0435 \u0437\u0430\u0436\u0438\u043B\u0430"
+  - key: reason.companions
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u043D\u0435 \u0441 \u043A\u0435\u043C \u0437\u0434\u0435\u0441\u044C \u0431\u044B\u0442\u044C"
+  - key: reason.companions
+    feed: 1
+    importance: 0
+    conditions:
+    - kind: 6
+      archetype: {fileID: 0}
+      questType: {fileID: 0}
+      axis: 2
+      pole: 1
+      trait: {fileID: 0}
+      stat: 0
+    variants:
+    - "\u043A\u043E\u043C\u0430\u043D\u0434\u043D[\u044B\u0439|\u0430\u044F]@\u0438\u043C\u044F \u2014 \u043D\u0435 \u0441 \u043A\u0435\u043C \u0437\u0434\u0435\u0441\u044C \u0431\u044B\u0442\u044C"
+  - key: reason.tired
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u0443\u0441\u0442\u0430\u043B[|\u0430]@\u0438\u043C\u044F"
+  - key: reason.hardAfterWound
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u0442\u044F\u0436\u0435\u043B\u043E \u043F\u043E\u0441\u043B\u0435 \u0440\u0430\u043D\u0435\u043D\u0438\u044F"
+  - key: reason.hardAfterBreakdown
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u0442\u044F\u0436\u0435\u043B\u043E \u043F\u043E\u0441\u043B\u0435 \u0441\u0440\u044B\u0432\u0430"
+  - key: reason.heavyHeart
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u0442\u044F\u0436\u0435\u043B\u043E \u043D\u0430 \u0434\u0443\u0448\u0435"
   - key: guild.decree.enabled
     feed: 1
     importance: 0

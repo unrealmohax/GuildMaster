@@ -89,6 +89,7 @@ namespace GuildMaster.ClaudeSandbox
             source.Values["доход"] = TextValue.Number(300);
             source.Values["расход"] = TextValue.Number(200);
             source.Values["архетип"] = TextValue.Word(female ? "Разведчица" : "Разведчик");
+            source.Values["причина"] = TextValue.Word("пустой кошелёк, устал");
             foreach (string label in NounLabels)
             {
                 GrammaticalGender gender = label == "группа" ? GrammaticalGender.Feminine : nounGender;

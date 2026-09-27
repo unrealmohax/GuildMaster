@@ -23,9 +23,14 @@ namespace GuildMaster.Debugging
         private readonly Dictionary<SimEventType, int> counts;
 
         private readonly long[] feedLines;
+        private readonly long[] activityHours;
+        private readonly long personHours;
 
-        internal MonthRecord(int year, int month, int days, ISimulationClient game, Dictionary<SimEventType, int> counts, long[] feedLines)
+        internal MonthRecord(int year, int month, int days, ISimulationClient game, Dictionary<SimEventType, int> counts, long[] feedLines,
+            long[] activityHours, long personHours)
         {
+            this.activityHours = activityHours;
+            this.personHours = personHours;
             Year = year;
             Month = month;
             Days = days;
@@ -48,6 +53,10 @@ namespace GuildMaster.Debugging
 
         /// <summary>Сколько строк этой важности добавлено в ленту гильдии за месяц.</summary>
         public long FeedLines(EventImportance importance) => feedLines[(int)importance];
+
+        /// <summary>Доля часов людей в гильдии за месяц (со сном), проведённых за этим занятием, %; людей не было — 0.</summary>
+        public double ActivityShare(Activity activity) =>
+            personHours > 0 ? 100.0 * activityHours[(int)activity] / personHours : 0;
     }
 
     /// <summary>Что видит столбец человека: сам человек (в гильдии или в архиве) и события, где он первый участник.</summary>
@@ -196,6 +205,8 @@ namespace GuildMaster.Debugging
         private readonly Dictionary<int, List<SimEvent>> personEvents = new Dictionary<int, List<SimEvent>>();
         private readonly long[] feedAtMonthStart = new long[Enum.GetValues(typeof(EventImportance)).Length];
         private long monthTicks;
+        private long[] activityHours = new long[Enum.GetValues(typeof(Activity)).Length];
+        private long personHours;
 
         public SummaryRecorder(Simulation simulation, IReadOnlyList<MonthColumn> monthColumns = null, IReadOnlyList<PersonColumn> personColumns = null)
         {
@@ -234,6 +245,11 @@ namespace GuildMaster.Debugging
         private void OnTick(IReadOnlyList<SimEvent> events)
         {
             monthTicks++;
+            foreach (Adventurer adventurer in simulation.World.Adventurers.Active)
+            {
+                activityHours[(int)adventurer.State.Activity]++;
+                personHours++;
+            }
             foreach (SimEvent simEvent in events)
             {
                 monthCounts.TryGetValue(simEvent.Type, out int count);
@@ -262,13 +278,15 @@ namespace GuildMaster.Debugging
                 feedLines[i] = total - feedAtMonthStart[i];
                 feedAtMonthStart[i] = total;
             }
-            var record = new MonthRecord(time.Year, time.Month, days, simulation, monthCounts, feedLines);
+            var record = new MonthRecord(time.Year, time.Month, days, simulation, monthCounts, feedLines, activityHours, personHours);
             var values = new double[monthColumns.Count];
             for (int c = 0; c < values.Length; c++) values[c] = monthColumns[c].Value(record);
 
             months.Add(new MonthRow(time.Year, time.Month, days, values));
             monthCounts.Clear();
             monthTicks = 0;
+            activityHours = new long[activityHours.Length];
+            personHours = 0;
         }
     }
 }

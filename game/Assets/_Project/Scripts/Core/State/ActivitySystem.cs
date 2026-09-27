@@ -3,16 +3,17 @@ using GuildMaster.Data;
 namespace GuildMaster.Core
 {
     /// <summary>
-    /// Шаг 5 такта: занятия людей в гильдии и их расходы. Занятие задаёт расписание по фазам дня,
-    /// первое подходящее:
+    /// Шаг 5 такта: занятия людей в гильдии и их расходы. Занятие — первое подходящее:
     /// <list type="number">
     /// <item>на задании — не трогает;</item>
     /// <item>срыв: запой — <see cref="Activity.Binge"/>, «сел и не смог подняться» — <see cref="Activity.Resting"/>, весь срок;</item>
     /// <item>ночь — <see cref="Activity.Sleeping"/>;</item>
     /// <item>койка в Лазарете — <see cref="Activity.Infirmary"/>; тяжёлая рана — <see cref="Activity.Resting"/>;</item>
     /// <item>Пьяница, пропускающий день, — <see cref="Activity.Tavern"/> с утра;</item>
-    /// <item>вечер — <see cref="Activity.Tavern"/>, утро и день — <see cref="Activity.Resting"/>.</item>
+    /// <item>иначе человек свободен: занятие, выбранное решением в прошлом часу (<see cref="AdventurerState.PlannedActivity"/>),
+    /// иначе прежнее свободное занятие (отдых, таверна, тренировка); после сна, срыва, Лазарета — <see cref="Activity.Resting"/>.</item>
     /// </list>
+    /// Выбранное решением занятие ставится только здесь, поэтому за час решения показатели считаются по прежнему занятию.
     /// Расходы занятия — раз в сутки, в первый его час: таверна — выпивка 2–5 (если стресс выше 30 или Пьяница) и еда
     /// в таверне (если кошелёк не меньше расходов на неделю; платится в 00:00); запой — выпивка <c>bingeDrinkPerDay</c>;
     /// Лазарет — <c>infirmary</c>. Утром Пьяница может пропустить день (10%, при стрессе выше 50 — 20%).
@@ -41,12 +42,13 @@ namespace GuildMaster.Core
 
                 if (morning) TrySkipDay(ctx, adventurer);
 
-                state.Activity = Schedule(ctx, state, phase, now);
+                state.Activity = Schedule(state, phase, now);
+                state.PlannedActivity = null;
                 PayForActivity(ctx, adventurer);
             }
         }
 
-        private static Activity Schedule(SimContext ctx, AdventurerState state, DayPhase phase, long now)
+        private static Activity Schedule(AdventurerState state, DayPhase phase, long now)
         {
             if (state.Breakdown == BreakdownKind.Binge) return Activity.Binge;
             if (state.Breakdown == BreakdownKind.Collapse) return Activity.Resting;
@@ -54,8 +56,13 @@ namespace GuildMaster.Core
             if (state.InInfirmary) return Activity.Infirmary;
             if (state.HasHeavyWound()) return Activity.Resting;
             if (now < state.SkipsDayUntilHours) return Activity.Tavern;
-            return phase == DayPhase.Evening ? Activity.Tavern : Activity.Resting;
+            if (state.PlannedActivity.HasValue) return state.PlannedActivity.Value;
+            return IsFreeTime(state.Activity) ? state.Activity : Activity.Resting;
         }
+
+        /// <summary>Занятие свободного человека, которое держится до следующего решения.</summary>
+        public static bool IsFreeTime(Activity activity) =>
+            activity == Activity.Resting || activity == Activity.Tavern || activity == Activity.Training;
 
         /// <summary>Пьяница утром: шанс провести день в таверне. Раскрывает черту («Пропущенный день»).</summary>
         private static void TrySkipDay(SimContext ctx, Adventurer adventurer)
@@ -84,7 +91,7 @@ namespace GuildMaster.Core
                 case Activity.Tavern:
                     if (!state.AteInTavernToday && state.Wallet >= WalletService.WeeklyExpenses(adventurer, expenses))
                         state.AteInTavernToday = true;
-                    if (!state.DrankToday && WantsToDrink(ctx, adventurer))
+                    if (!state.DrankToday && WantsToDrink(adventurer, ctx.Data))
                     {
                         state.DrankToday = true;
                         WalletService.Pay(ctx, adventurer, ctx.Rng.RangeInclusive(expenses.Drink.Min, expenses.Drink.Max));
@@ -107,8 +114,9 @@ namespace GuildMaster.Core
             }
         }
 
-        private static bool WantsToDrink(SimContext ctx, Adventurer adventurer) =>
-            adventurer.State.Stress > ctx.Data.Balance.Expenses.DrinkStressThreshold
-            || TraitRules.FindWithHook(adventurer, TraitHook.DrunkardSkipsDay, ctx.Data) != null;
+        /// <summary>Человек в таверне пьёт: стресс выше порога или Пьяница.</summary>
+        public static bool WantsToDrink(Adventurer adventurer, DataRegistry data) =>
+            adventurer.State.Stress > data.Balance.Expenses.DrinkStressThreshold
+            || TraitRules.FindWithHook(adventurer, TraitHook.DrunkardSkipsDay, data) != null;
     }
 }

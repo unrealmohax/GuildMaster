@@ -116,6 +116,7 @@ namespace GuildMaster.Tests
             Assert.IsFalse(roster.TryGetCandidate(rejected.Adventurer.Id, out _));
             Assert.IsFalse(roster.IsActive(rejected.Adventurer.Id));
 
+            simulation.ConsumePauseRequest(); // автопаузы за дни ожидания кандидатов (раскрытия черт в таверне и т. п.) — не про кандидатов
             List<SimEvent> events = SimulationRun.Collect(simulation, sim => sim.Tick());
             Assert.AreEqual(1, events.Count(e => e.Type == SimEventType.AdventurerJoined && e.Participants[0] == accepted.Adventurer.Id));
             Assert.AreEqual(1, events.Count(e => e.Type == SimEventType.CandidateRejected && e.Participants[0] == rejected.Adventurer.Id));

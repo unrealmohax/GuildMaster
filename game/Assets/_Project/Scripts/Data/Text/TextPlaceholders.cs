@@ -19,7 +19,7 @@ namespace GuildMaster.Data
         {
             "группа", "место", "враг", "заказчик", "груз",
             "число", "всего", "сумма", "доход", "расход",
-            "распоряжение", "постройка", "архетип",
+            "распоряжение", "постройка", "архетип", "причина",
         };
 
         /// <summary>Названия с родом из данных: скобка рода к ним — только с явной привязкой <c>@метка</c>.</summary>
@@ -28,11 +28,8 @@ namespace GuildMaster.Data
             "группа", "место", "враг", "заказчик", "груз", "распоряжение", "постройка",
         };
 
-        /// <summary>Только в текстах дилемм.</summary>
-        private static readonly HashSet<string> dilemmaOnly = new HashSet<string>
-        {
-            "причина",
-        };
+        /// <summary>Только в текстах дилемм (сейчас таких нет: «причина» есть и в ленте — причины ухода).</summary>
+        private static readonly HashSet<string> dilemmaOnly = new HashSet<string>();
 
         public static IReadOnlyCollection<string> People => people;
         public static IReadOnlyCollection<string> Other => other;

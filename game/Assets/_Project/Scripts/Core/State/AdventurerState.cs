@@ -5,8 +5,8 @@ namespace GuildMaster.Core
     /// <summary>
     /// Показатели состояния человека: шкалы 0..100, личные деньги, раны, занятие и флаги.
     /// Часть мира: снаружи Core только чтение. Менять — <see cref="StateService"/>, <see cref="WalletService"/>,
-    /// <see cref="HealthService"/> и системы шагов 5–7 (<see cref="ActivitySystem"/>, <see cref="StateSystem"/>,
-    /// <see cref="HealthSystem"/>).
+    /// <see cref="HealthService"/>, системы шагов 5–8 (<see cref="ActivitySystem"/>, <see cref="StateSystem"/>,
+    /// <see cref="HealthSystem"/>, <see cref="DecisionSystem"/>).
     /// </summary>
     public sealed class AdventurerState
     {
@@ -67,6 +67,26 @@ namespace GuildMaster.Core
 
         /// <summary>За текущие сутки уже заплатил за Лазарет.</summary>
         public bool PaidInfirmaryToday { get; internal set; }
+
+        /// <summary>Когда начался последний срыв; <c>null</c> — срывов не было.</summary>
+        public long? LastBreakdownAtHours { get; internal set; }
+
+        // Решения (DecisionSystem).
+
+        /// <summary>
+        /// Занятие, выбранное решением в этом часу: <see cref="ActivitySystem"/> ставит его со следующего часа, если человеку
+        /// ничего не мешает (сон, срыв, рана). <c>null</c> — решения не было.
+        /// </summary>
+        public Activity? PlannedActivity { get; internal set; }
+
+        /// <summary>В прошлом часу человек был свободен и мог решать сам (для точки «освободился»).</summary>
+        public bool WasFreeLastHour { get; internal set; }
+
+        /// <summary>Номер суток последнего утреннего решения (<c>часы / часов в сутках</c>); −1 — не было.</summary>
+        public long MorningDecisionDay { get; internal set; } = -1;
+
+        /// <summary>Хотя бы час этого вечера провёл в таверне. Итоги вечера (отношения, ссоры) — в начале ночи.</summary>
+        public bool InTavernThisEvening { get; internal set; }
 
         public bool HasHeavyWound() => TryGetCondition(ConditionKind.HeavyWound, out _);
 

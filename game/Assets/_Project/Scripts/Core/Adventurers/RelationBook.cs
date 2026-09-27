@@ -10,7 +10,7 @@ namespace GuildMaster.Core
     /// </summary>
     public sealed class RelationBook
     {
-        private readonly Dictionary<long, Relation> byPair = new Dictionary<long, Relation>();
+        private readonly Dictionary<long, Relation> byPair = new Dictionary<long, Relation>(PairKeyComparer.Instance);
         private readonly List<Relation> all = new List<Relation>();
 
         internal RelationBook()
@@ -44,6 +44,23 @@ namespace GuildMaster.Core
             int low = Math.Min(a, b);
             int high = Math.Max(a, b);
             return ((long)low << 32) | (uint)high;
+        }
+    }
+
+    /// <summary>
+    /// Хеш ключа пары с перемешиванием: стандартный хеш <c>long</c> — «старшая половина XOR младшая», у пар маленьких id он
+    /// почти одинаков, и при сотнях людей словарь вырождается в длинные цепочки.
+    /// </summary>
+    internal sealed class PairKeyComparer : IEqualityComparer<long>
+    {
+        public static readonly PairKeyComparer Instance = new PairKeyComparer();
+
+        public bool Equals(long x, long y) => x == y;
+
+        public int GetHashCode(long key)
+        {
+            ulong h = (ulong)key * 0x9E3779B97F4A7C15UL;
+            return (int)(h ^ (h >> 32));
         }
     }
 

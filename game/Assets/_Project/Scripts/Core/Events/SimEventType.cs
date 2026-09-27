@@ -78,10 +78,18 @@ namespace GuildMaster.Core
         /// <summary>Не хватило денег: флаг «кошелёк пуст». [З].</summary>
         WalletEmptied,
 
-        /// <summary>Ушёл из гильдии по ежемесячной проверке. [В], автопауза <see cref="AutopauseKind.MemberLeftGuild"/>.</summary>
+        /// <summary>
+        /// Ушёл из гильдии по ежемесячной проверке. [В], автопауза <see cref="AutopauseKind.MemberLeftGuild"/>. <c>cause</c> — главная
+        /// причина (<see cref="LeaveCause"/>), <c>causes</c> — все, <c>reason</c> — текст причин для игрока.
+        /// </summary>
         AdventurerLeft,
 
         /// <summary>Спад «Потерявшего товарища» кончился: <c>outcome</c> — сломался / ожесточился. Второй участник — погибший.</summary>
         GrievingEnded,
+
+        // Решения. Участники — двое.
+
+        /// <summary>Ссора вечером в таверне: <c>relation</c> — отношения после, <c>rivals</c> — пара Соперников. [З].</summary>
+        Quarrel,
     }
 }

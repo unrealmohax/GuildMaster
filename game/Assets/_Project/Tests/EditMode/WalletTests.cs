@@ -21,6 +21,7 @@ namespace GuildMaster.Tests
         public void DailyExpenses_FoodAndCityHousing_TavernMealIfWalletCoversWeek()
         {
             ExpensesBalance expenses = world.Balance.Expenses;
+            world.Data.Set("decisions.bestChoiceChance", 1f); // вечером — всегда в таверну (лучший вариант)
             Adventurer rich = world.Add();
             Adventurer modest = world.Add();
             rich.State.Wallet = 100;
@@ -39,6 +40,7 @@ namespace GuildMaster.Tests
         {
             world.Data.Set("traits.drunkardSkipChance", 0f);
             world.Data.Set("traits.drunkardSkipChanceStressed", 0f);
+            world.Data.Set("decisions.bestChoiceChance", 1f); // вечером — всегда в таверну (лучший вариант)
             Adventurer calm = world.Add();
             Adventurer stressed = world.Add();
             Adventurer drunkard = world.Add("Drunkard");
@@ -46,12 +48,10 @@ namespace GuildMaster.Tests
 
             for (int day = 0; day < 200; day++)
             {
+                world.TickToHour(world.Balance.Time.MorningHour - 1); // Пьяница может выпить и днём — считаем с утра
+                foreach (Adventurer adventurer in spent.Keys) adventurer.State.Wallet = 1000;
                 world.TickToHour(world.Balance.Time.EveningHour - 1);
-                foreach (Adventurer adventurer in spent.Keys)
-                {
-                    adventurer.State.Stress = adventurer == stressed ? 31f : 10f;
-                    adventurer.State.Wallet = 1000;
-                }
+                foreach (Adventurer adventurer in spent.Keys) adventurer.State.Stress = adventurer == stressed ? 31f : 10f;
                 world.TickToHour(world.Balance.Time.NightHour);
                 foreach (Adventurer adventurer in spent.Keys) spent[adventurer].Add(1000 - adventurer.State.Wallet);
             }

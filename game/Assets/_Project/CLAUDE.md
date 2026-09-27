@@ -3,7 +3,8 @@
 Правила работы — в корневом `CLAUDE.md`. Здесь — устройство кода игры. Задания — `TechJob/01-architecture.md`
 (GM-01, архитектура), `TechJob/02-data.md` (GM-02, данные), `TechJob/03-time.md` (GM-03, время),
 `TechJob/04-adventurers.md` (GM-04, авантюристы), `TechJob/05-state-health.md` (GM-05, состояние и здоровье),
-`TechJob/06-debug-logging.md` (GM-06, лог и прогон без интерфейса), `TechJob/07-event-feed.md` (GM-07, лента событий);
+`TechJob/06-debug-logging.md` (GM-06, лог и прогон без интерфейса), `TechJob/07-event-feed.md` (GM-07, лента событий),
+`TechJob/08-decision-model.md` (GM-08, модель решений);
 этот файл описывает, как они реализованы.
 
 ## Комментарии в коде: без ссылок на документацию
@@ -49,6 +50,8 @@ _Project/
 │   │   ├── State/       AdventurerState, Activity (+ BreakdownKind, PartyContext), правила StateRules, StateRates,
 │   │   │                службы StateService, StressEvents, WalletService, системы ActivitySystem, StateSystem
 │   │   ├── Health/      Condition, HealthService, HealthSystem, IInfirmary (+ заглушка NoInfirmary)
+│   │   ├── Decisions/   DecisionSystem, DecisionPoints (+ DecisionBans), DecisionActions (+ DecisionScope), Motives
+│   │   │                (+ MotiveWeights, StateFactor), LeaveReasons (+ LeaveCause, PersonTextSource), TavernEvening
 │   │   ├── Feed/        FeedSystem, FeedState + FeedEntry (лента в мире), FeedKeys (событие → ключ), FeedConditions,
 │   │   │                TextRenderer + TextValue + ITextSource (движок подстановки), EventTextSource (метки из события)
 │   │   └── World/       WorldState, IdGenerator
@@ -87,8 +90,8 @@ _Project/
 
 `Simulation.Tick()` — один игровой час: системы из списка по порядку, затем `TickCompleted(события)` и очистка шины,
 затем `StateChanged`. Порядок систем — в `SimulationSystems` (комментарий со всеми 16 шагами из ТЗ 01);
-новая система встаёт на своё место в `CreateDefault()`. Сейчас реализованы шаги 1–2, 5–7, 13, 15 и 16: `CommandSystem`,
-`TimeSystem`, `ActivitySystem`, `StateSystem`, `HealthSystem`, `AdventurerSystem` + `RecruitSystem` (шаг 13 дополнен
+новая система встаёт на своё место в `CreateDefault()`. Сейчас реализованы шаги 1–2, 5–8, 13, 15 и 16: `CommandSystem`,
+`TimeSystem`, `ActivitySystem`, `StateSystem`, `HealthSystem`, `DecisionSystem`, `AdventurerSystem` + `RecruitSystem` (шаг 13 дополнен
 `AdventurerSystem`, решение 2026-09-26), `FeedSystem` (после всех систем, которые публикуют события), `AutopauseSystem` (всегда последняя). Тесты, которые добавляют системы в конец `CreateDefault()`,
 ставят их после автопаузы — для проверки случайности это неважно. **Стартовое состояние** готовит конструктор
 `Simulation` до первого такта: `StartScenario` со своим потоком `StartScenario` (стартовые люди), событий не пишет.
@@ -182,9 +185,11 @@ _Project/
   `PaidInfirmaryToday` (сбрасывается в 00:00). Вопросы: `HasHeavyWound`, `HasLightWound`, `IsOnQuest`, `TryGetCondition`.
   Старт — `StateService.InitializeNew` в конце генератора: усталость 10, стресс 10–30, довольство 50, лояльность 40–60.
 - **Занятие** — `Activity`: `Resting`, `Sleeping`, `Tavern`, `Training`, `Infirmary`, `Binge`, `OnQuestTravel/Round/Camp`.
-  До ТЗ 08 его ставит **`ActivitySystem`** (шаг 5) по расписанию-заглушке, первое подходящее: на задании — не трогает;
-  запой — `Binge`, «сел и не смог подняться» — `Resting` весь срок; ночь — `Sleeping`; койка — `Infirmary`; тяжёлая рана —
-  `Resting`; Пьяница, пропускающий день, — `Tavern` с утра; вечер — `Tavern`, утро и день — `Resting`. Там же расходы
+  Ставит **`ActivitySystem`** (шаг 5), первое подходящее: на задании — не трогает; запой — `Binge`, «сел и не смог
+  подняться» — `Resting` весь срок; ночь — `Sleeping`; койка — `Infirmary`; тяжёлая рана — `Resting`; Пьяница, пропускающий
+  день, — `Tavern` с утра; иначе — занятие, выбранное решением в прошлом часу (`PlannedActivity`, см. «Модель решений»), иначе
+  прежнее свободное (`IsFreeTime`: отдых, таверна, тренировка), после сна / срыва / Лазарета — `Resting`. Расписания
+  «день — отдых, вечер — таверна» больше нет (GM-08). Там же расходы
   занятия раз в сутки (выпивка 2–5 при стрессе > 30 или Пьянице, еда в таверне — если кошелёк ≥ расходов на неделю;
   запой — 5; Лазарет — 5) и утренний пропуск дня Пьяницы (10% / 20% при стрессе > 50, раскрывает черту).
 - **`StateSystem`** (шаг 6): каждый час — усталость и стресс по таблице занятий (`StateRules.FatiguePerHour` /
@@ -192,7 +197,8 @@ _Project/
   жильё), довольство к цели (`StateRules.ContentmentTarget`) на 1, лояльность к довольству на 0,1, сброс учёта суток,
   срыв (стресс > 80, 10%), конец спада Потерявшего товарища (30 дней → раскрытие, «сломался» / «ожесточился», черта
   снимается); в начале месяца — проверка ухода (лояльность < 25, 20%, Семейный × 1,5 → `AdventurerLifecycle.Retire`,
-  `AdventurerLeft` [В] с автопаузой, причина `LeaveCause.LowLoyalty`). Люди на задании не срываются и не уходят (ТЗ 11).
+  `AdventurerLeft` [В] с автопаузой; причины — `LeaveReasons` из мотивов и состояния, Наёмник раскрывается, если главная —
+  деньги, см. «Модель решений»). Люди на задании не срываются и не уходят (ТЗ 11).
 - **`HealthSystem`** (шаг 7): в 00:00 — койки Лазарета (тяжёлые раны первыми, затем кто раньше ранен), затем у каждой
   раны срок −1 × множитель (Лазарет — 1 / 0,7 × скорость Лекаря, без него — 1 / 1,5), зажила — `WoundHealed`. Тяжёлая
   рана без койки — один бросок на осложнение в первые сутки лечения (+7 дней, стресс +10, `WoundComplicated`).
@@ -218,7 +224,7 @@ _Project/
 - **Лояльность словами** — `StateRules.LoyaltyWordIndex` (границы `loyaltyWordThresholds`, на границе — верхний интервал)
   и `LoyaltyWord(лояльность, пол, …)`; ❔ тексты пока в коде (`LoyaltyWordsMale` / `Female`).
 - **Заглушки** (решение 2026-09-26): платы гильдии не зачисляются в казну (таверна — ТЗ 09, Общежитие, двор, Лазарет — ТЗ 13; места в коде — с комментарием «казны пока нет»), комиссия —
-  `Economy.defaultCommission`, Лазарета нет, причина ухода — без мотивов. Без заданий (ТЗ 11) доходов нет: за 2–3 недели
+  `Economy.defaultCommission`, Лазарета нет. Без заданий (ТЗ 11) доходов нет: за 2–3 недели
   кошельки пустеют, довольство падает к 25, лояльность — к 25 (ровно на пороге ухода «ниже 25» — никто не уходит).
 - **События** (`SimEventType`, новые — в конец): `AdventurerWounded`, `WoundComplicated`, `WoundHealed`, `Breakdown`,
   `DrunkardSkippedDay`, `WalletEmptied`, `AdventurerLeft`, `GrievingEnded`. Строки ленты — см. «Лента событий (GM-07)».
@@ -291,6 +297,48 @@ _Project/
   остальное — ключи данных события `medic`, `place`, `count`…). Падежи имён — `DataRegistry.NameForms(имя)`.
 - **Сводка**: столбцы «Лента [О]», «Лента [З]», «Лента [В]» — строк за месяц (`MonthRecord.FeedLines`).
 
+## Модель решений (GM-08)
+
+Числа — `BalanceSettings.Decisions` (выбор, стрелки, пороги состояния, оценки отдыха и таверны, `daytimeTavernStress`,
+`maxReasons`, `recentBreakdownDays`) и `Adventurers` (таверна и ссоры). Решение 2026-09-27 в `docs/decisions.md`.
+
+- **`DecisionSystem`** (шаг 8, свой поток): в час начала ночи — итоги вечера (`TavernEvening.Settle`); по каждому свободному
+  (`DecisionPoints.CanDecide`: не на задании, не в запое и не «сел и не смог подняться», не в Лазарете, без тяжёлой раны, не
+  пропускает день; отказ от заданий не мешает) — первая наступившая точка из `DecisionPoints.Default` (ночь → вечер → утро →
+  освободился); вечером отмечает `InTavernThisEvening`; в конце — `WasFreeLastHour`.
+- **Точка** — `DecisionPoint` (вид, `IsDue`, варианты, `OnDecided`). Утро — первый утренний час, когда свободен, раз в сутки
+  (`MorningDecisionDay`); освободился — час назад не был свободен, сейчас свободен, не ночь (и только что вступивший); ночь —
+  `Sleep` без выбора (сон ставит `ActivitySystem`, в лог `Debug`). **Новая точка — строка в `DecisionPoints.Default`.**
+- **Решение**: запреты (`DecisionBans.Default`: правило + причина в лог `Debug`; сейчас — таверна утром и днём, кроме Пьяницы
+  и стресса выше `daytimeTavernStress`) → веса (`Motives.Weigh(человек, данные, вТаверне)`: эффекты `MotiveWeight` осей плавно,
+  особых черт полностью; утешение Пьяницы — только для таверны, `DrunkardComfortOnlyInTavern`; состояние — кошелёк, усталость,
+  стресс, лёгкая рана, факторы — `MotiveWeights.Factors`) → оценки (`DecisionActions`, −1..1) → ценность Σ вес × оценка → лучший
+  с `bestChoiceChance` (бросок `decision-best`; один вариант — без броска), иначе второй → `PlannedActivity`.
+  **Новое действие — `DecisionAction` (вид, занятие, «в таверне», функция оценок) в `DecisionActions` и в варианты точки.**
+  `DecisionScope` — контекст оценки на час: друзья (`FriendsHeadingTo`) собираются один раз за час.
+- **Решение действует со следующего часа**: `ActivitySystem` ставит `PlannedActivity` в следующем такте, если ничто не мешает.
+- **Лог**: `Info` — `decide #3 Имя evening: Tavern 2.21 (best; Rest 1.43) because Comfort 0.95 (stress 72), …`;
+  `Debug` — запреты (`ban …`), сон (`… night: Sleep (no choice)`), броски `decision-best` и `quarrel`, `tavern evening: N people`;
+  `Trace` — `scores #3 Имя evening Tavern=2.21: Money 1x-0.01 …` по каждому варианту. Год с 6 людьми — ≈ 6 тыс. строк `Info`.
+- **Вечер в таверне** (`TavernEvening`): кто был в таверне хотя бы час вечера (не запой) — пары по порядку: + `tavernEveningRelation`,
+  затем при отношениях ниже `quarrelRelationBelow` или у Соперников — шанс `quarrelChance`: + `quarrelRelation`, событие
+  `Quarrel` [З] (строка `guild.relation.quarrel`), раскрытие Соперника у обоих (`RivalFirstClash`).
+- **Причины ухода** (`LeaveReasons`): `Of` — до `maxReasons` мотивов с весом выше 1 → `LeaveCause` (по состоянию: пустой кошелёк,
+  рана, срыв за `recentBreakdownDays`); ничего — `LowLoyalty`. `Text` — шаблоны `reason.*` из набора шаблонов ленты
+  (самый конкретный — условие «черта раскрыта» называет черту; первый вариант, без бросков), `PersonTextSource` даёт `{имя}`.
+  Событие `AdventurerLeft`: `cause`, `causes`, `loyalty`, `reason` (текст); строка «{имя} ушёл из гильдии: {причина}».
+  Валидатор требует шаблон на каждый `LeaveCause` (`LeaveReasons.Keys`).
+- **Движок текстов** (доработка GM-07): `[…]@метка`, которой нет в строке, берёт род из источника (`TextRenderer`); валидатор
+  разрешает это только текстам `reason.*`. `{причина}` — общая метка ленты и дилемм.
+- **`RelationBook`**: ключ пары хешируется с перемешиванием (`PairKeyComparer`) — при сотнях людей в таверне (сотни тысяч пар)
+  стандартный хеш `long` вырождал словарь.
+- **Сводка**: «Отдых, %» и «Таверна, %» — доля часов людей в гильдии за месяц (`MonthRecord.ActivityShare`).
+- **Что поменялось в поведении GM-05**: вечером в таверну идут ~80% людей (лучший вариант), а не все; таверна — с 19:00
+  (решение в 18:00 действует со следующего часа); Пьяница ходит в таверну днём и сам; сдвинулись броски `ActivitySystem`
+  (выпивка) и `StateSystem` (срывы и уход зависят от стресса и порядка бросков). Тесты GM-05, которые проверяют расходы
+  и расписание, ставят `decisions.bestChoiceChance = 1` (вечером всегда таверна); пропуск дня Пьяницы считается
+  по `SkipsDayUntilHours`.
+
 ## Мир меняется только командами
 
 Состояние в `WorldState` и его частях — публичные геттеры, `internal`-сеттеры. Снаружи Core (UI, Bootstrap)
@@ -346,7 +394,12 @@ GM-07: `FeedTests.cs` (`TextRendererTests` — падежи, правило ро
 `FeedTemplateTests` — все шаблоны × 2 пола × 4 рода названий без разметки и склеек, выборочные строки, шесть падежей у имён,
 черта в строке только после раскрытия, архетип; `FeedSystemTests` — событие → строка нужной важности со ссылками, срывы,
 раскрытия, варианты не повторяются, лог, лимит, год: каждое событие с ключом даёт строку; `FeedDeterminismTests` — одно
-зерно = одна лента, лента не сдвигает чужие броски, сводка). Всего 253.
+зерно = одна лента, лента не сдвигает чужие броски, сводка);
+GM-08: `DecisionTests.cs` (`DecisionTests` — точки и лог, действует со следующего часа, срыв и «освободился», 80/20;
+`DecisionMotiveTests` — усталые: Командный и стресс → таверна, днём — Пьяница и стресс > 60, веса, оценки таверны;
+`LeaveReasonTests` — скрытая / раскрытая черта, род, состояние, событие и строка ухода, Наёмник; `TavernEveningTests` — +0,5,
+ссоры 5% только у пар ниже −20, Соперники; `DecisionDeterminismTests` — одно зерно = один лог и лента, приток кандидатов
+не сдвигается). Всего 272.
 Помощники ленты — `DictionarySource` (метки из словаря), `FeedTestTemplates` (шаблоны в памяти).
 Числа баланса в тесте меняются `GameData.Edit(data.Balance, "time.dayHour", p => p.intValue = 10)`.
 Помощники — `TestSupport.cs`: `TestData` (BalanceSettings без ассета), `NoiseSystem`, `TraceCommand`,

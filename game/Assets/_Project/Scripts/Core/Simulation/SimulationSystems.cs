@@ -19,6 +19,7 @@ namespace GuildMaster.Core
             new ActivitySystem(),
             new StateSystem(),
             new HealthSystem(),
+            new DecisionSystem(),
             new AdventurerSystem(),
             new RecruitSystem(),
             new FeedSystem(), // после всех систем, которые публикуют события

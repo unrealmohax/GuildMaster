@@ -230,7 +230,7 @@ namespace GuildMaster.Tests
             }
 
             string log = writer.ToString();
-            Match left = Regex.Match(log, @"\[StateSystem\] \[Info\] AdventurerLeft \(Important\) ids=(\d+) cause=LowLoyalty loyalty=");
+            Match left = Regex.Match(log, @"\[StateSystem\] \[Info\] AdventurerLeft \(Important\) ids=(\d+) cause=\w+ causes=\S+ loyalty=[\d.]+ reason=\S");
             Assert.IsTrue(left.Success, "в начале месяца кто-то из 20 с лояльностью 10 ушёл");
 
             string id = left.Groups[1].Value;
