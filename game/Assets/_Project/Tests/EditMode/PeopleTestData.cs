@@ -30,6 +30,12 @@ namespace GuildMaster.Tests
 
         public void Set(string path, int value) => GameData.Edit(Balance, path, p => p.intValue = value);
 
+        /// <summary>
+        /// Люди не берут заказов: выйти можно только в час начала утра, а решение действует со следующего часа. Для тестов
+        /// механик, которым задания мешают (заказы копятся и снимаются по сроку, репутация не меняется).
+        /// </summary>
+        public void NoQuests() => Set("time.latestDepartureHour", Balance.Time.MorningHour);
+
         public void Dispose()
         {
             data.Dispose();

@@ -59,6 +59,7 @@ MonoBehaviour:
   spotterStat: 4
   reportRewardShare: 0.1
   eventQuestTitle: "\u0418\u0441\u0441\u043B\u0435\u0434\u043E\u0432\u0430\u0442\u044C \u043F\u0435\u0449\u0435\u0440\u0443 \u0443 {\u043C\u0435\u0441\u0442\u043E:\u0440}"
+  eventQuestType: {fileID: 11400000, guid: 536ba38fe7c358543b4c138b70ddb730, type: 2}
   foundFeedKey: quest.discovery.found
   exploreFeedKey: quest.discovery.explore
   skipFeedKey: quest.discovery.skip

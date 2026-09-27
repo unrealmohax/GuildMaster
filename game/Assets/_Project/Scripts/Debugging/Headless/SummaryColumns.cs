@@ -46,7 +46,46 @@ namespace GuildMaster.Debugging
             new MonthColumn("Отклонено игроком", m => m.Count(SimEventType.OrderDeclinedByPlayer), SummaryTotal.Sum, "0"),
             new MonthColumn("Снято по сроку", m => m.Count(SimEventType.OrderExpired), SummaryTotal.Sum, "0"),
             new MonthColumn("Репутация", m => m.World.Guild.Reputation, SummaryTotal.Last, "0.#"),
+            new MonthColumn("Заказов взято", m => m.Count(SimEventType.OrderTaken, e => !IsPromotion(e)), SummaryTotal.Sum, "0"),
+            new MonthColumn("Выполнено", m => Quests(m, e => e.TryGet("done", out bool done) && done), SummaryTotal.Sum, "0"),
+            new MonthColumn("Не выполнено", m => Quests(m, e => e.TryGet("done", out bool done) && !done), SummaryTotal.Sum, "0"),
+            new MonthColumn("Блестяще", m => Quests(m, e => IsResult(e, "brilliant")), SummaryTotal.Sum, "0"),
+            new MonthColumn("Успех", m => Quests(m, e => IsResult(e, "success")), SummaryTotal.Sum, "0"),
+            new MonthColumn("Частично", m => Quests(m, e => IsResult(e, "partial")), SummaryTotal.Sum, "0"),
+            new MonthColumn("Провал", m => Quests(m, e => IsResult(e, "fail")), SummaryTotal.Sum, "0"),
+            new MonthColumn("Катастрофа", m => Quests(m, e => IsResult(e, "catastrophe")), SummaryTotal.Sum, "0"),
+            new MonthColumn("Гибелей", m => m.Count(SimEventType.AdventurerDied), SummaryTotal.Sum, "0"),
+            new MonthColumn("Бегств", m => m.Count(SimEventType.AdventurerFled), SummaryTotal.Sum, "0"),
+            new MonthColumn("Раскрытий на заданиях", m => m.Count(SimEventType.AxisRevealed, OnQuest) + m.Count(SimEventType.TraitRevealed, OnQuest),
+                SummaryTotal.Sum, "0"),
+            new MonthColumn("Шанс раунда", RoundChance, SummaryTotal.Mean),
+            new MonthColumn("Экзаменов сдано", m => m.Count(SimEventType.PromotionExam, e => e.TryGet("passed", out bool passed) && passed), SummaryTotal.Sum, "0"),
         };
+
+        private static bool IsPromotion(SimEvent simEvent) => simEvent.TryGet("promotion", out bool promotion) && promotion;
+
+        /// <summary>Законченные задания месяца (без экзаменов), подходящие под условие.</summary>
+        private static int Quests(MonthRecord month, Func<SimEvent, bool> condition) =>
+            month.Count(SimEventType.QuestReturned, e => !IsPromotion(e) && condition(e));
+
+        private static bool IsResult(SimEvent simEvent, string kind) => simEvent.TryGet("kind", out string value) && value == kind;
+
+        /// <summary>Раскрытие случилось на задании (его опубликовала система заданий).</summary>
+        private static bool OnQuest(SimEvent simEvent) => simEvent.Source == nameof(QuestSystem);
+
+        /// <summary>Средний шанс раундов заданий за месяц; раундов не было — 0.</summary>
+        private static double RoundChance(MonthRecord month)
+        {
+            double sum = 0;
+            int count = 0;
+            foreach (SimEvent simEvent in month.Events)
+            {
+                if ((simEvent.Type != SimEventType.RoundSuccess && simEvent.Type != SimEventType.RoundFail) || !simEvent.TryGet("chance", out float chance)) continue;
+                sum += chance;
+                count++;
+            }
+            return count > 0 ? sum / count : 0;
+        }
 
         /// <summary>
         /// Столбцы месяцев с доходами и расходами по каждой статье журнала: «Доход: Таверна», «Расход: …» (названия статей —
@@ -66,7 +105,7 @@ namespace GuildMaster.Debugging
             return columns;
         }
 
-        /// <summary>По людям: архетип, ранг, раны, в гильдии ли на конец, какие черты раскрылись и когда.</summary>
+        /// <summary>По людям: архетип, ранг, раны, задания выполнено / нет, жив ли, в гильдии ли на конец, какие черты раскрылись и когда.</summary>
         public static readonly IReadOnlyList<PersonColumn> People = new[]
         {
             new PersonColumn("Id", p => p.Adventurer.Id.ToString()),
@@ -74,6 +113,9 @@ namespace GuildMaster.Debugging
             new PersonColumn("Архетип", p => ArchetypeName(p)),
             new PersonColumn("Ранг", p => p.Adventurer.GuildRank.ToString()),
             new PersonColumn("Ран", p => p.Count(SimEventType.AdventurerWounded).ToString()),
+            new PersonColumn("Выполнено", p => p.Adventurer.QuestsCompleted.ToString()),
+            new PersonColumn("Не выполнено", p => p.Adventurer.QuestsFailed.ToString()),
+            new PersonColumn("Жив", p => p.Adventurer.LeaveReason == LeaveReason.Died ? "нет" : "да"),
             new PersonColumn("В гильдии", p => InGuild(p)),
             new PersonColumn("Раскрыто", p => Reveals(p)),
         };

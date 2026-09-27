@@ -495,7 +495,7 @@ namespace GuildMaster.Tests
                 {
                     ctx.Events.Publish(SimEventType.CandidateRejected, EventImportance.Normal, yan.Id);
                     ctx.Events.Publish(SimEventType.TraitAcquired, EventImportance.Normal, yan.Id).With("trait", "Drunkard");
-                    ctx.Events.Publish(SimEventType.RankPromoted, EventImportance.Notable, yan.Id);
+                    ctx.Events.Publish(SimEventType.ReputationChanged, EventImportance.Normal, yan.Id);
                 });
                 world.Simulation.Tick();
 
@@ -578,8 +578,14 @@ namespace GuildMaster.Tests
                 {
                     foreach (SimEvent simEvent in events)
                     {
-                        if (FeedKeys.Of(simEvent, simulation.World, data.Registry) != null)
-                            expected.Add((simEvent.Importance, simEvent.Participants.ToArray(), simEvent.Type));
+                        // В ленту гильдии: строка гильдии; строка задания, важная для гильдии (без своей строки гильдии); своя строка
+                        // гильдии события задания. Остальные строки задания — в ленте задания.
+                        string key = FeedKeys.Of(simEvent, simulation.World, data.Registry);
+                        string guildLine = FeedKeys.GuildLineOf(simEvent);
+                        bool questLine = key != null && data.Registry.FeedTemplates(key)[0].Feed == FeedKind.Quest;
+                        if (key != null && (!questLine || (FeedKeys.IsGuildWorthy(simEvent) && guildLine == null)))
+                            expected.Add((Importance(data.Registry, key), simEvent.Participants.ToArray(), simEvent.Type));
+                        if (guildLine != null) expected.Add((Importance(data.Registry, guildLine), simEvent.Participants.ToArray(), simEvent.Type));
                     }
                 };
                 for (int day = 0; day < 360; day++)
@@ -604,6 +610,9 @@ namespace GuildMaster.Tests
                 Assert.GreaterOrEqual(types.Count, 5);
             }
         }
+
+        /// <summary>Важность строки — из шаблона (у события задания она может отличаться от важности события).</summary>
+        private static EventImportance Importance(DataRegistry registry, string key) => FeedSystem.ToImportance(registry.FeedTemplates(key)[0].Importance);
     }
 
     public sealed class FeedDeterminismTests

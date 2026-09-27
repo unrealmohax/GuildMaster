@@ -29,6 +29,7 @@ namespace GuildMaster.Tests
         [Test]
         public void Candidates_ArriveWithExpectedFrequency_OnceADayInTheMorning()
         {
+            data.NoQuests(); // репутация от заданий меняет шанс кандидата
             const int days = 3600;
             const int seeds = 5;
             int total = 0;
@@ -64,7 +65,7 @@ namespace GuildMaster.Tests
                 SimEvent left = events.Single(e => e.Type == SimEventType.CandidateLeft && e.Participants[0] == id);
                 Assert.AreEqual(arrival.TimeHours + wait, left.TimeHours);
             }
-            Assert.AreEqual(6, simulation.World.Adventurers.Active.Count, "без ответа никто не вступает");
+            Assert.IsFalse(events.Any(e => e.Type == SimEventType.AdventurerJoined), "без ответа никто не вступает");
             Assert.IsTrue(simulation.World.Adventurers.Candidates.All(c => c.ExpiresAtHours > simulation.World.Time.TotalHours));
         }
 

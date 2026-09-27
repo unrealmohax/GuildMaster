@@ -5,6 +5,7 @@ namespace GuildMaster.Core
 {
     /// <summary>
     /// Ленты событий (часть мира): лента гильдии — последние строки, не больше лимита из баланса; старые выбрасываются.
+    /// Ленты заданий хранятся в самих заданиях (<see cref="QuestRun.Log"/>), здесь — только их счётчик.
     /// Помнит последний вариант строки каждого ключа, чтобы он не повторился подряд, и сколько строк каждой важности
     /// добавлено за игру.
     /// </summary>
@@ -15,12 +16,16 @@ namespace GuildMaster.Core
         private readonly List<FeedEntry> guild = new List<FeedEntry>();
         private readonly Dictionary<string, string> lastVariants = new Dictionary<string, string>(StringComparer.Ordinal);
         private readonly long[] added = new long[ImportanceCount];
+        private readonly long[] questAdded = new long[ImportanceCount];
 
         /// <summary>Лента гильдии, от старых строк к новым.</summary>
         public IReadOnlyList<FeedEntry> Guild => guild;
 
-        /// <summary>Сколько строк этой важности добавлено за игру (включая выброшенные по лимиту).</summary>
+        /// <summary>Сколько строк этой важности добавлено в ленту гильдии за игру (включая выброшенные по лимиту).</summary>
         public long GetAddedCount(EventImportance importance) => added[(int)importance];
+
+        /// <summary>Сколько строк этой важности добавлено в ленты заданий за игру.</summary>
+        public long GetQuestAddedCount(EventImportance importance) => questAdded[(int)importance];
 
         /// <summary>Последний использованный вариант строки этого ключа (шаблон до подстановки).</summary>
         public bool TryGetLastVariant(string key, out string variant) => lastVariants.TryGetValue(key, out variant);
@@ -31,6 +36,12 @@ namespace GuildMaster.Core
             added[(int)entry.Importance]++;
             int excess = guild.Count - Math.Max(1, limit);
             if (excess > 0) guild.RemoveRange(0, excess);
+        }
+
+        internal void AddQuest(QuestRun run, FeedEntry entry)
+        {
+            run.AddLog(entry);
+            questAdded[(int)entry.Importance]++;
         }
 
         internal void SetLastVariant(string key, string variant) => lastVariants[key] = variant;

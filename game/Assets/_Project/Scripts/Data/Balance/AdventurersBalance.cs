@@ -138,8 +138,14 @@ namespace GuildMaster.Data
         [Tooltip("Ленивый: дней подряд без заданий и тренировок")]
         [SerializeField, Min(1)] private int lazyIdleDays = 7;
 
+        [Tooltip("Ленивый: день считается, если усталость ниже этого и ран нет")]
+        [SerializeField, Range(0f, 100f)] private float lazyFatigueBelow = 50f;
+
         [Tooltip("Преданный: остался при лояльности ниже")]
         [SerializeField, Range(0f, 100f)] private float loyalStayLoyaltyBelow = 40f;
+
+        [Tooltip("Беспринципный: тайно забирает себе эту долю трофеев")]
+        [SerializeField, Range(0f, 1f)] private float skimShare = 0.3f;
 
         [Tooltip("Беспринципный: шанс, что утаивание заметят")]
         [SerializeField, Range(0f, 1f)] private float skimCaughtChance = 0.3f;
@@ -192,7 +198,9 @@ namespace GuildMaster.Data
         public float FleeAbandonedRelation => fleeAbandonedRelation;
         public float SelflessShareOfAverage => selflessShareOfAverage;
         public int LazyIdleDays => lazyIdleDays;
+        public float LazyFatigueBelow => lazyFatigueBelow;
         public float LoyalStayLoyaltyBelow => loyalStayLoyaltyBelow;
+        public float SkimShare => skimShare;
         public float SkimCaughtChance => skimCaughtChance;
         public int HonestNoSkimDays => honestNoSkimDays;
     }

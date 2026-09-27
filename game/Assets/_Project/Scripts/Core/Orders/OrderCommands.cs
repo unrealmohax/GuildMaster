@@ -37,7 +37,8 @@ namespace GuildMaster.Core
 
     /// <summary>
     /// Ответ игрока на важный заказ: принять — заказ на доске с этого часа (срок на доске считается от принятия), можно сразу
-    /// назначить доплату; отклонить — заказ в архиве. Заказ не ждёт ответа (нет такого, уже отклонён) — ничего.
+    /// назначить доплату; отклонить — заказ в архиве. Заказ не ждёт ответа (нет такого, уже отклонён) или это событийное задание
+    /// (у него свой ответ — ранг) — ничего.
     /// </summary>
     public sealed class AnswerImportantOrderCommand : ICommand
     {
@@ -57,7 +58,7 @@ namespace GuildMaster.Core
         public void Apply(SimContext ctx)
         {
             OrderBoard board = ctx.World.Orders;
-            if (!board.TryGetOpen(OrderId, out Order order) || order.Status != OrderStatus.AwaitingPlayer) return;
+            if (!board.TryGetOpen(OrderId, out Order order) || order.Status != OrderStatus.AwaitingPlayer || order.IsEventQuest) return;
 
             if (!Accept)
             {

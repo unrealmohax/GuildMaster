@@ -97,7 +97,7 @@ namespace GuildMaster.Debugging
         /// </summary>
         public static PlayerBot Simple() =>
             new PlayerBot(SimpleName, new SetCommissionOnceRule(SimpleCommission), new AcceptAllCandidatesRule(),
-                new RegistrarUpToTopRankRule(), new AnswerImportantOrdersByRankRule());
+                new RegistrarUpToTopRankRule(), new AnswerImportantOrdersByRankRule(), new AnswerEventQuestsBySourceRankRule());
 
         /// <summary>Повторяет команды сценария в их такты.</summary>
         public static PlayerBot Scenario(ScenarioScript script) => new PlayerBot(ScenarioName, new ScenarioRule(script));
@@ -170,8 +170,28 @@ namespace GuildMaster.Debugging
             for (int i = 0; i < orders.Count; i++)
             {
                 Order order = orders[i];
-                if (order.Status != OrderStatus.AwaitingPlayer || !anyone || order.Rank > top) continue;
+                if (order.Status != OrderStatus.AwaitingPlayer || order.IsEventQuest || !anyone || order.Rank > top) continue;
                 turn.Send(new AnswerImportantOrderCommand(order.Id, true));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Событийное задание: назначить ранг задания, в котором сделана находка, как только в гильдии есть человек этого ранга или
+    /// выше. Нет такого — не отвечать: без ответа задание отклоняется само.
+    /// </summary>
+    public sealed class AnswerEventQuestsBySourceRankRule : IBotRule
+    {
+        public void Act(BotTurn turn)
+        {
+            IReadOnlyList<Order> orders = turn.World.Orders.Open;
+            GuildRank top = RegistrarUpToTopRankRule.TopRank(turn.World);
+            bool anyone = turn.World.Adventurers.Active.Count > 0;
+            for (int i = 0; i < orders.Count; i++)
+            {
+                Order order = orders[i];
+                if (order.Status != OrderStatus.AwaitingPlayer || !order.IsEventQuest || !anyone || order.SourceRank > top) continue;
+                turn.Send(new AnswerEventQuestCommand(order.Id, order.SourceRank));
             }
         }
     }

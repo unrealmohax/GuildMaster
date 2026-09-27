@@ -25,7 +25,7 @@ namespace GuildMaster.Debugging
             [typeof(AxisDefinition)] = 6,
             [typeof(SpecialTraitDefinition)] = 12,
             [typeof(ArchetypeDefinition)] = 7,
-            [typeof(QuestTypeDefinition)] = 4,
+            [typeof(QuestTypeDefinition)] = 5,
             [typeof(RandomEventDefinition)] = 2,
             [typeof(DiscoveryDefinition)] = 1,
             [typeof(BuildingDefinition)] = 5,
@@ -515,7 +515,7 @@ namespace GuildMaster.Debugging
                     string path = $"templates[{i}] «{template.Key}»";
                     if (string.IsNullOrWhiteSpace(template.Key)) report.Error(feed, path, "нет ключа");
                     if (template.Variants.Count == 0) report.Error(feed, path, "нет вариантов строки");
-                    bool isReason = LeaveReasons.Keys.Contains(template.Key); // текст встаёт в строку ухода, {имя} — там
+                    bool isReason = LeaveReasons.Keys.Contains(template.Key) || QuestReasons.Keys.Contains(template.Key); // текст встаёт в чужую строку, {имя} — там
                     for (int v = 0; v < template.Variants.Count; v++)
                     {
                         TextMarkupCheck.Run(template.Variants[v], false, feed, $"{path} variants[{v}]", report, isReason);
@@ -530,6 +530,10 @@ namespace GuildMaster.Debugging
                 foreach (string key in LeaveReasons.Keys)
                 {
                     if (!feedKeys.Contains(key)) report.Error(feed, "templates", $"нет шаблона «{key}»: это текст причины ухода");
+                }
+                foreach (string key in QuestReasons.Keys)
+                {
+                    if (!feedKeys.Contains(key)) report.Error(feed, "templates", $"нет шаблона «{key}»: это текст причины решения на задании");
                 }
                 foreach (string key in MonthReportSections.TextKeys)
                 {

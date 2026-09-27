@@ -57,12 +57,12 @@ namespace GuildMaster.ClaudeSandbox
             FillTraits(traits);
             FillArchetypes(archetypes);
             FillQuestTypes(questTypes);
-            FillEncounters(ambush, beasts, cave);
+            FillEncounters(ambush, beasts, cave, questTypes);
             FillBuildings(buildings, staff);
             FillStaff(staff, buildings);
             FillDecrees(decrees);
             FillDilemmas(dilemmas, traits);
-            FillFeed(feed, questTypes);
+            FillFeed(feed, questTypes, traits);
             FillNames(names);
             FillOrderTexts(orderTexts, questTypes);
 
@@ -328,7 +328,8 @@ namespace GuildMaster.ClaudeSandbox
 
         // ---------- Типы заданий ----------
 
-        private static readonly string[] QuestTypeIds = { "Hunt", "Extermination", "Escort", "Delivery" };
+        // Исследование пещеры — событийное задание из находки: обычным заказом не приходит (вес 0).
+        private static readonly string[] QuestTypeIds = { "Hunt", "Extermination", "Escort", "Delivery", "CaveExploration" };
 
         private static void FillQuestTypes(Dictionary<string, QuestTypeDefinition> q)
         {
@@ -340,6 +341,9 @@ namespace GuildMaster.ClaudeSandbox
                 new[] { StatId.Endurance, StatId.Perception, StatId.Reaction }, StatId.Survival, StatId.Charisma);
             QuestType(q["Delivery"], "Доставка", 6, 0.25f, "delivery",
                 new[] { StatId.Survival, StatId.Agility, StatId.Endurance }, StatId.Stealth);
+            // Новый тип (TechJob/11-quests.md, ❔): оси — как у пещеры, раунд 3 часа.
+            QuestType(q["CaveExploration"], "Исследование пещеры", 3, 0f, "cave",
+                new[] { StatId.Perception, StatId.Composure, StatId.Strength, StatId.Endurance });
         }
 
         private static void QuestType(QuestTypeDefinition asset, string name, int roundHours, float weight, string feedSuffix, StatId[] main, params StatId[] secondary)
@@ -357,7 +361,8 @@ namespace GuildMaster.ClaudeSandbox
 
         // ---------- События в пути и находка ----------
 
-        private static void FillEncounters(RandomEventDefinition ambush, RandomEventDefinition beasts, DiscoveryDefinition cave)
+        private static void FillEncounters(RandomEventDefinition ambush, RandomEventDefinition beasts, DiscoveryDefinition cave,
+            Dictionary<string, QuestTypeDefinition> questTypes)
         {
             var travelFailure = new List<OutcomeChance>
             {
@@ -397,6 +402,7 @@ namespace GuildMaster.ClaudeSandbox
             Set(cave, "spotterStat", StatId.Perception);
             Set(cave, "reportRewardShare", 0.1f);
             Set(cave, "eventQuestTitle", "Исследовать пещеру у {место:р}");
+            Set(cave, "eventQuestType", questTypes["CaveExploration"]);
             Set(cave, "foundFeedKey", "quest.discovery.found");
             Set(cave, "exploreFeedKey", "quest.discovery.explore");
             Set(cave, "skipFeedKey", "quest.discovery.skip");

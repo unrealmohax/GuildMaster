@@ -23,13 +23,17 @@ namespace GuildMaster.Core
     public sealed class DecisionPoint
     {
         public DecisionPoint(DecisionPointKind kind, Func<SimContext, Adventurer, bool> isDue, IReadOnlyList<DecisionAction> options,
-            Action<SimContext, Adventurer> onDecided = null)
+            Action<SimContext, Adventurer> onDecided = null, bool offersOrders = false)
         {
             Kind = kind;
             IsDue = isDue;
             Options = options;
             OnDecided = onDecided;
+            OffersOrders = offersOrders;
         }
+
+        /// <summary>В этой точке можно взять заказ с доски: к вариантам добавляется по варианту на заказ (<see cref="OrderChoice"/>).</summary>
+        public bool OffersOrders { get; }
 
         public DecisionPointKind Kind { get; }
 
@@ -50,8 +54,10 @@ namespace GuildMaster.Core
     /// <item>Утро — в первый утренний час, когда человек свободен, раз в сутки (обычно в начале утра; в первый день игры
     /// и после срыва — позже).</item>
     /// <item>Освободился — в прошлом часу человек не был свободен, а сейчас свободен и не ночь; сюда же — только что
-    /// вступивший.</item>
+    /// вступивший и вернувшийся с задания.</item>
     /// </list>
+    /// Утром и когда освободился можно ещё взять заказ с доски. Решения на задании (после провала, по находке) — точка
+    /// «по событию», их принимает система заданий.
     /// </summary>
     public static class DecisionPoints
     {
@@ -68,10 +74,12 @@ namespace GuildMaster.Core
             new DecisionPoint(DecisionPointKind.Morning,
                 (ctx, a) => ctx.Rhythm.PhaseAt(ctx.World.Time.Hour) == DayPhase.Morning && a.State.MorningDecisionDay != Today(ctx),
                 RestOrTavern,
-                (ctx, a) => a.State.MorningDecisionDay = Today(ctx)),
+                (ctx, a) => a.State.MorningDecisionDay = Today(ctx),
+                offersOrders: true),
             new DecisionPoint(DecisionPointKind.Freed,
                 (ctx, a) => !a.State.WasFreeLastHour && ctx.Rhythm.PhaseAt(ctx.World.Time.Hour) != DayPhase.Night,
-                RestOrTavern),
+                RestOrTavern,
+                offersOrders: true),
         };
 
         /// <summary>Номер суток от начала календаря.</summary>
@@ -104,13 +112,30 @@ namespace GuildMaster.Core
         public Func<SimContext, Adventurer, DecisionAction, bool> Applies { get; }
     }
 
-    /// <summary>Запреты вариантов. Утром и днём таверна — только Пьянице или при стрессе выше <c>daytimeTavernStress</c>.</summary>
+    /// <summary>
+    /// Запреты вариантов. Утром и днём таверна — только Пьянице или при стрессе выше <c>daytimeTavernStress</c>. Заказ нельзя
+    /// взять: выше ранга гильдии человека (кроме своего экзамена на следующий ранг); при тяжёлой ране, усталости выше 90,
+    /// срыве; если выйти в следующем часу уже поздно; чужой экзамен; заказ уже взят.
+    /// </summary>
     public static class DecisionBans
     {
         public static IReadOnlyList<DecisionBan> Default { get; } = new[]
         {
             new DecisionBan("tavern in daytime: not a drunkard, stress not above daytimeTavernStress", IsDaytimeTavern),
+            new DecisionBan("order above guild rank", (ctx, a, action) => OrderOf(ctx, action, out Order o) && !o.IsPromotion && !GuildRanks.CanTakeOrder(a, o.Rank)),
+            new DecisionBan("no quests: heavy wound, fatigue above ban, breakdown",
+                (ctx, a, action) => action.Kind == DecisionActionKind.TakeOrder && !StateRules.CanTakeQuests(a.State, ctx.Data.Balance.State)),
+            new DecisionBan("too late to depart next hour",
+                (ctx, a, action) => action.Kind == DecisionActionKind.TakeOrder && !ctx.Rhythm.CanStartQuest(ctx.World.Time.Hour + 1)),
+            new DecisionBan("someone else's promotion", (ctx, a, action) => OrderOf(ctx, action, out Order o) && o.IsPromotion && o.OwnerId != a.Id),
+            new DecisionBan("order taken by others", (ctx, a, action) => OrderOf(ctx, action, out Order o) && o.Status != OrderStatus.OnBoard),
         };
+
+        private static bool OrderOf(SimContext ctx, DecisionAction action, out Order order)
+        {
+            order = null;
+            return action.Kind == DecisionActionKind.TakeOrder && ctx.World.Orders.TryGetOrder(action.OrderId, out order);
+        }
 
         private static bool IsDaytimeTavern(SimContext ctx, Adventurer adventurer, DecisionAction action)
         {

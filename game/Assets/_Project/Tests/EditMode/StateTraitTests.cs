@@ -210,6 +210,7 @@ namespace GuildMaster.Tests
         [Test]
         public void StateSystems_DoNotShiftOtherSystems()
         {
+            data.NoQuests(); // задания меняют репутацию, а с ней — шанс кандидата
             string Run(bool withStateSystems)
             {
                 List<ISimSystem> systems = SimulationSystems.CreateDefault();

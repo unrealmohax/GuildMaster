@@ -5,7 +5,8 @@
 `TechJob/04-adventurers.md` (GM-04, авантюристы), `TechJob/05-state-health.md` (GM-05, состояние и здоровье),
 `TechJob/06-debug-logging.md` (GM-06, лог и прогон без интерфейса), `TechJob/07-event-feed.md` (GM-07, лента событий),
 `TechJob/08-decision-model.md` (GM-08, модель решений), `TechJob/09-economy.md` (GM-09, экономика гильдии),
-`TechJob/10-orders.md` (GM-10, заказы, доска и репутация); этот файл описывает, как они реализованы.
+`TechJob/10-orders.md` (GM-10, заказы, доска и репутация), `TechJob/11-quests.md` (GM-11, задания: ход и расчёт);
+этот файл описывает, как они реализованы.
 
 ## Комментарии в коде: без ссылок на документацию
 
@@ -50,7 +51,7 @@ _Project/
 │   │   ├── State/       AdventurerState, Activity (+ BreakdownKind, PartyContext), правила StateRules, StateRates,
 │   │   │                службы StateService, StressEvents, WalletService, системы ActivitySystem, StateSystem
 │   │   ├── Health/      Condition, HealthService, HealthSystem, IInfirmary (+ заглушка NoInfirmary)
-│   │   ├── Decisions/   DecisionSystem, DecisionPoints (+ DecisionBans), DecisionActions (+ DecisionScope), Motives
+│   │   ├── Decisions/   DecisionSystem, DecisionPoints (+ DecisionBans), DecisionActions (+ DecisionScope), OrderChoice, Motives
 │   │   │                (+ MotiveWeights, StateFactor), LeaveReasons (+ LeaveCause, PersonTextSource), TavernEvening
 │   │   ├── Economy/     Treasury (+ Bankruptcy, LedgerEntry), LedgerCategory (+ LedgerCategories), TreasuryService,
 │   │   │                EconomySystem, HardTimes, SetCommissionCommand, MonthReport (+ история, разделы, строки),
@@ -60,6 +61,9 @@ _Project/
 │   │   ├── Guild/       GuildState (репутация в мире), ReputationService
 │   │   ├── Orders/      Order (+ статусы), OrderBoard (+ RegistrarRules, OrderTotals), OrderGenerator, OrderSystem,
 │   │   │                OrderCommands (правила Регистратора, ответ на важный заказ, доплата), OrderTextSource
+│   │   ├── Quests/      QuestSystem, QuestRun (+ QuestBook, QuestDiscovery, Straggler), QuestMath (перекрытие, профиль группы,
+│   │   │                синергии), QuestParty, QuestRounds, QuestTension, QuestChoices, QuestEncounters, QuestSettlement,
+│   │   │                PromotionOrders, EventQuests (+ AnswerEventQuestCommand), QuestReasons
 │   │   └── World/       WorldState, IdGenerator
 │   ├── UI/          GuildMaster.UI        — UiRoot (экраны — ТЗ 14)
 │   ├── Bootstrap/   GuildMaster.Bootstrap — GameRunner
@@ -70,7 +74,7 @@ _Project/
 │                    Encounters, Buildings, Staff, Decrees, Dilemmas, Text (FeedTemplates, NameList, OrderTextTemplates)
 ├── ClaudeSandbox/   песочница Claude; Editor/GameDataGenerator — генератор ассетов данных, Editor/TimeProbe — время
 │                    в Play Mode из меню, Editor/AdventurerProbe — люди гильдии в консоль, Editor/StateProbe — раны,
-│                    стресс, прогон 90 дней, Editor/HeadlessProbe — прогон в файлы без окна, Editor/FeedProbe — шаблоны
+│                    стресс, прогон 90 дней, Editor/HeadlessProbe — прогон в файлы без окна, Editor/QuestProbe — кто какие заказы берёт, Editor/FeedProbe — шаблоны
 │                    и лента за год в файлы (см. её README)
 ├── Prefabs/UI/
 ├── Scenes/Main.unity  — единственная сцена: Main Camera, Global Light 2D, UI (Canvas + UiRoot), EventSystem, GameRunner
@@ -96,8 +100,8 @@ _Project/
 
 `Simulation.Tick()` — один игровой час: системы из списка по порядку, затем `TickCompleted(события)` и очистка шины,
 затем `StateChanged`. Порядок систем — в `SimulationSystems` (комментарий со всеми 16 шагами из ТЗ 01);
-новая система встаёт на своё место в `CreateDefault()`. Сейчас реализованы шаги 1–3, 5–8, 11, 13, 15 и 16: `CommandSystem`,
-`TimeSystem`, `OrderSystem`, `ActivitySystem`, `StateSystem`, `HealthSystem`, `DecisionSystem`, `EconomySystem`, `AdventurerSystem` + `RecruitSystem`
+новая система встаёт на своё место в `CreateDefault()`. Сейчас реализованы шаги 1–8, 11, 13, 15 и 16: `CommandSystem`,
+`TimeSystem`, `OrderSystem`, `QuestSystem`, `ActivitySystem`, `StateSystem`, `HealthSystem`, `DecisionSystem`, `EconomySystem`, `AdventurerSystem` + `RecruitSystem`
 (шаг 13 дополнен `AdventurerSystem`, решение 2026-09-26), `MonthReportSystem` (отчёт месяца — после всех систем, которые меняют мир,
 решение 2026-09-27), `FeedSystem` (после всех систем, которые публикуют события), `AutopauseSystem` (всегда последняя). Тесты, которые добавляют системы в конец `CreateDefault()`,
 ставят их после автопаузы — для проверки случайности это неважно. **Стартовое состояние** готовит конструктор
@@ -139,7 +143,9 @@ _Project/
   `{ SimEventType.Тип, AutopauseKind.Вид }` в `AutopauseRules`.** Переключатели — команда `SetAutopauseCommand`
   (пишет `AutopauseChanged`), по умолчанию все включены. Сейчас в правилах — раскрытия (`AxisRevealed`, `TraitRevealed`
   → `TraitRevealed`), уход из гильдии (`AdventurerLeft` → `MemberLeftGuild`), начало банкротства (`BankruptcyStarted`) и важный
-  заказ (`OrderAwaitingPlayer` → `ImportantOrder`); остальные события таблицы ТЗ 03 появятся в ТЗ 11, 13, 17.
+  заказ (`OrderAwaitingPlayer` → `ImportantOrder`), задания (GM-11): событийное задание ждёт ответа (`EventQuestAwaitingPlayer` →
+`ImportantOrder`), гибель, бегство, катастрофа, отступление, исчезновение беглеца (→ `MemberLeftGuild`); остальные события
+таблицы ТЗ 03 появятся в ТЗ 13, 17.
 
 ## Авантюристы (GM-04)
 
@@ -178,7 +184,7 @@ _Project/
   `ArchetypeDefinition.generationWeight`) → уровень → параметры → оси → черты (с партнёром — только если есть подходящий
   в гильдии) → кошелёк, ранг G, город → архетип → стартовое состояние (GM-05, последние броски). Порядок бросков не менять без причины. Старт — `StartScenario`.
 - **Кандидаты** — `RecruitSystem`: утром (`morningHour`) раз в сутки шанс `CandidateChance(данные, репутация)` — от текущей
-  `World.Guild.Reputation` (GM-10; распоряжений нет до ТЗ 16), ожидание `candidateWaitDays`, `CandidateArrived` / `CandidateLeft`;
+  `World.Guild.Reputation` (GM-10; с GM-11 её меняют задания; распоряжений нет до ТЗ 16), ожидание `candidateWaitDays`, `CandidateArrived` / `CandidateLeft`;
   команды `AcceptCandidateCommand` (черта с партнёром появляется и у партнёра, если он ещё может её взять) и
   `RejectCandidateCommand`. Уход из гильдии — `AdventurerLifecycle.Retire` (событие публикует вызывающая система).
 - **Реестр только из чисел** (`DataRegistry.HasDefinitions == false`, `TestData`) — симуляция без людей: старт и приток
@@ -415,7 +421,7 @@ _Project/
 `Guild` (репутация, приток). Доли типов — `QuestTypeDefinition.generationWeight`. Решение 2026-09-27 в `docs/decisions.md`.
 
 - **Мир.** `World.Guild` (`GuildState`): `Reputation`, `StartReputation`; меняет только `ReputationService.Change(ctx, Δ, причина)` —
-  обрезка 0..`maxReputation`, событие `ReputationChanged` (без строки). В GM-10 репутация не меняется. `World.Orders` (`OrderBoard`):
+  обрезка 0..`maxReputation`, событие `ReputationChanged` (без строки). Меняют её задания (GM-11). `World.Orders` (`OrderBoard`):
   `Open` (на доске и ждущие игрока), `Closed` (отклонённые и снятые, не больше `closedOrdersLimit`), `Rules` (`RegistrarRules`:
   типы или все, ранг до, минимум награды; по умолчанию — все, до C, 0), `Totals` (`OrderTotals` — счётчики за игру, без
   стартовых), `TryGetOpen`, `TryGetOrder`, `GetPromisedSurcharges` (доплаты на доске). Свой счётчик id.
@@ -444,6 +450,62 @@ _Project/
   на 8 строк. Чужие броски не сдвинуты (тест `OrderSystem_DoesNotShiftOtherSystems`).
 - **Прогон года** (10 зёрен, «Простой»): ~1,5 заказа в день (~45 в месяц), почти все снимаются по сроку — заданий ещё нет;
   важных ~27 в год, все уходят без ответа (высший ранг людей — F, бот ждёт человека нужного ранга).
+
+## Задания: ход и расчёт (GM-11)
+
+Числа — `BalanceSettings.Travel`, `Rounds`, `Tension`, `Decisions` (ценность заказа, решение после провала, находка), `Traits`,
+`Adventurers` (раскрытия на заданиях), `Guild` (репутация за задание), `Feed.questFeedKeepDays`. Решения 2026-09-27 в `docs/decisions.md`.
+
+- **Мир.** `World.Quests` (`QuestBook`): `Runs` (`QuestRun`: участники, `TurnedBack` / `Fled` / `Dead`, фаза `TravelOut` → `AtSite` →
+  `TravelBack` → `Returned`, часы фазы, раунд и провалы, `BonusLost` / `LootLost`, `Retreated`, `Completed`, находка
+  `QuestDiscovery`, скрытый `Result`, паника и бросок вперёд на следующий раунд, `Log` — строки ленты задания), `TryGetRun`,
+  `Stragglers` (идущие домой одни: повернувший назад, беглец — вернётся или исчезнет). У человека — `State.PlannedOrderId`,
+  `QuestRunId`, `QuestParty` (`PartyContext`), `IsDeserter`, `IdleOrderDays`, `LastFledAtHours`; у черты — `SourceQuestTypeId`
+  (Кошмары). Заказ: статусы `Taken` → `InProgress` → `Done` / `Failed`, `IsPromotion` + `OwnerId`, `IsEventQuest` + `SourceRank`,
+  `TakenBy`, `QuestRunId`; доска — `InWork` (взятые), `TryGetPromotion(владелец)`.
+- **Взятие заказа** (`OrderChoice`, действие `TakeOrder` в точках «утро» и «освободился»): вариант на каждый заказ доски, запреты
+  `DecisionBans` (выше ранга — кроме своего экзамена, `CanTakeQuests`, выйти в следующем часу поздно, чужой экзамен, уже взят).
+  Оценки — `QuestChoices.OrderScores` от воспринимаемого шанса (`QuestMath.PerceivedSoloOverlap`: требования × точность описания ×
+  ошибка оценки риска). Выбран — взят сразу (уходит с доски), выход — в следующем часу (`QuestSystem`, шаг 4). Кошмары — бросок отказа
+  и следующий вариант; раскрытия при взятии и отказе — там же. Лог `Info` — `decide … TakeOrder#12 …`, `Trace` — `order-eval`.
+- **`QuestSystem`** (шаг 4, свой поток): в 00:00 — забыть старые задания; идущие домой одни; в начале утра — экзамены
+  (`PromotionOrders`); выход; ход каждого задания на час — ночлег (`DayRhythm.IsCampHour`), путь (одно событие в пути за отрезок,
+  находка за задание — при выходе, в случайный час пути туда), раунд (`roundHours` типа), возвращение.
+- **Раунд** (`QuestRounds`): шанс = перекрытие (`QuestMath.Overlap` — площадь пересечения на 13 осях `StatCatalog.RadarOrder`,
+  по секторам, формула шнурков при пересечении отрезков) + синергии пар (в пределах потолка синергий); потолок группы — провал сам.
+  Профиль группы — Σ эффективных параметров × (один — 1, группа — Слаженность / 100) × паника 0,5 × бросок вперёд 1,3. Провал —
+  ступень `RoundsBalance.FailureLadder` (стресс, время, бонус, раны — «щит» с высшей Выносливостью или бросившийся вперёд, геройство,
+  Лекарь, снаряжение, добыча, гибель самого тяжело раненого с шансом спасения, гибель всех), затем моменты напряжения
+  (`QuestTension`: срыв, бегство, паника, бросок вперёд, «держится»), затем решение группы (`QuestChoices.DecideAfterFailure`:
+  решающий — высший ранг, потом Хладнокровие; продолжить или отступить по модели решений; «сомнение» / «спор» по разнице ценностей).
+  Экзамен — один раунд без синергий, лестницы и решений.
+- **Путь** (`QuestEncounters`): событие в пути и пещера — один раунд со своим профилем (`QuestMath.EncounterProfile`), исход
+  провала — раны или гибель; тяжело раненный на пути туда поворачивает назад. Пещера: заметил лучший по параметру, решающий решает
+  исследовать или пройти мимо; мимо — после задания рассказать Регистратору: награда из казны и событийное задание (`EventQuests`,
+  тип `CaveExploration`, ждёт ранга от игрока — `AnswerEventQuestCommand`, автопауза «Важный заказ»).
+- **Итог** (`QuestSettlement.Finish`): для игрока — «выполнено / нет», уровень (`QuestResult`) скрыт. Выполнено — награда целиком
+  (минус комиссия в казну; событийное задание платит гильдия), доплата из казны, делёж по `PowerScore` между вернувшимися живыми,
+  долг из доли награды — в казну; трофеи (бонус, добыча, тайник) — деньги извне, Беспринципный утаивает часть. Очки ранга
+  (блестящий × 2, частичный × 0,5), репутация ± `Guild.success/failureReputationPerRank` × ранг, гибель — `deathReputation`, опыт,
+  отношения, приобретённые черты, раскрытия. Гибель и исчезновение беглеца — `AdventurerLifecycle.Retire` (`Died`, `Disappeared`);
+  вернувшийся беглец остаётся в гильдии с `IsDeserter`.
+- **Лента задания**: `FeedEntry.QuestRunId`, строки — в `QuestRun.Log` и в `World.Feed` по заданию (`FeedState.AddQuest`); важные
+  для гильдии (`FeedKeys.GuildWorthy`) копируются в ленту гильдии, у бегства — своя строка гильдии (`FeedKeys.GuildLines`).
+  Условия шаблонов `Solo` / `Group`, `Far` / `Near`, `QuestType`. Причины бегства и отказа по Кошмарам — `QuestReasons` (`reason.*`).
+- **Журнал и отчёт**: статьи «Комиссия», «Возврат долгов» (доходы), «Доплаты», «Событийные задания», «Находки» (обязательные
+  расходы); в отчёте месяца — раздел «Задания» (взято, выполнено, не выполнено), в «Людях» — «Сбежали с задания».
+- **Отладка**: бот «Простой» назначает событийным заданиям ранг источника (`AnswerEventQuestsBySourceRankRule`), команда сценария
+  `eventquest id Ранг|decline`; сводка — «Заказов взято», «Выполнено», «Не выполнено», уровни результата, «Гибелей», «Бегств»,
+  «Раскрытий на заданиях», «Шанс раунда», «Экзаменов сдано», по людям — «Выполнено», «Не выполнено», «Жив». Мелкие шаги задания
+  в логе — `Debug` (`EventLogLevels`). Песочница: GuildMaster → Sandbox → Quests → Order Preferences 10 Years (`QuestProbe`).
+- **Что поменялось в GM-03–10**: автопауза — новые правила выше; GM-04 — пути ухода (гибель, исчезновение беглеца), очки ранга и
+  экзамен; GM-05 — погашение долга идёт в казну, срыв на задании — момент напряжения; GM-08 — действие `TakeOrder`, запреты и
+  причины; GM-09 — статьи журнала и раздел отчёта; GM-10 — взятый заказ уходит с доски в `InWork`, репутация меняется, **смесь рангов
+  сохраняет G и F при любой репутации** (✅ после прогона: иначе гильдия простаивала). Люди сами берут стартовые заказы, поэтому
+  тесты механик, которым задания мешают, ставят `PeopleData.NoQuests()` (выход только в час начала утра, а решение действует со
+  следующего часа — заказов никто не берёт). Чужие броски не сдвинуты, пока заданий нет (`QuestSystem_WithoutQuests_DoesNotShiftOtherSystems`).
+- **Прогон года** (10 зёрен, «Простой»): ~1900 заданий (от ~58 в первый месяц до ~215 в двенадцатый), выполнено ~93%, гибелей 4–11,
+  экзаменов 54–74, репутация 100 к 4-му месяцу, казна ~54 тыс.; лог `Info` — ~55 тыс. строк за год.
 
 ## Мир меняется только командами
 
@@ -517,7 +579,13 @@ GM-10: `OrderTests.cs` (`OrderGenerationTests` — смесь рангов по 
 событий и без сдвига людей, число заказов по утрам, Регистратор по правилам и строки утра, важные — игроку, автопауза, отказ без
 ответа, ответ и доплата, снятие по сроку, предел архива, репутация, шанс кандидата от репутации, отчёт; `OrderDeterminismTests` —
 одно зерно = те же заказы и лента, чужие броски не сдвигаются; `OrderScenarioTests` — команды сценария, бот «Простой», сводка,
-повтор сценария; бот ждёт человека нужного ранга). Всего 335.
+повтор сценария; бот ждёт человека нужного ранга);
+GM-11: `QuestTests.cs` (`QuestMathTests` — перекрытие; `QuestRoundTests` — профиль группы, синергии, шанс в логе, потолок, лестница;
+`QuestTensionTests` — паника, бегство, бросок, геройство, беглец, «выжил только беглец», автопауза; `QuestDecisionTests` — решающий,
+продолжить / отступить; `QuestTravelTests` — события в пути, ночлег, повернул назад, находка и событийное задание; `QuestSettlementTests`
+— выплаты, делёж, экзамен; `QuestRevealTests` — триггеры раскрытия; `QuestChoiceTests` — трус / жадный, кошелёк, комиссия и доплата,
+экзамен только владельцу, люди берут заказы сами; `QuestFeedTests`; `QuestDeterminismTests`). Помощник — `QuestWorld` (заказ
+вручную, начать задание группой, `AtSite`, `DoEvents` — события действия на паузе). Всего 386.
 Помощники ленты — `DictionarySource` (метки из словаря), `FeedTestTemplates` (шаблоны в памяти).
 Числа баланса в тесте меняются `GameData.Edit(data.Balance, "time.dayHour", p => p.intValue = 10)`.
 Помощники — `TestSupport.cs`: `TestData` (BalanceSettings без ассета), `NoiseSystem`, `TraceCommand`,

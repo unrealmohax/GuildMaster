@@ -21,6 +21,7 @@ namespace GuildMaster.Core
     /// </summary>
     public sealed class DecisionSystem : ISimSystem
     {
+        private readonly List<DecisionAction> candidates = new List<DecisionAction>();
         private readonly List<DecisionAction> allowed = new List<DecisionAction>();
         private readonly List<Option> options = new List<Option>();
 
@@ -61,7 +62,10 @@ namespace GuildMaster.Core
         private void Decide(DecisionScope scope, Adventurer adventurer, DecisionPoint point)
         {
             SimContext ctx = scope.Ctx;
-            FilterBans(ctx, adventurer, point);
+            candidates.Clear();
+            candidates.AddRange(point.Options);
+            if (point.OffersOrders) candidates.AddRange(OrderChoice.Actions(ctx, adventurer));
+            FilterBans(ctx, adventurer, candidates);
             if (allowed.Count == 0)
             {
                 WriteNoOptions(ctx.Log, adventurer, point);
@@ -96,15 +100,48 @@ namespace GuildMaster.Core
                 best = false;
             }
 
+            // Кошмары: от выбранного заказа можно отказаться — тогда лучший из остальных.
+            while (OrderChoice.RefusesFromNightmares(ctx, adventurer, chosen.Action))
+            {
+                options.Remove(chosen);
+                if (options.Count == 0)
+                {
+                    point.OnDecided?.Invoke(ctx, adventurer);
+                    return;
+                }
+                chosen = options[0];
+                best = true;
+            }
+
             adventurer.State.PlannedActivity = chosen.Action.Activity;
             if (ctx.Log.IsOn(SimLogLevel.Info)) WriteDecision(ctx.Log, adventurer, point, chosen, best, options, ctx.Data.Balance.Decisions.MaxReasons);
+
+            if (chosen.Action.Kind == DecisionActionKind.TakeOrder)
+            {
+                OrderChoice.Take(ctx, adventurer, chosen.Action, allowed);
+            }
+            else if (point.OffersOrders)
+            {
+                Option? bestOrder = BestOrder(options);
+                if (bestOrder.HasValue) OrderChoice.Refused(ctx, adventurer, bestOrder.Value.Action, point.Kind == DecisionPointKind.Morning);
+            }
             point.OnDecided?.Invoke(ctx, adventurer);
         }
 
-        private void FilterBans(SimContext ctx, Adventurer adventurer, DecisionPoint point)
+        /// <summary>Самый ценный вариант «взять заказ» (варианты уже по убыванию ценности); нет — <c>null</c>.</summary>
+        private static Option? BestOrder(List<Option> sorted)
+        {
+            foreach (Option option in sorted)
+            {
+                if (option.Action.Kind == DecisionActionKind.TakeOrder) return option;
+            }
+            return null;
+        }
+
+        private void FilterBans(SimContext ctx, Adventurer adventurer, List<DecisionAction> actions)
         {
             allowed.Clear();
-            foreach (DecisionAction action in point.Options)
+            foreach (DecisionAction action in actions)
             {
                 DecisionBan ban = FindBan(ctx, adventurer, action);
                 if (ban == null)
@@ -116,7 +153,7 @@ namespace GuildMaster.Core
                 {
                     StringBuilder line = ctx.Log.Begin(SimLogLevel.Debug);
                     AdventurerLog.AppendName(line.Append("ban "), adventurer)
-                        .Append(' ').Append(action.Kind).Append(": ").Append(ban.Reason)
+                        .Append(' ').Append(action.Label).Append(": ").Append(ban.Reason)
                         .Append(" stress=").Append(AdventurerLog.Number(adventurer.State.Stress));
                     ctx.Log.Commit();
                 }
@@ -155,12 +192,12 @@ namespace GuildMaster.Core
         {
             StringBuilder line = log.Begin(SimLogLevel.Info);
             AdventurerLog.AppendName(line.Append("decide "), adventurer)
-                .Append(' ').Append(Point(point)).Append(": ").Append(chosen.Action.Kind).Append(' ').Append(AdventurerLog.Number(chosen.Value))
+                .Append(' ').Append(Point(point)).Append(": ").Append(chosen.Action.Label).Append(' ').Append(AdventurerLog.Number(chosen.Value))
                 .Append(" (").Append(best ? "best" : "second");
             foreach (Option other in all)
             {
                 if (other.Action == chosen.Action) continue;
-                line.Append("; ").Append(other.Action.Kind).Append(' ').Append(AdventurerLog.Number(other.Value));
+                line.Append("; ").Append(other.Action.Label).Append(' ').Append(AdventurerLog.Number(other.Value));
             }
             line.Append(") because ");
 
@@ -183,7 +220,7 @@ namespace GuildMaster.Core
             {
                 StringBuilder line = log.Begin(SimLogLevel.Trace);
                 AdventurerLog.AppendName(line.Append("scores "), adventurer)
-                    .Append(' ').Append(Point(point)).Append(' ').Append(option.Action.Kind).Append('=').Append(AdventurerLog.Number(option.Value))
+                    .Append(' ').Append(Point(point)).Append(' ').Append(option.Action.Label).Append('=').Append(AdventurerLog.Number(option.Value))
                     .Append(':');
                 for (int m = 0; m < option.Scores.Length; m++)
                 {
@@ -198,7 +235,7 @@ namespace GuildMaster.Core
         {
             StringBuilder line = log.Begin(SimLogLevel.Debug);
             AdventurerLog.AppendName(line.Append("decide "), adventurer)
-                .Append(' ').Append(Point(point)).Append(": ").Append(action.Kind).Append(" (no choice)");
+                .Append(' ').Append(Point(point)).Append(": ").Append(action.Label).Append(" (no choice)");
             log.Commit();
         }
 

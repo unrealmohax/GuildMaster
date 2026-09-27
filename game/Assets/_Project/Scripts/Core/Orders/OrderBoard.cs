@@ -5,20 +5,24 @@ using GuildMaster.Data;
 namespace GuildMaster.Core
 {
     /// <summary>
-    /// Часть мира: заказы. Открытые — на доске и ждущие игрока, по порядку прихода; закрытые (отклонённые и снятые) — архив
-    /// не больше <c>closedOrdersLimit</c>, старые выбрасываются. Правила Регистратора, счётчики заказов за игру (для отчёта
-    /// месяца). У заказов свой счётчик id.
+    /// Часть мира: заказы. Открытые — на доске и ждущие игрока, по порядку прихода; в работе — взятые и идущие задания;
+    /// закрытые (отклонённые, снятые, выполненные и проваленные) — архив не больше <c>closedOrdersLimit</c>, старые
+    /// выбрасываются. Правила Регистратора, счётчики заказов за игру (для отчёта месяца). У заказов свой счётчик id.
     /// </summary>
     public sealed class OrderBoard
     {
         private readonly List<Order> open = new List<Order>();
+        private readonly List<Order> inWork = new List<Order>();
         private readonly List<Order> closed = new List<Order>();
         private int nextId = 1;
 
         /// <summary>Открытые заказы: на доске и ждущие ответа игрока, по порядку прихода.</summary>
         public IReadOnlyList<Order> Open => open;
 
-        /// <summary>Отклонённые и снятые заказы, от старых к новым (последние <c>closedOrdersLimit</c>).</summary>
+        /// <summary>Взятые заказы и заказы, по которым идёт задание, по порядку взятия.</summary>
+        public IReadOnlyList<Order> InWork => inWork;
+
+        /// <summary>Отклонённые, снятые, выполненные и проваленные заказы, от старых к новым (последние <c>closedOrdersLimit</c>).</summary>
         public IReadOnlyList<Order> Closed => closed;
 
         /// <summary>Правила, по которым Регистратор ставит обычные заказы на доску.</summary>
@@ -39,21 +43,15 @@ namespace GuildMaster.Core
             return false;
         }
 
-        /// <summary>Заказ по id: открытый или из архива закрытых.</summary>
+        /// <summary>Заказ по id: открытый, в работе или из архива закрытых.</summary>
         public bool TryGetOrder(int id, out Order order)
         {
             if (TryGetOpen(id, out order)) return true;
-            foreach (Order candidate in closed)
-            {
-                if (candidate.Id != id) continue;
-                order = candidate;
-                return true;
-            }
-            order = null;
-            return false;
+            if (Find(inWork, id, out order)) return true;
+            return Find(closed, id, out order);
         }
 
-        /// <summary>Сколько гильдия обещала доплатить по заказам на доске.</summary>
+        /// <summary>Сколько гильдия обещала доплатить по заказам на доске и в работе.</summary>
         public int GetPromisedSurcharges()
         {
             int sum = 0;
@@ -61,20 +59,66 @@ namespace GuildMaster.Core
             {
                 if (order.Status == OrderStatus.OnBoard) sum += order.Surcharge;
             }
+            foreach (Order order in inWork) sum += order.Surcharge;
             return sum;
+        }
+
+        /// <summary>Незакрытое задание на повышение этого человека (на доске или в работе); нет — <c>false</c>.</summary>
+        public bool TryGetPromotion(int ownerId, out Order order)
+        {
+            foreach (Order candidate in open)
+            {
+                if (!candidate.IsPromotion || candidate.OwnerId != ownerId) continue;
+                order = candidate;
+                return true;
+            }
+            foreach (Order candidate in inWork)
+            {
+                if (!candidate.IsPromotion || candidate.OwnerId != ownerId) continue;
+                order = candidate;
+                return true;
+            }
+            order = null;
+            return false;
         }
 
         internal int NextId() => nextId++;
 
         internal void AddOpen(Order order) => open.Add(order);
 
-        /// <summary>Закрыть заказ: убрать из открытых (если он там был) и положить в архив.</summary>
+        /// <summary>Заказ взят: из открытых — в работу.</summary>
+        internal void MoveToWork(Order order)
+        {
+            open.Remove(order);
+            inWork.Add(order);
+        }
+
+        /// <summary>Взятый заказ снова на доске: человек не смог выйти.</summary>
+        internal void ReturnToOpen(Order order)
+        {
+            if (inWork.Remove(order)) open.Add(order);
+        }
+
+        /// <summary>Закрыть заказ: убрать из открытых или из работы (если он там был) и положить в архив.</summary>
         internal void Close(Order order, int limit)
         {
             open.Remove(order);
+            inWork.Remove(order);
             closed.Add(order);
             int excess = closed.Count - Math.Max(1, limit);
             if (excess > 0) closed.RemoveRange(0, excess);
+        }
+
+        private static bool Find(List<Order> list, int id, out Order order)
+        {
+            foreach (Order candidate in list)
+            {
+                if (candidate.Id != id) continue;
+                order = candidate;
+                return true;
+            }
+            order = null;
+            return false;
         }
     }
 
@@ -136,13 +180,17 @@ namespace GuildMaster.Core
     /// <summary>Счётчики заказов за игру. Отчёт месяца берёт разницу между своим концом и прошлым отчётом.</summary>
     public readonly struct OrderTotals
     {
-        public OrderTotals(int arrived, int posted, int declinedByRegistrar, int declinedByPlayer, int expired)
+        public OrderTotals(int arrived, int posted, int declinedByRegistrar, int declinedByPlayer, int expired,
+            int taken = 0, int done = 0, int failed = 0)
         {
             Arrived = arrived;
             Posted = posted;
             DeclinedByRegistrar = declinedByRegistrar;
             DeclinedByPlayer = declinedByPlayer;
             Expired = expired;
+            Taken = taken;
+            Done = done;
+            Failed = failed;
         }
 
         /// <summary>Пришло заказов.</summary>
@@ -159,10 +207,27 @@ namespace GuildMaster.Core
         /// <summary>Снято по сроку.</summary>
         public int Expired { get; }
 
-        internal OrderTotals AddArrived() => new OrderTotals(Arrived + 1, Posted, DeclinedByRegistrar, DeclinedByPlayer, Expired);
-        internal OrderTotals AddPosted() => new OrderTotals(Arrived, Posted + 1, DeclinedByRegistrar, DeclinedByPlayer, Expired);
-        internal OrderTotals AddDeclinedByRegistrar() => new OrderTotals(Arrived, Posted, DeclinedByRegistrar + 1, DeclinedByPlayer, Expired);
-        internal OrderTotals AddDeclinedByPlayer() => new OrderTotals(Arrived, Posted, DeclinedByRegistrar, DeclinedByPlayer + 1, Expired);
-        internal OrderTotals AddExpired() => new OrderTotals(Arrived, Posted, DeclinedByRegistrar, DeclinedByPlayer, Expired + 1);
+        /// <summary>Взято людьми (задания на повышение не считаются).</summary>
+        public int Taken { get; }
+
+        /// <summary>Задание по заказу выполнено.</summary>
+        public int Done { get; }
+
+        /// <summary>Задание по заказу не выполнено.</summary>
+        public int Failed { get; }
+
+        internal OrderTotals AddArrived() => With(arrived: 1);
+        internal OrderTotals AddPosted() => With(posted: 1);
+        internal OrderTotals AddDeclinedByRegistrar() => With(declinedByRegistrar: 1);
+        internal OrderTotals AddDeclinedByPlayer() => With(declinedByPlayer: 1);
+        internal OrderTotals AddExpired() => With(expired: 1);
+        internal OrderTotals AddTaken() => With(taken: 1);
+        internal OrderTotals AddDone() => With(done: 1);
+        internal OrderTotals AddFailed() => With(failed: 1);
+
+        private OrderTotals With(int arrived = 0, int posted = 0, int declinedByRegistrar = 0, int declinedByPlayer = 0, int expired = 0,
+            int taken = 0, int done = 0, int failed = 0) =>
+            new OrderTotals(Arrived + arrived, Posted + posted, DeclinedByRegistrar + declinedByRegistrar, DeclinedByPlayer + declinedByPlayer,
+                Expired + expired, Taken + taken, Done + done, Failed + failed);
     }
 }

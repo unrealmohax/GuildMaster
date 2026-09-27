@@ -25,7 +25,7 @@ namespace GuildMaster.Core
             IReadOnlyList<Adventurer> active = ctx.World.Adventurers.Active;
             foreach (Adventurer adventurer in active)
             {
-                StateService.ApplyHour(ctx, adventurer, PartyContext.None); // вне задания
+                StateService.ApplyHour(ctx, adventurer, adventurer.State.QuestParty); // вне задания — None
             }
 
             GameTime time = ctx.World.Time;

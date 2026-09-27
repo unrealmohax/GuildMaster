@@ -30,5 +30,8 @@ namespace GuildMaster.Core
 
         /// <summary>Параметр, на который действует эффект <c>ProfileMultiplier</c> (какая характеристика снижена у Калеки).</summary>
         public StatId? AffectedStat { get; }
+
+        /// <summary>Тип задания, после которого появилась черта (Кошмары); пусто — не от задания.</summary>
+        public string SourceQuestTypeId { get; internal set; } = string.Empty;
     }
 }

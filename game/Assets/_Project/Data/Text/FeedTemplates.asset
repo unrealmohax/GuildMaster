@@ -446,6 +446,192 @@ MonoBehaviour:
     conditions: []
     variants:
     - "\u0414\u043E\u0431\u044B\u0447\u0443 \u0441\u0434\u0430\u043B\u0438 \u0421\u043A\u0443\u043F\u0449\u0438\u043A\u0443"
+  - key: quest.travel
+    feed: 0
+    importance: 0
+    conditions:
+    - kind: 0
+      archetype: {fileID: 0}
+      questType: {fileID: 0}
+      axis: 0
+      pole: 0
+      trait: {fileID: 0}
+      stat: 0
+    variants:
+    - "\u041A \u0432\u0435\u0447\u0435\u0440\u0443 {\u0438\u043C\u044F} \u0434\u043E\u0431\u0440\u0430\u043B[\u0441\u044F|\u0430\u0441\u044C] \u0434\u043E {\u043C\u0435\u0441\u0442\u043E:\u0440}. \u0417\u0430\u043D\u043E\u0447\u0435\u0432\u0430\u043B[|\u0430]@\u0438\u043C\u044F \u0443 \u0434\u043E\u0440\u043E\u0433\u0438"
+    - "\u0412\u0435\u0441\u044C \u0434\u0435\u043D\u044C \u0432 \u043F\u0443\u0442\u0438. \u041D\u0438 \u0434\u0443\u0448\u0438 \u043D\u0430\u0432\u0441\u0442\u0440\u0435\u0447\u0443"
+    - "\u0414\u043E\u0440\u043E\u0433\u0443 \u0440\u0430\u0437\u0432\u0435\u0437\u043B\u043E \u043F\u043E\u0441\u043B\u0435 \u0434\u043E\u0436\u0434\u044F. \u0418\u0434\u0442\u0438 \u0442\u044F\u0436\u0435\u043B\u043E"
+  - key: quest.loss.stress
+    feed: 0
+    importance: 0
+    conditions:
+    - kind: 0
+      archetype: {fileID: 0}
+      questType: {fileID: 0}
+      axis: 0
+      pole: 0
+      trait: {fileID: 0}
+      stat: 0
+    variants:
+    - "\u0423 \u043A\u043E\u0441\u0442\u0440\u0430 {\u0438\u043C\u044F} \u0434\u043E\u043B\u0433\u043E \u043C\u043E\u043B\u0447\u0430\u043B[|\u0430]"
+  - key: quest.wound.heavy
+    feed: 0
+    importance: 2
+    conditions:
+    - kind: 0
+      archetype: {fileID: 0}
+      questType: {fileID: 0}
+      axis: 0
+      pole: 0
+      trait: {fileID: 0}
+      stat: 0
+    variants:
+    - "{\u0438\u043C\u044F} \u0442\u044F\u0436\u0435\u043B\u043E \u0440\u0430\u043D\u0435\u043D[|\u0430]. \u041F\u0435\u0440\u0435\u0432\u044F\u0437\u0430\u043B[\u0441\u044F|\u0430\u0441\u044C]@\u0438\u043C\u044F \u043A\u0430\u043A \u0441\u043C\u043E\u0433[|\u043B\u0430]@\u0438\u043C\u044F"
+    - "{\u0438\u043C\u044F} \u043D\u0435 \u043C\u043E\u0436\u0435\u0442 \u0432\u0441\u0442\u0430\u0442\u044C. \u0420\u0430\u043D\u0430 \u0433\u043B\u0443\u0431\u043E\u043A\u0430\u044F"
+  - key: quest.decision.continue
+    feed: 0
+    importance: 1
+    conditions:
+    - kind: 0
+      archetype: {fileID: 0}
+      questType: {fileID: 0}
+      axis: 0
+      pole: 0
+      trait: {fileID: 0}
+      stat: 0
+    variants:
+    - "{\u0438\u043C\u044F} \u043F\u0435\u0440\u0435\u0432\u0451\u043B[|\u0430] \u0434\u0443\u0445 \u0438 \u043F\u043E\u0448[\u0451\u043B|\u043B\u0430] \u0441\u043D\u043E\u0432\u0430"
+  - key: quest.decision.retreat
+    feed: 0
+    importance: 1
+    conditions:
+    - kind: 0
+      archetype: {fileID: 0}
+      questType: {fileID: 0}
+      axis: 0
+      pole: 0
+      trait: {fileID: 0}
+      stat: 0
+    variants:
+    - "{\u0438\u043C\u044F} \u0440\u0435\u0448\u0438\u043B[|\u0430] \u043D\u0435 \u0438\u0441\u043F\u044B\u0442\u044B\u0432\u0430\u0442\u044C \u0441\u0443\u0434\u044C\u0431\u0443 \u0438 \u043F\u043E\u0432\u0435\u0440\u043D\u0443\u043B[|\u0430]@\u0438\u043C\u044F \u043D\u0430\u0437\u0430\u0434"
+  - key: quest.tension.flee
+    feed: 0
+    importance: 2
+    conditions:
+    - kind: 0
+      archetype: {fileID: 0}
+      questType: {fileID: 0}
+      axis: 0
+      pole: 0
+      trait: {fileID: 0}
+      stat: 0
+    variants:
+    - "{\u0438\u043C\u044F} \u0431\u0440\u043E\u0441\u0438\u043B[|\u0430] \u0432\u0441\u0451 \u0438 \u043F\u043E\u0431\u0435\u0436\u0430\u043B[|\u0430]@\u0438\u043C\u044F \u043D\u0430\u0437\u0430\u0434, \u043D\u0435 \u043E\u0433\u043B\u044F\u0434\u044B\u0432\u0430\u044F\u0441\u044C"
+  - key: quest.returnTrip.hard
+    feed: 0
+    importance: 1
+    conditions:
+    - kind: 0
+      archetype: {fileID: 0}
+      questType: {fileID: 0}
+      axis: 0
+      pole: 0
+      trait: {fileID: 0}
+      stat: 0
+    variants:
+    - "{\u0438\u043C\u044F} \u0432\u043E\u0437\u0432\u0440\u0430\u0449\u0430\u0435\u0442\u0441\u044F. \u041C\u0435\u0434\u043B\u0435\u043D\u043D\u043E \u2014 \u0440\u0430\u043D\u0430 \u0434\u0430\u0451\u0442 \u043E \u0441\u0435\u0431\u0435 \u0437\u043D\u0430\u0442\u044C"
+    - "\u041D\u0430 \u043E\u0431\u0440\u0430\u0442\u043D\u043E\u043C \u043F\u0443\u0442\u0438 {\u0438\u043C\u044F:\u0434} \u0441\u0442\u0430\u043B\u043E \u0445\u0443\u0436\u0435"
+  - key: quest.discovery.fail
+    feed: 0
+    importance: 2
+    conditions:
+    - kind: 0
+      archetype: {fileID: 0}
+      questType: {fileID: 0}
+      axis: 0
+      pole: 0
+      trait: {fileID: 0}
+      stat: 0
+    variants:
+    - "\u0418\u0437 \u0442\u0435\u043C\u043D\u043E\u0442\u044B \u0432\u044B\u0448\u043B\u043E \u0442\u043E, \u0447\u0435\u0433\u043E \u043D\u0435 \u0436\u0434\u0430\u043B\u0438. {\u0438\u043C\u044F} \u0435\u0434\u0432\u0430 \u0432\u044B\u0431\u0440\u0430\u043B[\u0441\u044F|\u0430\u0441\u044C]@\u0438\u043C\u044F"
+  - key: quest.returned.brilliant
+    feed: 0
+    importance: 1
+    conditions:
+    - kind: 0
+      archetype: {fileID: 0}
+      questType: {fileID: 0}
+      axis: 0
+      pole: 0
+      trait: {fileID: 0}
+      stat: 0
+    variants:
+    - "{\u0438\u043C\u044F} \u0432\u0435\u0440\u043D\u0443\u043B[\u0441\u044F|\u0430\u0441\u044C] \u0441 \u043F\u043E\u0431\u0435\u0434\u043E\u0439 \u0438 \u0431\u0435\u0437 \u0446\u0430\u0440\u0430\u043F\u0438\u043D\u044B. \u0412 \u0442\u0430\u0432\u0435\u0440\u043D\u0435 [\u0435\u0433\u043E|\u0435\u0451]@\u0438\u043C\u044F \u0432\u0441\u0442\u0440\u0435\u0442\u0438\u043B\u0438 \u0441\u0442\u043E\u044F"
+  - key: quest.returned.success
+    feed: 0
+    importance: 0
+    conditions:
+    - kind: 0
+      archetype: {fileID: 0}
+      questType: {fileID: 0}
+      axis: 0
+      pole: 0
+      trait: {fileID: 0}
+      stat: 0
+    variants:
+    - "{\u0438\u043C\u044F} \u0432\u0435\u0440\u043D\u0443\u043B[\u0441\u044F|\u0430\u0441\u044C]. \u0417\u0430\u0434\u0430\u043D\u0438\u0435 \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u043E"
+  - key: quest.returned.fail
+    feed: 0
+    importance: 1
+    conditions:
+    - kind: 0
+      archetype: {fileID: 0}
+      questType: {fileID: 0}
+      axis: 0
+      pole: 0
+      trait: {fileID: 0}
+      stat: 0
+    variants:
+    - "{\u0438\u043C\u044F} \u0432\u0435\u0440\u043D\u0443\u043B[\u0441\u044F|\u0430\u0441\u044C] \u043D\u0438 \u0441 \u0447\u0435\u043C"
+  - key: quest.returned.catastrophe
+    feed: 0
+    importance: 2
+    conditions:
+    - kind: 0
+      archetype: {fileID: 0}
+      questType: {fileID: 0}
+      axis: 0
+      pole: 0
+      trait: {fileID: 0}
+      stat: 0
+    variants:
+    - "{\u0438\u043C\u044F} \u0432\u0435\u0440\u043D\u0443\u043B[\u0441\u044F|\u0430\u0441\u044C] \u043E\u0434[\u0438\u043D|\u043D\u0430]. \u0417\u0430\u0434\u0430\u043D\u0438\u0435 \u043F\u0440\u043E\u0432\u0430\u043B\u0435\u043D\u043E"
+  - key: quest.promotion.passed
+    feed: 0
+    importance: 1
+    conditions: []
+    variants:
+    - "{\u0438\u043C\u044F} \u0432\u044B\u0434\u0435\u0440\u0436\u0430\u043B[|\u0430] \u0438\u0441\u043F\u044B\u0442\u0430\u043D\u0438\u0435. \u0422\u0435\u043F\u0435\u0440\u044C [\u0435\u043C\u0443|\u0435\u0439]@\u0438\u043C\u044F \u0434\u043E\u0432\u0435\u0440\u044F\u0442 \u0431\u043E\u043B\u044C\u0448\u0435"
+  - key: quest.promotion.failed
+    feed: 0
+    importance: 1
+    conditions: []
+    variants:
+    - "{\u0438\u043C\u044F} \u043D\u0435 \u0432\u044B\u0434\u0435\u0440\u0436\u0430\u043B[|\u0430] \u0438\u0441\u043F\u044B\u0442\u0430\u043D\u0438\u044F. \u041F\u043E\u043F\u0440\u043E\u0431\u043E\u0432\u0430\u0442\u044C \u0441\u043D\u043E\u0432\u0430 \u043C\u043E\u0436\u043D\u043E \u0447\u0435\u0440\u0435\u0437 \u043C\u0435\u0441\u044F\u0446"
+  - key: quest.round.success.cave
+    feed: 0
+    importance: 0
+    conditions: []
+    variants:
+    - "\u041F\u0440\u043E\u0448\u043B\u0438 \u043F\u0435\u0449\u0435\u0440\u0443 \u0434\u043E \u043A\u043E\u043D\u0446\u0430. \u0422\u0430\u043C \u0431\u044B\u043B\u043E \u0442\u043E, \u043E \u0447\u0451\u043C \u0433\u043E\u0432\u043E\u0440\u0438\u043B\u0438"
+    - "\u0412 \u0433\u043B\u0443\u0431\u0438\u043D\u0435 \u0441\u0442\u0430\u043B\u043E \u0442\u0438\u0445\u043E. \u0414\u0435\u043B\u043E \u0441\u0434\u0435\u043B\u0430\u043D\u043E"
+  - key: quest.round.fail.cave
+    feed: 0
+    importance: 1
+    conditions: []
+    variants:
+    - "\u0412 \u0442\u0435\u043C\u043D\u043E\u0442\u0435 \u043F\u043E\u0442\u0435\u0440\u044F\u043B\u0438 \u0434\u043E\u0440\u043E\u0433\u0443. \u041F\u0440\u0438\u0448\u043B\u043E\u0441\u044C \u0432\u0435\u0440\u043D\u0443\u0442\u044C\u0441\u044F \u043A \u0432\u0445\u043E\u0434\u0443"
+    - "\u0424\u0430\u043A\u0435\u043B\u044B \u043F\u043E\u0433\u0430\u0441\u043B\u0438 \u043D\u0430 \u043F\u043E\u043B\u043F\u0443\u0442\u0438. \u041D\u0430\u0447\u0438\u043D\u0430\u0442\u044C \u0437\u0430\u043D\u043E\u0432\u043E"
   - key: quest.loot.skimmed
     feed: 0
     importance: 0
@@ -560,6 +746,64 @@ MonoBehaviour:
       stat: 0
     variants:
     - "{\u0438\u043C\u044F} \u0432\u0437\u044F\u043B[|\u0430] \u043E\u0445\u043E\u0442\u0443 \u0443 {\u043C\u0435\u0441\u0442\u043E:\u0440}"
+  - key: guild.order.taken
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "{\u0438\u043C\u044F} \u0432\u0437\u044F\u043B[|\u0430] \u0437\u0430\u043A\u0430\u0437"
+  - key: guild.order.taken
+    feed: 1
+    importance: 0
+    conditions:
+    - kind: 5
+      archetype: {fileID: 0}
+      questType: {fileID: 11400000, guid: ea2ce9594743b434c8c1d4327fdeb7ac, type: 2}
+      axis: 0
+      pole: 0
+      trait: {fileID: 0}
+      stat: 0
+    variants:
+    - "{\u0438\u043C\u044F} \u0432\u0437\u044F\u043B[|\u0430] \u0438\u0441\u0442\u0440\u0435\u0431\u043B\u0435\u043D\u0438\u0435 \u0443 {\u043C\u0435\u0441\u0442\u043E:\u0440}"
+  - key: guild.order.taken
+    feed: 1
+    importance: 0
+    conditions:
+    - kind: 5
+      archetype: {fileID: 0}
+      questType: {fileID: 11400000, guid: d54e8adaf23f75f47ae62ed9893e6b72, type: 2}
+      axis: 0
+      pole: 0
+      trait: {fileID: 0}
+      stat: 0
+    variants:
+    - "{\u0438\u043C\u044F} \u0432\u0437\u044F\u043B[\u0441\u044F|\u0430\u0441\u044C] \u043F\u0440\u043E\u0432\u043E\u0434\u0438\u0442\u044C {\u0433\u0440\u0443\u0437:\u0432} \u0434\u043E {\u043C\u0435\u0441\u0442\u043E:\u0440}"
+  - key: guild.order.taken
+    feed: 1
+    importance: 0
+    conditions:
+    - kind: 5
+      archetype: {fileID: 0}
+      questType: {fileID: 11400000, guid: ea5454937a2ebcb4c8398bfa34cfdc8e, type: 2}
+      axis: 0
+      pole: 0
+      trait: {fileID: 0}
+      stat: 0
+    variants:
+    - "{\u0438\u043C\u044F} \u0432\u0437\u044F\u043B[\u0441\u044F|\u0430\u0441\u044C] \u0434\u043E\u0441\u0442\u0430\u0432\u0438\u0442\u044C {\u0433\u0440\u0443\u0437:\u0432} \u0432 {\u043C\u0435\u0441\u0442\u043E:\u0432}"
+  - key: guild.order.taken
+    feed: 1
+    importance: 0
+    conditions:
+    - kind: 5
+      archetype: {fileID: 0}
+      questType: {fileID: 11400000, guid: 536ba38fe7c358543b4c138b70ddb730, type: 2}
+      axis: 0
+      pole: 0
+      trait: {fileID: 0}
+      stat: 0
+    variants:
+    - "{\u0438\u043C\u044F} \u0432\u0437\u044F\u043B[\u0441\u044F|\u0430\u0441\u044C] \u0438\u0441\u0441\u043B\u0435\u0434\u043E\u0432\u0430\u0442\u044C \u043F\u0435\u0449\u0435\u0440\u0443 \u0443 {\u043C\u0435\u0441\u0442\u043E:\u0440}"
   - key: guild.party.formed
     feed: 1
     importance: 0
@@ -824,6 +1068,44 @@ MonoBehaviour:
     conditions: []
     variants:
     - "\u0442\u044F\u0436\u0435\u043B\u043E \u043D\u0430 \u0434\u0443\u0448\u0435"
+  - key: reason.fled
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u043D\u0435 \u0432\u044B\u0434\u0435\u0440\u0436\u0430\u043B[|\u0430]@\u0438\u043C\u044F"
+  - key: reason.fled
+    feed: 1
+    importance: 0
+    conditions:
+    - kind: 6
+      archetype: {fileID: 0}
+      questType: {fileID: 0}
+      axis: 0
+      pole: 0
+      trait: {fileID: 0}
+      stat: 0
+    variants:
+    - "[\u0442\u0440\u0443\u0441|\u0442\u0440\u0443\u0441\u0438\u0445\u0430]@\u0438\u043C\u044F"
+  - key: reason.fled
+    feed: 1
+    importance: 0
+    conditions:
+    - kind: 7
+      archetype: {fileID: 0}
+      questType: {fileID: 0}
+      axis: 0
+      pole: 0
+      trait: {fileID: 11400000, guid: 29b7dc087f1d23b4f901d5927ac9a692, type: 2}
+      stat: 0
+    variants:
+    - "\u0431\u0435\u0436\u0430\u043B[|\u0430]@\u0438\u043C\u044F \u0443\u0436\u0435 \u043D\u0435 \u0432\u043F\u0435\u0440\u0432\u044B\u0435"
+  - key: reason.nightmares
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u043F\u043E\u0445\u043E\u0436\u0435 \u043D\u0430 \u0442\u043E, \u043F\u043E\u0441\u043B\u0435 \u0447\u0435\u0433\u043E [\u043E\u043D|\u043E\u043D\u0430]@\u0438\u043C\u044F \u043D\u0435 \u0441\u043F\u0438\u0442"
   - key: report.money
     feed: 1
     importance: 0
@@ -938,6 +1220,36 @@ MonoBehaviour:
     conditions: []
     variants:
     - "\u0421\u043D\u044F\u0442\u043E \u043F\u043E \u0441\u0440\u043E\u043A\u0443"
+  - key: report.quests
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u0417\u0430\u0434\u0430\u043D\u0438\u044F"
+  - key: report.quests.taken
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u0412\u0437\u044F\u0442\u043E"
+  - key: report.quests.done
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u0412\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u043E"
+  - key: report.quests.failed
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u041D\u0435 \u0432\u044B\u043F\u043E\u043B\u043D\u0435\u043D\u043E"
+  - key: report.people.fled
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u0421\u0431\u0435\u0436\u0430\u043B\u0438 \u0441 \u0437\u0430\u0434\u0430\u043D\u0438\u044F"
   - key: report.reputation
     feed: 1
     importance: 0
@@ -956,6 +1268,36 @@ MonoBehaviour:
     conditions: []
     variants:
     - "\u0422\u0430\u0432\u0435\u0440\u043D\u0430"
+  - key: ledger.commission
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u041A\u043E\u043C\u0438\u0441\u0441\u0438\u044F"
+  - key: ledger.debtRepayment
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u0412\u043E\u0437\u0432\u0440\u0430\u0442 \u0434\u043E\u043B\u0433\u043E\u0432"
+  - key: ledger.surcharges
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u0414\u043E\u043F\u043B\u0430\u0442\u044B"
+  - key: ledger.eventQuests
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u0421\u043E\u0431\u044B\u0442\u0438\u0439\u043D\u044B\u0435 \u0437\u0430\u0434\u0430\u043D\u0438\u044F"
+  - key: ledger.discoveries
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u041D\u0430\u0445\u043E\u0434\u043A\u0438"
   - key: guild.decree.enabled
     feed: 1
     importance: 0
@@ -1030,10 +1372,52 @@ MonoBehaviour:
     - "{\u043F\u043E\u0441\u0442\u0440\u043E\u0439\u043A\u0430} \u2014 \u0432 \u043E\u0447\u0435\u0440\u0435\u0434\u0438 \u043D\u0430 \u0441\u0442\u0440\u043E\u0439\u043A\u0443"
   - key: guild.eventQuest.found
     feed: 1
-    importance: 1
+    importance: 2
     conditions: []
     variants:
     - "\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0442\u043E\u0440 \u0437\u0430\u043F\u0438\u0441\u0430\u043B \u043D\u0430\u0445\u043E\u0434\u043A\u0443 \u0443 {\u043C\u0435\u0441\u0442\u043E:\u0440}. \u041A\u0430\u043A\u043E\u0439 \u0440\u0430\u043D\u0433 \u043D\u0430\u0437\u043D\u0430\u0447\u0438\u0442\u044C \u2014 \u0440\u0435\u0448\u0430\u0442\u044C \u0432\u0430\u043C"
+  - key: guild.promotion.offered
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "{\u0438\u043C\u044F} \u043C\u043E\u0436\u0435\u0442 \u0434\u0435\u0440\u0436\u0430\u0442\u044C \u044D\u043A\u0437\u0430\u043C\u0435\u043D \u043D\u0430 \u0441\u043B\u0435\u0434\u0443\u044E\u0449\u0438\u0439 \u0440\u0430\u043D\u0433"
+  - key: guild.promotion.taken
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "{\u0438\u043C\u044F} \u043F\u043E\u0448[\u0451\u043B|\u043B\u0430] \u043D\u0430 \u044D\u043A\u0437\u0430\u043C\u0435\u043D"
+  - key: guild.rank.promoted
+    feed: 1
+    importance: 1
+    conditions: []
+    variants:
+    - "{\u0438\u043C\u044F} \u043F\u043E\u043B\u0443\u0447\u0438\u043B[|\u0430] \u043D\u043E\u0432\u044B\u0439 \u0440\u0430\u043D\u0433 \u0433\u0438\u043B\u044C\u0434\u0438\u0438"
+  - key: guild.order.refused
+    feed: 1
+    importance: 1
+    conditions: []
+    variants:
+    - "{\u0438\u043C\u044F} \u043E\u0442\u043A\u0430\u0437\u0430\u043B[\u0441\u044F|\u0430\u0441\u044C] \u043E\u0442 \u0437\u0430\u043A\u0430\u0437\u0430: {\u043F\u0440\u0438\u0447\u0438\u043D\u0430}"
+  - key: guild.adventurer.fled
+    feed: 1
+    importance: 2
+    conditions: []
+    variants:
+    - "{\u0438\u043C\u044F} \u0441\u0431\u0435\u0436\u0430\u043B[|\u0430] \u0441 \u0437\u0430\u0434\u0430\u043D\u0438\u044F: {\u043F\u0440\u0438\u0447\u0438\u043D\u0430}"
+  - key: guild.deserter.returned
+    feed: 1
+    importance: 2
+    conditions: []
+    variants:
+    - "{\u0438\u043C\u044F} \u0432\u0435\u0440\u043D\u0443\u043B[\u0441\u044F|\u0430\u0441\u044C]"
+  - key: guild.adventurer.disappeared
+    feed: 1
+    importance: 2
+    conditions: []
+    variants:
+    - "{\u0438\u043C\u044F} \u0442\u0430\u043A \u0438 \u043D\u0435 \u0432\u0435\u0440\u043D\u0443\u043B[\u0441\u044F|\u0430\u0441\u044C]. \u0411\u043E\u043B\u044C\u0448\u0435 [\u0435\u0433\u043E|\u0435\u0451]@\u0438\u043C\u044F \u043D\u0435 \u0432\u0438\u0434\u0435\u043B\u0438"
   - key: guild.dilemma.arrived
     feed: 1
     importance: 1

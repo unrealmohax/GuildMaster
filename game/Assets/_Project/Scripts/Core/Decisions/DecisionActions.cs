@@ -10,6 +10,9 @@ namespace GuildMaster.Core
         Rest,
         Tavern,
         Sleep,
+
+        /// <summary>Взять заказ с доски (один) — выход в следующем часу.</summary>
+        TakeOrder,
     }
 
     /// <summary>
@@ -18,15 +21,23 @@ namespace GuildMaster.Core
     /// </summary>
     public sealed class DecisionAction
     {
-        public DecisionAction(DecisionActionKind kind, Activity activity, bool inTavern, Action<DecisionScope, Adventurer, float[]> score)
+        public DecisionAction(DecisionActionKind kind, Activity activity, bool inTavern, Action<DecisionScope, Adventurer, float[]> score,
+            int orderId = 0)
         {
             Kind = kind;
             Activity = activity;
             InTavern = inTavern;
             Score = score;
+            OrderId = orderId;
         }
 
         public DecisionActionKind Kind { get; }
+
+        /// <summary>Заказ варианта «взять заказ»; 0 — вариант не о заказе.</summary>
+        public int OrderId { get; }
+
+        /// <summary>Имя для лога: «Rest», «TakeOrder#12».</summary>
+        public string Label => OrderId != 0 ? Kind + "#" + OrderId.ToString(System.Globalization.CultureInfo.InvariantCulture) : Kind.ToString();
 
         /// <summary>Занятие, которое ставит выбор.</summary>
         public Activity Activity { get; }

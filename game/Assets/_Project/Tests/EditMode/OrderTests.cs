@@ -79,6 +79,16 @@ namespace GuildMaster.Tests
         }
 
         [Test]
+        public void RankMix_EasyOrdersNeverVanish()
+        {
+            foreach (RankMixEntry entry in data.Balance.Orders.RankMix)
+            {
+                Assert.Greater(entry.Weights[(int)GuildRank.G], 0f, $"G при репутации от {entry.FromReputation}");
+                Assert.Greater(entry.Weights[(int)GuildRank.F], 0f, $"F при репутации от {entry.FromReputation}");
+            }
+        }
+
+        [Test]
         public void HardEarly_FivePercent_RankTwoAboveMix()
         {
             const int count = 20000;
@@ -288,6 +298,7 @@ namespace GuildMaster.Tests
         public void Orders_ArriveAtMorning_ExpectedCountPerDay(float reputation, float perDay)
         {
             data.Set("guild.startReputation", reputation);
+            data.NoQuests(); // задания меняют репутацию, а с ней — число заказов
             const int days = 400;
             var simulation = Simulation.CreateDefault(data.Registry, 4u);
             List<SimEvent> arrived = SimulationRun.Collect(simulation, sim => SimulationRun.Days(sim, days))
@@ -413,6 +424,7 @@ namespace GuildMaster.Tests
         [Test]
         public void Surcharge_SetByCommand_StoredInOrder_NotTakenFromTreasury()
         {
+            data.NoQuests();
             var simulation = Simulation.CreateDefault(data.Registry, 12u);
             Order order = simulation.World.Orders.Open[0];
             int money = simulation.World.Treasury.Money;
@@ -439,6 +451,7 @@ namespace GuildMaster.Tests
         [Test]
         public void Expired_RemovedFromBoard_OnTime_WithFeedLineOfType()
         {
+            data.NoQuests();
             var simulation = Simulation.CreateDefault(data.Registry, 14u);
             List<Order> start = simulation.World.Orders.Open.ToList();
             List<SimEvent> events = SimulationRun.Collect(simulation, sim => SimulationRun.Days(sim, 8));
@@ -491,6 +504,7 @@ namespace GuildMaster.Tests
         public void CandidateChance_FollowsCurrentReputation()
         {
             const int days = 1500;
+            data.NoQuests(); // репутация стоит на месте
             var simulation = Simulation.CreateDefault(data.Registry, 17u);
             SimulationRun.Do(simulation, ctx => ReputationService.Change(ctx, 55f, "test"));
             float chance = RecruitSystem.CandidateChance(data.Registry, simulation.World.Guild.Reputation);
@@ -504,6 +518,7 @@ namespace GuildMaster.Tests
         [Test]
         public void MonthReport_OrdersAndReputationSections_MatchEvents()
         {
+            data.NoQuests();
             var simulation = Simulation.CreateDefault(data.Registry, 18u);
             List<SimEvent> events = SimulationRun.Collect(simulation, sim => SimulationRun.Days(sim, 61));
             IReadOnlyList<MonthReport> reports = simulation.World.Reports.Reports;
@@ -573,6 +588,7 @@ namespace GuildMaster.Tests
         [Test]
         public void SameSeed_SameOrdersBoardAndFeed()
         {
+            data.NoQuests(); // заказы доживают до снятия по сроку; детерминизм с заданиями — в тестах заданий
             string Run()
             {
                 var simulation = Simulation.CreateDefault(data.Registry, 31u);
@@ -589,6 +605,7 @@ namespace GuildMaster.Tests
         [Test]
         public void OrderSystem_DoesNotShiftOtherSystems()
         {
+            data.NoQuests(); // без заказов нет и заданий: сравниваем мир, где задания не случаются
             string Run(bool withOrders)
             {
                 List<ISimSystem> systems = SimulationSystems.CreateDefault();
@@ -635,6 +652,7 @@ namespace GuildMaster.Tests
         public void SimpleBot_RegistrarUpToTopRank_ImportantOrderWaitsForRank_SummaryHasOrders()
         {
             data.Set("orders.hardEarlyChance", 0.2f); // чаще важные заказы
+            data.NoQuests(); // репутация и ранги людей не меняются
             HeadlessRun.Result result = HeadlessRun.Run(data.Registry, 41u, 120, PlayerBots.Simple());
             WorldState world = result.Simulation.World;
 
@@ -663,14 +681,22 @@ namespace GuildMaster.Tests
             // «Сложный» — на ранг выше: из G выходит F (в стартовой гильдии есть люди ранга F), из F — E (таких нет).
             data.Set("orders.hardEarlyChance", 0.3f);
             data.Set("orders.hardEarlyRankBonus", 1);
+            // Репутация стоит на месте: иначе выполненные задания поднимают ранги заказов выше рангов людей.
+            data.Set("guild.successReputationPerRank", 0f);
+            data.Set("guild.failureReputationPerRank", 0f);
+            data.Set("guild.deathReputation", 0f);
             HeadlessRun.Result result = HeadlessRun.Run(data.Registry, 43u, 60, PlayerBots.Simple());
             OrderBoard board = result.Simulation.World.Orders;
-            GuildRank top = RegistrarUpToTopRankRule.TopRank(result.Simulation.World);
-            List<Order> important = board.Open.Concat(board.Closed).Where(o => o.IsImportant && o.Status != OrderStatus.AwaitingPlayer).ToList();
+            // Люди растут в ранге по ходу прогона: ранг людей на старте — нижняя граница, на конце — верхняя.
+            GuildRank startTop = RegistrarUpToTopRankRule.TopRank(HeadlessRun.Run(data.Registry, 43u, 0, PlayerBots.Simple()).Simulation.World);
+            GuildRank endTop = RegistrarUpToTopRankRule.TopRank(result.Simulation.World);
+            List<Order> important = board.Open.Concat(board.InWork).Concat(board.Closed)
+                .Where(o => o.IsImportant && o.Status != OrderStatus.AwaitingPlayer).ToList();
 
-            Assert.IsTrue(important.Any(o => o.Rank <= top), "есть важные заказы по силам гильдии");
-            Assert.IsTrue(important.Where(o => o.Rank <= top).All(o => o.PostedAtHours >= 0), "их бот принимает");
-            Assert.IsTrue(important.Where(o => o.Rank > top).All(o => o.DeclinedBy == OrderDeclinedBy.NoAnswer), "остальные ждут и уходят сами");
+            string seen = $"ранг людей {startTop}…{endTop}; важные: " + string.Join(", ", important.Select(o => $"#{o.Id} {o.Rank} {o.Status} {o.DeclinedBy}"));
+            Assert.IsTrue(important.Any(o => o.Rank <= startTop), "есть важные заказы по силам гильдии; " + seen);
+            Assert.IsTrue(important.Where(o => o.Rank <= startTop).All(o => o.PostedAtHours >= 0), "их бот принимает; " + seen);
+            Assert.IsTrue(important.Where(o => o.Rank > endTop).All(o => o.DeclinedBy == OrderDeclinedBy.NoAnswer), "остальные ждут и уходят сами; " + seen);
         }
 
         [Test]

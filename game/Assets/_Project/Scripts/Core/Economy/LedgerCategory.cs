@@ -61,9 +61,24 @@ namespace GuildMaster.Core
         /// <summary>Таверна: доля гильдии с каждой еды и выпивки.</summary>
         public static readonly LedgerCategory Tavern = new LedgerCategory("tavern", LedgerFlow.Income);
 
+        /// <summary>Комиссия гильдии с награды выполненного заказа.</summary>
+        public static readonly LedgerCategory Commission = new LedgerCategory("commission", LedgerFlow.Income);
+
+        /// <summary>Погашение долга авантюриста из его доли награды; связанный объект — человек.</summary>
+        public static readonly LedgerCategory DebtRepayment = new LedgerCategory("debtRepayment", LedgerFlow.Income);
+
+        /// <summary>Доплата гильдии к выполненному заказу — обещана, платится даже в минус.</summary>
+        public static readonly LedgerCategory Surcharges = new LedgerCategory("surcharges", LedgerFlow.Expense, ExpenseKind.Mandatory);
+
+        /// <summary>Награда за выполненное событийное задание — его платит гильдия.</summary>
+        public static readonly LedgerCategory EventQuests = new LedgerCategory("eventQuests", LedgerFlow.Expense, ExpenseKind.Mandatory);
+
+        /// <summary>Награда группе за сообщение о находке.</summary>
+        public static readonly LedgerCategory Discoveries = new LedgerCategory("discoveries", LedgerFlow.Expense, ExpenseKind.Mandatory);
+
         public static IReadOnlyList<LedgerCategory> All { get; } = new[]
         {
-            Tavern,
+            Tavern, Commission, DebtRepayment, Surcharges, EventQuests, Discoveries,
         };
     }
 }

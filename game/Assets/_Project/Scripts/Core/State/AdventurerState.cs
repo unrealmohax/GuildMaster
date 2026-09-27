@@ -88,6 +88,20 @@ namespace GuildMaster.Core
         /// <summary>Хотя бы час этого вечера провёл в таверне. Итоги вечера (отношения, ссоры) — в начале ночи.</summary>
         public bool InTavernThisEvening { get; internal set; }
 
+        // Задания.
+
+        /// <summary>Заказ, взятый решением в этом часу: выход — в следующем. 0 — нет.</summary>
+        public int PlannedOrderId { get; internal set; }
+
+        /// <summary>
+        /// Задание, на котором человек сейчас (<see cref="QuestRun.Id"/>); 0 — не на задании. Беглец и повернувший назад
+        /// идут домой одни — у них 0, но занятие задания.
+        /// </summary>
+        public int QuestRunId { get; internal set; }
+
+        /// <summary>С кем человек на задании: один или в группе; вне задания — <see cref="PartyContext.None"/>.</summary>
+        public PartyContext QuestParty { get; internal set; }
+
         public bool HasHeavyWound() => TryGetCondition(ConditionKind.HeavyWound, out _);
 
         public bool HasLightWound() => TryGetCondition(ConditionKind.LightWound, out _);

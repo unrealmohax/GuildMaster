@@ -135,7 +135,7 @@ namespace GuildMaster.Tests
             string csv = SummaryCsv.Write(summary);
             StringAssert.StartsWith("Зерно,Бот,Дней\n360,Простой,360\n\nМесяц,Дней,Людей,", csv);
             StringAssert.Contains("\nИтого,360,", csv);
-            StringAssert.Contains("\nId,Имя,Архетип,Ранг,Ран,В гильдии,Раскрыто\n", csv);
+            StringAssert.Contains("\nId,Имя,Архетип,Ранг,Ран,Выполнено,Не выполнено,Жив,В гильдии,Раскрыто\n", csv);
         }
 
         [Test]

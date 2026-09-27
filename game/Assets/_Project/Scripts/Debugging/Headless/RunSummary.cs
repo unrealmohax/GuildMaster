@@ -21,6 +21,7 @@ namespace GuildMaster.Debugging
     public sealed class MonthRecord
     {
         private readonly Dictionary<SimEventType, int> counts;
+        private readonly IReadOnlyList<SimEvent> events;
 
         private readonly long[] feedLines;
         private readonly long[] activityHours;
@@ -29,8 +30,9 @@ namespace GuildMaster.Debugging
         private readonly int ledgerTo;
 
         internal MonthRecord(int year, int month, int days, ISimulationClient game, Dictionary<SimEventType, int> counts, long[] feedLines,
-            long[] activityHours, long personHours, int ledgerFrom, int ledgerTo)
+            long[] activityHours, long personHours, int ledgerFrom, int ledgerTo, IReadOnlyList<SimEvent> events = null)
         {
+            this.events = events ?? Array.Empty<SimEvent>();
             this.ledgerFrom = ledgerFrom;
             this.ledgerTo = ledgerTo;
             this.activityHours = activityHours;
@@ -54,6 +56,20 @@ namespace GuildMaster.Debugging
 
         /// <summary>Сколько событий этого типа было за месяц.</summary>
         public int Count(SimEventType type) => counts.TryGetValue(type, out int count) ? count : 0;
+
+        /// <summary>События месяца (кроме часов и фаз дня), по порядку — для столбцов, которым нужны данные событий.</summary>
+        public IReadOnlyList<SimEvent> Events => events;
+
+        /// <summary>Сколько событий этого типа за месяц подходит под условие.</summary>
+        public int Count(SimEventType type, Func<SimEvent, bool> condition)
+        {
+            int count = 0;
+            foreach (SimEvent simEvent in events)
+            {
+                if (simEvent.Type == type && condition(simEvent)) count++;
+            }
+            return count;
+        }
 
         /// <summary>Сколько строк этой важности добавлено в ленту гильдии за месяц.</summary>
         public long FeedLines(EventImportance importance) => feedLines[(int)importance];
@@ -226,6 +242,7 @@ namespace GuildMaster.Debugging
         private long[] activityHours = new long[Enum.GetValues(typeof(Activity)).Length];
         private long personHours;
         private int ledgerAtMonthStart;
+        private List<SimEvent> monthEvents = new List<SimEvent>();
 
         public SummaryRecorder(Simulation simulation, IReadOnlyList<MonthColumn> monthColumns = null, IReadOnlyList<PersonColumn> personColumns = null)
         {
@@ -274,6 +291,7 @@ namespace GuildMaster.Debugging
             {
                 monthCounts.TryGetValue(simEvent.Type, out int count);
                 monthCounts[simEvent.Type] = count + 1;
+                if (EventLogLevels.Of(simEvent.Type) != SimLogLevel.Trace) monthEvents.Add(simEvent);
 
                 if (simEvent.Participants.Count == 0) continue;
                 int id = simEvent.Participants[0];
@@ -300,13 +318,14 @@ namespace GuildMaster.Debugging
             }
             int ledgerCount = simulation.World.Treasury.Ledger.Count;
             var record = new MonthRecord(time.Year, time.Month, days, simulation, monthCounts, feedLines, activityHours, personHours,
-                ledgerAtMonthStart, ledgerCount);
+                ledgerAtMonthStart, ledgerCount, monthEvents);
             ledgerAtMonthStart = ledgerCount;
             var values = new double[monthColumns.Count];
             for (int c = 0; c < values.Length; c++) values[c] = monthColumns[c].Value(record);
 
             months.Add(new MonthRow(time.Year, time.Month, days, values));
             monthCounts.Clear();
+            monthEvents = new List<SimEvent>();
             monthTicks = 0;
             activityHours = new long[activityHours.Length];
             personHours = 0;

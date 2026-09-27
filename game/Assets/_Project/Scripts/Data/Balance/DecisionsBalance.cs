@@ -37,7 +37,7 @@ namespace GuildMaster.Data
 
         [Header("Ценность заказа")]
         [Tooltip("Деньги: доля делится на расходы за столько дней")]
-        [SerializeField, Min(1)] private int moneyExpenseDays = 7;
+        [SerializeField, Min(1)] private int moneyExpenseDays = 20;
 
         [Tooltip("Слава: + за задание на повышение")]
         [SerializeField] private float promotionGloryBonus = 0.2f;
@@ -53,6 +53,29 @@ namespace GuildMaster.Data
 
         [Tooltip("Отдых: 1 − усталость/100 − это")]
         [SerializeField] private float orderRestOffset = 0.5f;
+
+        [Tooltip("Задание на повышение: Безопасность (экзамен без ран и смерти)")]
+        [SerializeField] private float promotionSafety = 1f;
+
+        [Header("Решение группы после провала")]
+        [Tooltip("Продолжить: Безопасность −, если следующий провал грозит гибелью")]
+        [SerializeField] private float deadlyFailureSafetyPenalty = 1f;
+
+        [Tooltip("Отступить: Безопасность + за каждый провал")]
+        [SerializeField] private float retreatSafetyPerFailure = 0.2f;
+
+        [Tooltip("Отступить: Безопасность +, если в группе есть раненые")]
+        [SerializeField] private float retreatWoundedSafety = 0.3f;
+
+        [Tooltip("Спор: у кого-то противоположное предпочтение с разницей ценностей от")]
+        [SerializeField, Min(0f)] private float argueThreshold = 0.5f;
+
+        [Header("Находка")]
+        [Tooltip("Исследовать: Слава × воспринимаемый шанс")]
+        [SerializeField] private float exploreGlory = 0.5f;
+
+        [Tooltip("Пройти мимо: Безопасность")]
+        [SerializeField] private float skipDiscoverySafety = 1f;
 
         [Header("Ценность: тренировка")]
         [SerializeField] private float trainingGlory = 0.4f;
@@ -143,6 +166,13 @@ namespace GuildMaster.Data
         public float CompanionsFriendBonus => companionsFriendBonus;
         public float CompanionsPermanentBonus => companionsPermanentBonus;
         public float OrderRestOffset => orderRestOffset;
+        public float PromotionSafety => promotionSafety;
+        public float DeadlyFailureSafetyPenalty => deadlyFailureSafetyPenalty;
+        public float RetreatSafetyPerFailure => retreatSafetyPerFailure;
+        public float RetreatWoundedSafety => retreatWoundedSafety;
+        public float ArgueThreshold => argueThreshold;
+        public float ExploreGlory => exploreGlory;
+        public float SkipDiscoverySafety => skipDiscoverySafety;
         public float TrainingGlory => trainingGlory;
         public float TrainingSafety => trainingSafety;
         public float TrainingCompanions => trainingCompanions;

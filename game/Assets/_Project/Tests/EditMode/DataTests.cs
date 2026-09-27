@@ -251,7 +251,7 @@ namespace GuildMaster.Tests
         public void ListsAxesTemplatesAndCatalogs()
         {
             Assert.AreEqual(Vocabulary.AxisCount, registry.All<AxisDefinition>().Count);
-            Assert.AreEqual(4, registry.All<QuestTypeDefinition>().Count);
+            Assert.AreEqual(5, registry.All<QuestTypeDefinition>().Count);
             Assert.AreEqual("Трус", registry.Axis(AxisId.Risk).NegativePole.Name);
             Assert.AreEqual(2, registry.FeedTemplates("quest.departed").Count);
             Assert.IsEmpty(registry.FeedTemplates("no.such.key"));

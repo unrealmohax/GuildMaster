@@ -16,7 +16,7 @@ namespace GuildMaster.Core
     /// <summary>
     /// Личные деньги. Кошелёк целочисленный: доли (Семейный, долг) округляются вниз,
     /// цены из <see cref="ExpensesBalance"/> — до целого. Не хватает — платит сколько может, остаток не списывается,
-    /// ставится флаг «кошелёк пуст». Сам кошелёк казну не трогает: долю таверны с еды и выпивки засчитывают системы, которые
+    /// ставится флаг «кошелёк пуст». Кошелёк трогает казну только погашением долга; долю таверны с еды и выпивки засчитывают системы, которые
     /// за них берут плату (<see cref="TreasuryService"/>); остальные платы гильдии (Общежитие, двор, Лазарет) только списываются
     /// из кошелька — построек нет.
     /// </summary>
@@ -41,7 +41,8 @@ namespace GuildMaster.Core
 
         /// <summary>
         /// Доход (<see cref="IncomeKind"/>): Семейный отсылает домой <c>familySendHomeShare</c> (30%) каждого дохода,
-        /// из доли награды гасится долг гильдии — <c>debtRepaymentShare</c> (20%), не больше долга. Остальное — в кошелёк,
+        /// из доли награды гасится долг гильдии — <c>debtRepaymentShare</c> (20%), не больше долга; погашенное зачисляется
+        /// в казну (<see cref="LedgerCategories.DebtRepayment"/>, связанный объект — человек). Остальное — в кошелёк,
         /// флаг «кошелёк пуст» снимается. Возвращает, сколько попало в кошелёк.
         /// </summary>
         public static int ReceiveIncome(SimContext ctx, Adventurer adventurer, int amount, IncomeKind kind)
@@ -55,7 +56,8 @@ namespace GuildMaster.Core
             int debt = kind == IncomeKind.Reward ? Math.Min(state.DebtToGuild, Share(amount, ctx.Data.Balance.State.DebtRepaymentShare)) : 0;
 
             int kept = amount - home - debt;
-            state.DebtToGuild -= debt;   // погашение долга в казну не зачисляется
+            state.DebtToGuild -= debt;
+            TreasuryService.Credit(ctx, LedgerCategories.DebtRepayment, debt, "debt", adventurer.Id);
             state.Wallet += kept;
             if (state.Wallet > 0) state.IsWalletEmpty = false;
             return kept;

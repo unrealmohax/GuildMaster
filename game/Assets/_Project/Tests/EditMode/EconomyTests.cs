@@ -596,8 +596,11 @@ namespace GuildMaster.Tests
             Assert.GreaterOrEqual(tavern, 0);
             Assert.GreaterOrEqual(names.IndexOf("Банкротство"), 0);
             Assert.AreEqual(12, summary.Months.Count);
-            Assert.AreEqual(summary.Totals[income], summary.Totals[tavern], 1e-6, "only tavern income so far");
-            Assert.AreEqual(2000 + summary.Totals[income], summary.Totals[money], 1e-6);
+            double categories = names.Where(n => n.StartsWith("Доход: ")).Sum(n => summary.Totals[names.IndexOf(n)]);
+            Assert.AreEqual(summary.Totals[income], categories, 1e-6, "доходы — сумма статей");
+            Assert.Greater(summary.Totals[names.IndexOf("Доход: Комиссия")], 0, "комиссия с заданий");
+            Assert.AreEqual(2000 + summary.Totals[income] - summary.Totals[names.IndexOf("Расходы")], summary.Totals[money], 1e-6,
+                "казна — старт + доходы − расходы (находки и событийные задания)");
             Assert.Greater(summary.Totals[income], 0);
             Assert.AreEqual(12, result.Simulation.World.Reports.Reports.Count, "11 month starts in the year and the first of the next");
             TestLedger.AssertLedgerMatchesMoney(result.Simulation.World.Treasury);

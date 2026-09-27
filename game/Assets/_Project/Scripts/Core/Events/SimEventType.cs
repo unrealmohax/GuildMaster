@@ -146,5 +146,110 @@ namespace GuildMaster.Core
 
         /// <summary>Игрок назначил доплату к заказу: <c>order</c>, <c>from</c>, <c>to</c>. [О].</summary>
         SurchargeSet,
+
+        // Задания. Участник — человек (кто взял, кого касается); у событий задания в данных — id задания (quest), заказ, тип,
+        // ранг, расстояние, «один ли» (solo), названия (place, enemy, client, cargo, party) и решающий (leader).
+
+        /// <summary>Человек взял заказ с доски: выйдет в следующем часу. [О].</summary>
+        OrderTaken,
+
+        /// <summary>Человек отказался от выбранного заказа из-за Кошмаров — важное решение: <c>reason</c> — текст причины. [З].</summary>
+        OrderRefused,
+
+        /// <summary>Человеку открыто задание на повышение — экзамен на следующий ранг. [О].</summary>
+        PromotionOffered,
+
+        /// <summary>Группа вышла на задание. [О].</summary>
+        QuestDeparted,
+
+        /// <summary>День пути кончился, группа встала на ночлег. [О].</summary>
+        TravelProgress,
+
+        /// <summary>Ночь в пути прошла. [О].</summary>
+        QuestCamp,
+
+        /// <summary>Случайное событие в пути: <c>event</c> — id, <c>kind</c> — start / success / fail. [З] / [О].</summary>
+        TravelEvent,
+
+        /// <summary>Находка: <c>discovery</c> — id, <c>kind</c> — found / explore / skip / empty / loot / fail / reported.</summary>
+        Discovery,
+
+        /// <summary>Раунд удался: <c>chance</c>, <c>overlap</c>. [О].</summary>
+        RoundSuccess,
+
+        /// <summary>Раунд провален: <c>failed</c> — номер провала, <c>chance</c>, <c>overlap</c>. [З].</summary>
+        RoundFail,
+
+        /// <summary>Потери после провала: <c>kind</c> — time / stress / bonus / gear / loot.</summary>
+        QuestLoss,
+
+        /// <summary>Рана на задании (строка ленты задания): <c>kind</c> — shield / light / heavy / maimed.</summary>
+        QuestWound,
+
+        /// <summary>Решение группы после провала: <c>kind</c> — continue / doubt / argue; <c>reasons</c> — главные причины. [З].</summary>
+        PartyDecision,
+
+        /// <summary>Группа отступила. [З], автопауза <see cref="AutopauseKind.PartyRetreated"/>.</summary>
+        PartyRetreated,
+
+        /// <summary>Момент напряжения: <c>kind</c> — panic / rush / hero / hold / breakdown.</summary>
+        TensionMoment,
+
+        /// <summary>Человек сбежал с задания: <c>reason</c> — причина. [В], автопауза <see cref="AutopauseKind.AdventurerFled"/>.</summary>
+        AdventurerFled,
+
+        /// <summary>Сработал потолок: раунд провален сам. [З].</summary>
+        CeilingTriggered,
+
+        /// <summary>Синергия пары в раунде: <c>kind</c> — friends / lovers / rivals.</summary>
+        Synergy,
+
+        /// <summary>Человек погиб на задании: <c>all</c> — погибли все. [В], автопауза <see cref="AutopauseKind.AdventurerDied"/>.</summary>
+        AdventurerDied,
+
+        /// <summary>Группа не вернулась — погибли все. [В].</summary>
+        QuestLost,
+
+        /// <summary>Из группы выжил только беглец. [В].</summary>
+        OnlyFugitiveSurvived,
+
+        /// <summary>Лекарь спас умиравшего — тот стал Калекой: <c>medic</c>. [В].</summary>
+        MedicSaved,
+
+        /// <summary>Группа повернула к дому: <c>kind</c> — hard (несут раненых) / normal.</summary>
+        ReturnTrip,
+
+        /// <summary>
+        /// Задание кончилось, кто-то вернулся: <c>kind</c> — уровень (brilliant / success / partial / fail / catastrophe), <c>done</c>,
+        /// <c>count</c> — вернулось, <c>total</c> — вышло.
+        /// </summary>
+        QuestReturned,
+
+        /// <summary>Катастрофа на задании (без строки). Автопауза <see cref="AutopauseKind.QuestCatastrophe"/>.</summary>
+        QuestCatastrophe,
+
+        /// <summary>Трофеи сданы трактирщику: <c>amount</c>. [О].</summary>
+        LootHandedIn,
+
+        /// <summary>Беспринципный утаил часть трофеев: <c>amount</c>, <c>caught</c>. [О].</summary>
+        LootSkimmed,
+
+        /// <summary>Беглец вернулся в гильдию. [В].</summary>
+        DeserterReturned,
+
+        /// <summary>Беглец не вернулся — исчез, ушёл из гильдии. [В], автопауза <see cref="AutopauseKind.MemberLeftGuild"/>.</summary>
+        AdventurerDisappeared,
+
+        /// <summary>Событийное задание из находки ждёт ранга от игрока. [В], автопауза <see cref="AutopauseKind.ImportantOrder"/>.</summary>
+        EventQuestAwaitingPlayer,
+
+        /// <summary>Игрок ответил на событийное задание: <c>rank</c> или отказ (<c>declined</c>, <c>noAnswer</c>). [О].</summary>
+        EventQuestAnswered,
+
+        /// <summary>Экзамен на повышение: <c>passed</c>. [З].</summary>
+        PromotionExam,
+
+        /// <summary>Выплаты задания: <c>reward</c>, <c>commission</c>, <c>surcharge</c>, <c>trophies</c>. [О], без строки.</summary>
+        QuestPaid,
     }
 }

@@ -12,7 +12,7 @@ namespace GuildMaster.ClaudeSandbox
         private const FeedImportance Z = FeedImportance.Notable;
         private const FeedImportance V = FeedImportance.Important;
 
-        private static void FillFeed(FeedTemplateSet feed, Dictionary<string, QuestTypeDefinition> q)
+        private static void FillFeed(FeedTemplateSet feed, Dictionary<string, QuestTypeDefinition> q, Dictionary<string, SpecialTraitDefinition> traits)
         {
             var t = new List<FeedTemplate>();
 
@@ -181,6 +181,41 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Quest("quest.returned.catastrophe", V, None, "Вернулись {число} из {всего}. Задание провалено"));
 
             t.Add(Quest("quest.loot.handedIn", O, None, "Добычу сдали Скупщику"));
+
+            // ===== Новое (GM-11, 💡): строки для одного человека там, где у группы — {группа} или «несут раненых» =====
+
+            t.Add(Quest("quest.travel", O, If(FeedConditionKind.Solo),
+                "К вечеру {имя} добрал[ся|ась] до {место:р}. Заночевал[|а]@имя у дороги",
+                "Весь день в пути. Ни души навстречу",
+                "Дорогу развезло после дождя. Идти тяжело"));
+            t.Add(Quest("quest.loss.stress", O, If(FeedConditionKind.Solo), "У костра {имя} долго молчал[|а]"));
+            t.Add(Quest("quest.wound.heavy", V, If(FeedConditionKind.Solo),
+                "{имя} тяжело ранен[|а]. Перевязал[ся|ась]@имя как смог[|ла]@имя",
+                "{имя} не может встать. Рана глубокая"));
+            t.Add(Quest("quest.decision.continue", Z, If(FeedConditionKind.Solo), "{имя} перевёл[|а] дух и пош[ёл|ла] снова"));
+            t.Add(Quest("quest.decision.retreat", Z, If(FeedConditionKind.Solo), "{имя} решил[|а] не испытывать судьбу и повернул[|а]@имя назад"));
+            t.Add(Quest("quest.tension.flee", V, If(FeedConditionKind.Solo), "{имя} бросил[|а] всё и побежал[|а]@имя назад, не оглядываясь"));
+            t.Add(Quest("quest.returnTrip.hard", Z, If(FeedConditionKind.Solo),
+                "{имя} возвращается. Медленно — рана даёт о себе знать",
+                "На обратном пути {имя:д} стало хуже"));
+            t.Add(Quest("quest.discovery.fail", V, If(FeedConditionKind.Solo), "Из темноты вышло то, чего не ждали. {имя} едва выбрал[ся|ась]@имя"));
+            t.Add(Quest("quest.returned.brilliant", Z, If(FeedConditionKind.Solo), "{имя} вернул[ся|ась] с победой и без царапины. В таверне [его|её]@имя встретили стоя"));
+            t.Add(Quest("quest.returned.success", O, If(FeedConditionKind.Solo), "{имя} вернул[ся|ась]. Задание выполнено"));
+            t.Add(Quest("quest.returned.fail", Z, If(FeedConditionKind.Solo), "{имя} вернул[ся|ась] ни с чем"));
+            t.Add(Quest("quest.returned.catastrophe", V, If(FeedConditionKind.Solo), "{имя} вернул[ся|ась] од[ин|на]. Задание провалено"));
+
+            // ===== Новое (GM-11, 💡): экзамен на повышение и событийное задание =====
+
+            t.Add(Quest("quest.promotion.passed", Z, None, "{имя} выдержал[|а] испытание. Теперь [ему|ей]@имя доверят больше"));
+            t.Add(Quest("quest.promotion.failed", Z, None, "{имя} не выдержал[|а] испытания. Попробовать снова можно через месяц"));
+            t.Add(Quest("quest.round.success.cave", O, None,
+                "Прошли пещеру до конца. Там было то, о чём говорили",
+                "В глубине стало тихо. Дело сделано"));
+            t.Add(Quest("quest.round.fail.cave", Z, None, new[]
+            {
+                "В темноте потеряли дорогу. Пришлось вернуться к входу",
+                "Факелы погасли на полпути. Начинать заново",
+            }));
             t.Add(Quest("quest.loot.skimmed", O, None, "{имя} что-то долго перекладывал[|а] в своём мешке"));
 
             // ===== Лента гильдии =====
@@ -202,6 +237,12 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("guild.board.noAnswer", O, None, "{заказчик} не дождал[ся|ась|ось|ись]@заказчик ответа и уш[ёл|ла|ло|ли]@заказчик"));
 
             t.Add(Guild("guild.order.taken", O, IfType(q["Hunt"]), "{имя} взял[|а] охоту у {место:р}"));
+            // Новые варианты (GM-11, 💡): по строке на каждый тип и общая.
+            t.Add(Guild("guild.order.taken", O, None, "{имя} взял[|а] заказ"));
+            t.Add(Guild("guild.order.taken", O, IfType(q["Extermination"]), "{имя} взял[|а] истребление у {место:р}"));
+            t.Add(Guild("guild.order.taken", O, IfType(q["Escort"]), "{имя} взял[ся|ась] проводить {груз:в} до {место:р}"));
+            t.Add(Guild("guild.order.taken", O, IfType(q["Delivery"]), "{имя} взял[ся|ась] доставить {груз:в} в {место:в}"));
+            t.Add(Guild("guild.order.taken", O, IfType(q["CaveExploration"]), "{имя} взял[ся|ась] исследовать пещеру у {место:р}"));
             t.Add(Guild("guild.party.formed", O, None, "{имя} собрал[|а] группу: {напарник} и ещё двое"));
             t.Add(Guild("guild.party.noPartners", O, None, "{имя} искал[|а] напарников весь день. Никто не согласился"));
             t.Add(Guild("guild.order.solo", O, None, "{имя} пош[ёл|ла] на задание од[ин|на]"));
@@ -260,6 +301,12 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("reason.hardAfterBreakdown", O, None, "тяжело после срыва"));
             t.Add(Guild("reason.heavyHeart", O, None, "тяжело на душе"));
 
+            // Причины решений на задании (GM-11, 💡): бегство и отказ от заказа из-за Кошмаров.
+            t.Add(Guild("reason.fled", O, None, "не выдержал[|а]@имя"));
+            t.Add(Guild("reason.fled", O, IfPole(AxisId.Risk, AxisPole.Negative), "[трус|трусиха]@имя"));
+            t.Add(Guild("reason.fled", O, IfTrait(traits["Deserter"]), "бежал[|а]@имя уже не впервые"));
+            t.Add(Guild("reason.nightmares", O, None, "похоже на то, после чего [он|она]@имя не спит"));
+
             // ===== Отчёт месяца (docs/content/event-feed.md → «Отчёт месяца», 💡): не строки ленты, а подписи отчёта =====
 
             t.Add(Guild("report.money", O, None, "Деньги"));
@@ -281,10 +328,20 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("report.orders.declinedByRegistrar", O, None, "Отклонено Регистратором"));
             t.Add(Guild("report.orders.declinedByPlayer", O, None, "Отклонено вами"));
             t.Add(Guild("report.orders.expired", O, None, "Снято по сроку"));
+            t.Add(Guild("report.quests", O, None, "Задания"));
+            t.Add(Guild("report.quests.taken", O, None, "Взято"));
+            t.Add(Guild("report.quests.done", O, None, "Выполнено"));
+            t.Add(Guild("report.quests.failed", O, None, "Не выполнено"));
+            t.Add(Guild("report.people.fled", O, None, "Сбежали с задания"));
             t.Add(Guild("report.reputation", O, None, "Репутация"));
             t.Add(Guild("report.reputation.change", O, None, "За месяц"));
             // Названия статей журнала казны.
             t.Add(Guild("ledger.tavern", O, None, "Таверна"));
+            t.Add(Guild("ledger.commission", O, None, "Комиссия"));
+            t.Add(Guild("ledger.debtRepayment", O, None, "Возврат долгов"));
+            t.Add(Guild("ledger.surcharges", O, None, "Доплаты"));
+            t.Add(Guild("ledger.eventQuests", O, None, "Событийные задания"));
+            t.Add(Guild("ledger.discoveries", O, None, "Находки"));
 
             t.Add(Guild("guild.decree.enabled", O, None, "Объявлено: {распоряжение}"));
             t.Add(Guild("guild.decree.benefitCancelled", Z, None, "Новость об отмене {распоряжение:р} встретили молча"));
@@ -305,7 +362,19 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("guild.staff.quit", V, None, "{имя} уш[ёл|ла] со службы, так и не дождавшись жалованья"));
             t.Add(Guild("guild.staff.fired", Z, None, "{имя} больше не служит гильдии"));
             t.Add(Guild("guild.building.queued", O, None, "{постройка} — в очереди на стройку"));
-            t.Add(Guild("guild.eventQuest.found", Z, None, "Регистратор записал находку у {место:р}. Какой ранг назначить — решать вам"));
+            // Правка (GM-11, ❔): [З] → [В] — событийное задание ждёт ответа игрока, как важный заказ, с автопаузой.
+            t.Add(Guild("guild.eventQuest.found", V, None, "Регистратор записал находку у {место:р}. Какой ранг назначить — решать вам"));
+
+            // ===== Новое (GM-11, 💡): задания в ленте гильдии =====
+
+            t.Add(Guild("guild.promotion.offered", O, None, "{имя} может держать экзамен на следующий ранг"));
+            t.Add(Guild("guild.promotion.taken", O, None, "{имя} пош[ёл|ла] на экзамен"));
+            t.Add(Guild("guild.rank.promoted", Z, None, "{имя} получил[|а] новый ранг гильдии"));
+            t.Add(Guild("guild.order.refused", Z, None, "{имя} отказал[ся|ась] от заказа: {причина}"));
+            t.Add(Guild("guild.adventurer.fled", V, None, "{имя} сбежал[|а] с задания: {причина}"));
+            // Строка ✅ (решение 2026-09-27): «{имя} вернулся».
+            t.Add(Guild("guild.deserter.returned", V, None, "{имя} вернул[ся|ась]"));
+            t.Add(Guild("guild.adventurer.disappeared", V, None, "{имя} так и не вернул[ся|ась]. Больше [его|её]@имя не видели"));
             t.Add(Guild("guild.dilemma.arrived", Z, None, "{имя} просит о разговоре"));
             t.Add(Guild("guild.archetype.changed", O, None, "{имя} теперь — {архетип}"));
             t.Add(Guild("guild.party.permanentFormed", Z, None, "{имя} и {напарник} с товарищами теперь ходят вместе: {группа}"));
@@ -391,6 +460,9 @@ namespace GuildMaster.ClaudeSandbox
 
         private static FeedCondition[] IfPole(AxisId axis, AxisPole pole) =>
             new[] { Make<FeedCondition>(("kind", FeedConditionKind.RevealedAxisPole), ("axis", axis), ("pole", pole)) };
+
+        private static FeedCondition[] IfTrait(SpecialTraitDefinition trait) =>
+            new[] { Make<FeedCondition>(("kind", FeedConditionKind.RevealedTrait), ("trait", trait)) };
 
         private static FeedCondition[] IfStat(StatId stat) =>
             new[] { Make<FeedCondition>(("kind", FeedConditionKind.MaimedStat), ("stat", stat)) };

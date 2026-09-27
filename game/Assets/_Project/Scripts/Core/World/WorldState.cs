@@ -32,7 +32,10 @@ namespace GuildMaster.Core
         /// <summary>Гильдия как целое: репутация.</summary>
         public GuildState Guild { get; } = new GuildState();
 
-        /// <summary>Заказы: доска, ждущие игрока, архив, правила Регистратора.</summary>
+        /// <summary>Заказы: доска, ждущие игрока, в работе, архив, правила Регистратора.</summary>
         public OrderBoard Orders { get; } = new OrderBoard();
+
+        /// <summary>Задания: идущие, недавно законченные (с лентой задания), люди, идущие домой одни.</summary>
+        public QuestBook Quests { get; } = new QuestBook();
     }
 }

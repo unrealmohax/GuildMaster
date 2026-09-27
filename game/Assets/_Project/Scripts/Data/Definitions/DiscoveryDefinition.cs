@@ -15,6 +15,9 @@ namespace GuildMaster.Data
         [Tooltip("Название событийного задания для игрока")]
         [SerializeField] private string eventQuestTitle;
 
+        [Tooltip("Тип событийного задания: время раунда, оси профиля, строки раундов")]
+        [SerializeField] private QuestTypeDefinition eventQuestType;
+
         [SerializeField] private string foundFeedKey;
         [SerializeField] private string exploreFeedKey;
         [SerializeField] private string skipFeedKey;
@@ -26,6 +29,7 @@ namespace GuildMaster.Data
         public StatId SpotterStat => spotterStat;
         public float ReportRewardShare => reportRewardShare;
         public string EventQuestTitle => eventQuestTitle;
+        public QuestTypeDefinition EventQuestType => eventQuestType;
         public string FoundFeedKey => foundFeedKey;
         public string ExploreFeedKey => exploreFeedKey;
         public string SkipFeedKey => skipFeedKey;

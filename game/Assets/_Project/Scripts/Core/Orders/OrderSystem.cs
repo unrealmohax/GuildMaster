@@ -124,6 +124,11 @@ namespace GuildMaster.Core
                     board.Totals = board.Totals.AddExpired();
                     Publish(ctx, SimEventType.OrderExpired, order).With("surcharge", order.Surcharge);
                 }
+                else if (order.IsEventQuest)
+                {
+                    Decline(ctx, order, OrderDeclinedBy.NoAnswer);
+                    Publish(ctx, SimEventType.EventQuestAnswered, order).With("declined", true).With("noAnswer", true);
+                }
                 else
                 {
                     Decline(ctx, order, OrderDeclinedBy.NoAnswer);
@@ -167,17 +172,18 @@ namespace GuildMaster.Core
         /// Событие о заказе: id заказа, тип, ранг, расстояние, награда и названия для ленты (<c>client</c>, <c>place</c>,
         /// <c>enemy</c>, <c>cargo</c>). Id заказа — в данных, не в участниках: участники — люди.
         /// </summary>
-        internal static SimEvent Publish(SimContext ctx, SimEventType type, Order order, EventImportance importance = EventImportance.Normal)
+        internal static SimEvent Publish(SimContext ctx, SimEventType type, Order order, EventImportance importance = EventImportance.Normal,
+            params int[] participants)
         {
-            SimEvent simEvent = ctx.Events.Publish(type, importance)
+            SimEvent simEvent = ctx.Events.Publish(type, importance, participants)
                 .With("order", order.Id)
                 .With("questType", order.TypeId)
                 .With("rank", order.Rank)
                 .With("distance", order.Distance)
                 .With("reward", order.Reward)
-                .With("client", order.Client)
-                .With("place", order.Place)
-                .With("enemy", order.Enemy);
+                .With("place", order.Place);
+            if (order.Client != null) simEvent.With("client", order.Client);
+            if (order.Enemy != null) simEvent.With("enemy", order.Enemy);
             if (order.Cargo != null) simEvent.With("cargo", order.Cargo);
             return simEvent;
         }

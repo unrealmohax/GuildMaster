@@ -7,8 +7,10 @@ namespace GuildMaster.Core
     /// <summary>Строка ленты: готовый текст и ссылки на людей для перехода по клику.</summary>
     public sealed class FeedEntry
     {
-        internal FeedEntry(long timeHours, FeedKind feed, EventImportance importance, string text, int[] links, string templateKey)
+        internal FeedEntry(long timeHours, FeedKind feed, EventImportance importance, string text, int[] links, string templateKey,
+            int questRunId = 0)
         {
+            QuestRunId = questRunId;
             TimeHours = timeHours;
             Feed = feed;
             Importance = importance;
@@ -32,5 +34,8 @@ namespace GuildMaster.Core
 
         /// <summary>Ключ шаблона — для отладки.</summary>
         public string TemplateKey { get; }
+
+        /// <summary>Задание, к которому относится строка (<see cref="QuestRun.Id"/>); 0 — строка не о задании.</summary>
+        public int QuestRunId { get; }
     }
 }

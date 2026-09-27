@@ -86,8 +86,18 @@ namespace GuildMaster.Core
         /// <summary>Когда вступил в гильдию; у кандидата — когда пришёл.</summary>
         public long JoinedAtHours { get; internal set; }
 
+        /// <summary>Заданий выполнено и не выполнено (с тех, где человек дошёл до конца).</summary>
         public int QuestsCompleted { get; internal set; }
         public int QuestsFailed { get; internal set; }
+
+        /// <summary>Беглец: бросил группу на задании и вернулся в гильдию.</summary>
+        public bool IsDeserter { get; internal set; }
+
+        /// <summary>Когда последний раз сбежал с задания (для отчёта месяца); 0 — не сбегал.</summary>
+        public long LastFledAtHours { get; internal set; }
+
+        /// <summary>Сколько утр подряд человек мог взять заказ, был здоров и бодр, но не взял (для раскрытия лени).</summary>
+        public int IdleOrderDays { get; internal set; }
 
         /// <summary>Когда ушёл из гильдии (архив); 0 — в гильдии.</summary>
         public long LeftAtHours { get; internal set; }

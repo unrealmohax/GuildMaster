@@ -8,8 +8,8 @@ namespace GuildMaster.Tests
 {
     /// <summary>
     /// Мир для тестов состояния и здоровья: реальные определения, числа по умолчанию, системы по умолчанию,
-    /// стартовая шестёрка сразу уходит в архив — в гильдии только люди, которых тест добавил сам. Системы заказов нет:
-    /// тест видит только события своих людей.
+    /// стартовая шестёрка сразу уходит в архив — в гильдии только люди, которых тест добавил сам. Системы заказов нет,
+    /// стартовые заказы сняты с доски: заданий нет, тест видит только события своих людей.
     /// </summary>
     internal sealed class StateWorld : IDisposable
     {
@@ -25,6 +25,7 @@ namespace GuildMaster.Tests
             Do(ctx =>
             {
                 foreach (Adventurer adventurer in ctx.World.Adventurers.Active.ToList()) AdventurerLifecycle.Retire(ctx, adventurer, LeaveReason.Left);
+                foreach (Order order in ctx.World.Orders.Open.ToList()) ctx.World.Orders.Close(order, ctx.Data.Balance.Orders.ClosedOrdersLimit);
             });
         }
 

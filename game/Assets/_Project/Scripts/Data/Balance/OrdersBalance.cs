@@ -27,9 +27,9 @@ namespace GuildMaster.Data
         [SerializeField] private List<RankMixEntry> rankMix = new List<RankMixEntry>
         {
             new RankMixEntry(0, 0.85f, 0.15f, 0f, 0f, 0f),
-            new RankMixEntry(20, 0.2f, 0.5f, 0.3f, 0f, 0f),
-            new RankMixEntry(40, 0f, 0.1f, 0.5f, 0.4f, 0f),
-            new RankMixEntry(60, 0f, 0f, 0.2f, 0.5f, 0.3f),
+            new RankMixEntry(20, 0.4f, 0.35f, 0.25f, 0f, 0f),
+            new RankMixEntry(40, 0.25f, 0.25f, 0.3f, 0.2f, 0f),
+            new RankMixEntry(60, 0.15f, 0.2f, 0.25f, 0.25f, 0.15f),
         };
 
         [Tooltip("Доля дальних заказов")]

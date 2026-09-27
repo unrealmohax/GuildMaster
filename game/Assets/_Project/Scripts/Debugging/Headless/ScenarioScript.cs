@@ -64,6 +64,15 @@ namespace GuildMaster.Debugging
                     var answer = (AnswerImportantOrderCommand)command;
                     return Int(answer.OrderId) + (answer.Accept ? " accept " + Int(answer.Surcharge) : " decline");
                 }),
+            // eventquest IdЗаказа Ранг|decline
+            new ScenarioCommandFormat("eventquest", typeof(AnswerEventQuestCommand),
+                args => new AnswerEventQuestCommand(ParseInt(args, 0),
+                    Arg(args, 1) == "decline" ? (GuildMaster.Data.GuildRank?)null : ParseEnum<GuildMaster.Data.GuildRank>(args, 1)),
+                command =>
+                {
+                    var answer = (AnswerEventQuestCommand)command;
+                    return Int(answer.OrderId) + " " + (answer.Rank.HasValue ? answer.Rank.Value.ToString() : "decline");
+                }),
             // surcharge IdЗаказа сумма
             new ScenarioCommandFormat("surcharge", typeof(SetSurchargeCommand),
                 args => new SetSurchargeCommand(ParseInt(args, 0), ParseInt(args, 1)),

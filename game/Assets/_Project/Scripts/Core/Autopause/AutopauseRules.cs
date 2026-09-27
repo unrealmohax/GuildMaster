@@ -17,6 +17,12 @@ namespace GuildMaster.Core
                 { SimEventType.AdventurerLeft, AutopauseKind.MemberLeftGuild },
                 { SimEventType.BankruptcyStarted, AutopauseKind.BankruptcyStarted },
                 { SimEventType.OrderAwaitingPlayer, AutopauseKind.ImportantOrder },
+                { SimEventType.EventQuestAwaitingPlayer, AutopauseKind.ImportantOrder },
+                { SimEventType.AdventurerDied, AutopauseKind.AdventurerDied },
+                { SimEventType.AdventurerFled, AutopauseKind.AdventurerFled },
+                { SimEventType.QuestCatastrophe, AutopauseKind.QuestCatastrophe },
+                { SimEventType.PartyRetreated, AutopauseKind.PartyRetreated },
+                { SimEventType.AdventurerDisappeared, AutopauseKind.MemberLeftGuild },
             };
     }
 }

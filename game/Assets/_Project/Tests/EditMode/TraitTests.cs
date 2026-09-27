@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using GuildMaster.Core;
@@ -202,20 +203,22 @@ namespace GuildMaster.Tests
             var events = new List<SimEvent>();
             bool paused = false;
             simulation.TickCompleted += tickEvents => events.AddRange(tickEvents);
-            simulation.Send(new SetAutopauseCommand(AutopauseKind.ImportantOrder, false)); // важные заказы ставят свою автопаузу
+            // Заказы и задания ставят свои автопаузы (важный заказ, раскрытие полюса на задании, гибель…) — здесь только «уравновешен».
+            foreach (AutopauseKind kind in (AutopauseKind[])Enum.GetValues(typeof(AutopauseKind))) simulation.Send(new SetAutopauseCommand(kind, false));
             while (simulation.World.Time.TotalHours < revealAt + simulation.Calendar.HoursPerDay)
             {
                 simulation.Tick();
                 paused |= simulation.ConsumePauseRequest();
-                if (simulation.World.Time.TotalHours < revealAt) Assert.IsFalse(people.Any(p => p.RevealedAxes.Any(r => r)), "раньше 60 дней");
+                if (simulation.World.Time.TotalHours < revealAt) Assert.IsFalse(people.Any(p => NeutralRevealed(p, balance)), "раньше 60 дней");
             }
 
+            // Полюса могут раскрыться на заданиях; нейтральные оси — все и только через 60 дней.
             foreach (Adventurer adventurer in people)
             {
                 for (int axis = 0; axis < Vocabulary.AxisCount; axis++)
                 {
-                    bool isNeutral = AxisMath.IsNeutral(adventurer.GetAxis((AxisId)axis), balance);
-                    Assert.AreEqual(isNeutral, adventurer.IsAxisRevealed((AxisId)axis), $"{adventurer.Name} {(AxisId)axis}");
+                    if (AxisMath.IsNeutral(adventurer.GetAxis((AxisId)axis), balance))
+                        Assert.IsTrue(adventurer.IsAxisRevealed((AxisId)axis), $"{adventurer.Name} {(AxisId)axis}");
                 }
             }
             List<SimEvent> balanced = events.Where(e => e.Type == SimEventType.AxisBalanced).ToList();
@@ -223,6 +226,15 @@ namespace GuildMaster.Tests
             Assert.IsTrue(balanced.All(e => e.Importance == EventImportance.Notable));
             Assert.IsFalse(AutopauseRules.Default.ContainsKey(SimEventType.AxisBalanced));
             Assert.IsFalse(paused, "«уравновешен» — без автопаузы");
+        }
+
+        private static bool NeutralRevealed(Adventurer adventurer, AdventurersBalance balance)
+        {
+            for (int axis = 0; axis < Vocabulary.AxisCount; axis++)
+            {
+                if (adventurer.IsAxisRevealed((AxisId)axis) && AxisMath.IsNeutral(adventurer.GetAxis((AxisId)axis), balance)) return true;
+            }
+            return false;
         }
     }
 }

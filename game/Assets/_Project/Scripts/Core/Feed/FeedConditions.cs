@@ -27,8 +27,11 @@ namespace GuildMaster.Core
     /// <item><c>RevealedAxisPole</c>, <c>RevealedTrait</c> — черта первого участника уже раскрыта: строка, которая называет
     /// черту прямо, не выдаёт скрытое;</item>
     /// <item><c>MaimedStat</c> — какая характеристика снижена у Калеки (данные события <c>stat</c>);</item>
-    /// <item><c>QuestType</c> — тип задания или заказа (id в данных события <c>questType</c>).</item>
+    /// <item><c>QuestType</c> — тип задания или заказа (id в данных события <c>questType</c>);</item>
+    /// <item><c>Solo</c> / <c>Group</c> — на задание вышел один / несколько (данные события <c>solo</c>);</item>
+    /// <item><c>Far</c> / <c>Near</c> — расстояние задания или заказа (данные события <c>distance</c>).</item>
     /// </list>
+    /// Без события (тексты причин) условия по событию не выполняются.
     /// </summary>
     public static class FeedConditions
     {
@@ -40,6 +43,10 @@ namespace GuildMaster.Core
                 { FeedConditionKind.RevealedTrait, IsTraitRevealed },
                 { FeedConditionKind.MaimedStat, IsMaimedStat },
                 { FeedConditionKind.QuestType, IsQuestType },
+                { FeedConditionKind.Solo, (c, x) => IsSolo(x) == true },
+                { FeedConditionKind.Group, (c, x) => IsSolo(x) == false },
+                { FeedConditionKind.Far, (c, x) => DistanceOf(x) == OrderDistance.Far },
+                { FeedConditionKind.Near, (c, x) => DistanceOf(x) == OrderDistance.Near },
             };
 
         /// <summary>У условия этого вида есть проверка.</summary>
@@ -89,9 +96,15 @@ namespace GuildMaster.Core
             && context.Subject.TryGetTrait(condition.Trait.Id, out TraitInstance trait) && trait.Revealed;
 
         private static bool IsMaimedStat(FeedCondition condition, FeedConditionContext context) =>
-            context.Event.TryGet("stat", out StatId stat) && stat == condition.Stat;
+            context.Event != null && context.Event.TryGet("stat", out StatId stat) && stat == condition.Stat;
 
         private static bool IsQuestType(FeedCondition condition, FeedConditionContext context) =>
-            condition.QuestType != null && context.Event.TryGet("questType", out string id) && id == condition.QuestType.Id;
+            condition.QuestType != null && context.Event != null && context.Event.TryGet("questType", out string id) && id == condition.QuestType.Id;
+
+        private static bool? IsSolo(FeedConditionContext context) =>
+            context.Event != null && context.Event.TryGet("solo", out bool solo) ? solo : (bool?)null;
+
+        private static OrderDistance? DistanceOf(FeedConditionContext context) =>
+            context.Event != null && context.Event.TryGet("distance", out OrderDistance distance) ? distance : (OrderDistance?)null;
     }
 }

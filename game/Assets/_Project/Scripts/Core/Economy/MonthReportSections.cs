@@ -79,8 +79,10 @@ namespace GuildMaster.Core
     /// и ключ подписи в его списке. Названия статей журнала — ключи <see cref="LedgerCategory.TextKey"/>.
     /// <list type="bullet">
     /// <item>«Деньги»: казна на начало, доходы всего и по статьям, расходы всего и по статьям, казна на конец — из журнала.</item>
-    /// <item>«Люди»: кто пришёл, кто ушёл (погиб, пропал, изгнан), что раскрылось — из людей в гильдии и в архиве.</item>
+    /// <item>«Люди»: кто пришёл, кто ушёл (погиб, пропал, изгнан), кто сбежал с задания, что раскрылось — из людей в гильдии
+    /// и в архиве.</item>
     /// <item>«Заказы»: сколько пришло, повешено на доску, отклонено Регистратором и игроком, снято по сроку — из счётчиков.</item>
+    /// <item>«Задания»: сколько заказов взято, выполнено, не выполнено — из счётчиков (уровни результата игроку не видны).</item>
     /// <item>«Репутация»: было → стало.</item>
     /// </list>
     /// </summary>
@@ -99,6 +101,7 @@ namespace GuildMaster.Core
         public const string PeopleDisappeared = "report.people.disappeared";
         public const string PeopleExpelled = "report.people.expelled";
         public const string PeopleRevealed = "report.people.revealed";
+        public const string PeopleFled = "report.people.fled";
 
         public const string OrdersTitle = "report.orders";
         public const string OrdersArrived = "report.orders.arrived";
@@ -106,6 +109,11 @@ namespace GuildMaster.Core
         public const string OrdersDeclinedByRegistrar = "report.orders.declinedByRegistrar";
         public const string OrdersDeclinedByPlayer = "report.orders.declinedByPlayer";
         public const string OrdersExpired = "report.orders.expired";
+
+        public const string QuestsTitle = "report.quests";
+        public const string QuestsTaken = "report.quests.taken";
+        public const string QuestsDone = "report.quests.done";
+        public const string QuestsFailed = "report.quests.failed";
 
         public const string ReputationTitle = "report.reputation";
         public const string ReputationChange = "report.reputation.change";
@@ -117,9 +125,10 @@ namespace GuildMaster.Core
         {
             new MonthReportSection(MoneyTitle, new[] { MoneyStart, MoneyIncome, MoneyExpense, MoneyEnd }, BuildMoney),
             new MonthReportSection(PeopleTitle,
-                new[] { PeopleJoined, PeopleLeft, PeopleDied, PeopleDisappeared, PeopleExpelled, PeopleRevealed, AxisBalanced }, BuildPeople),
+                new[] { PeopleJoined, PeopleLeft, PeopleDied, PeopleDisappeared, PeopleExpelled, PeopleFled, PeopleRevealed, AxisBalanced }, BuildPeople),
             new MonthReportSection(OrdersTitle,
                 new[] { OrdersArrived, OrdersPosted, OrdersDeclinedByRegistrar, OrdersDeclinedByPlayer, OrdersExpired }, BuildOrders),
+            new MonthReportSection(QuestsTitle, new[] { QuestsTaken, QuestsDone, QuestsFailed }, BuildQuests),
             new MonthReportSection(ReputationTitle, new[] { ReputationChange }, BuildReputation),
         };
 
@@ -185,6 +194,7 @@ namespace GuildMaster.Core
             AddLeft(lines, period, PeopleDied, LeaveReason.Died);
             AddLeft(lines, period, PeopleDisappeared, LeaveReason.Disappeared);
             AddLeft(lines, period, PeopleExpelled, LeaveReason.Expelled);
+            AddPeople(lines, PeopleFled, Pick(period, PeopleFled, everyone, a => a.LastFledAtHours > 0 && period.Contains(a.LastFledAtHours), a => a.LastFledAtHours));
             AddPeople(lines, PeopleRevealed, Revealed(period, everyone));
             return lines;
         }
@@ -200,6 +210,18 @@ namespace GuildMaster.Core
                 ReportLine.Number(OrdersDeclinedByRegistrar, to.DeclinedByRegistrar - from.DeclinedByRegistrar),
                 ReportLine.Number(OrdersDeclinedByPlayer, to.DeclinedByPlayer - from.DeclinedByPlayer),
                 ReportLine.Number(OrdersExpired, to.Expired - from.Expired),
+            };
+        }
+
+        private static List<ReportLine> BuildQuests(ReportPeriod period)
+        {
+            OrderTotals from = period.OrdersAtStart;
+            OrderTotals to = period.OrdersAtEnd;
+            return new List<ReportLine>
+            {
+                ReportLine.Number(QuestsTaken, to.Taken - from.Taken),
+                ReportLine.Number(QuestsDone, to.Done - from.Done),
+                ReportLine.Number(QuestsFailed, to.Failed - from.Failed),
             };
         }
 
