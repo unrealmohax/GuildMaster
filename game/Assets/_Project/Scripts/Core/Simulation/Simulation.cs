@@ -7,7 +7,8 @@ namespace GuildMaster.Core
     /// Точка входа симуляции. <see cref="Tick"/> — один игровой час: системы по порядку, затем очистка событий.
     /// Работает без сцены и без интерфейса. То же зерно + те же команды в те же такты = тот же мир.
     /// При создании готовит стартовое состояние (казна, репутация; <see cref="StartScenario"/>: стартовые авантюристы;
-    /// <see cref="OrderSystem.ApplyStart"/>: стартовые заказы на доске).
+    /// <see cref="OrderSystem.ApplyStart"/>: стартовые заказы на доске; <see cref="BuildingService.ApplyStart"/>: стартовые постройки;
+    /// <see cref="StaffService.ApplyStart"/>: стартовый персонал).
     /// Когда гильдия закрыта (<see cref="IsFinished"/>), такты больше ничего не делают.
     /// Лог (<see cref="SimLogger"/>) получает события сразу после шага системы, которая их опубликовала, — вслед за её
     /// бросками; уровень события — <see cref="EventLogLevels"/>.
@@ -49,6 +50,8 @@ namespace GuildMaster.Core
             // Стартовое состояние мира — до первого такта, каждая часть своим потоком случайных чисел.
             Run(StartScenario.StreamName, StartScenario.Apply);
             Run(OrderSystem.StartStreamName, OrderSystem.ApplyStart);
+            Run(nameof(BuildingService), BuildingService.ApplyStart);
+            Run(StaffService.StartStreamName, StaffService.ApplyStart);
         }
 
         public static Simulation CreateDefault(DataRegistry data, uint masterSeed, SimLogger log = null) =>

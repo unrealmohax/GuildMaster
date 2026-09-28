@@ -18,6 +18,7 @@ namespace GuildMaster.Core
         private readonly Dictionary<AxisId, AxisDefinition> axes = new Dictionary<AxisId, AxisDefinition>();
         private readonly Dictionary<string, List<FeedTemplate>> feedByKey = new Dictionary<string, List<FeedTemplate>>(StringComparer.Ordinal);
         private readonly Dictionary<string, NounForms> nameForms = new Dictionary<string, NounForms>(StringComparer.Ordinal);
+        private readonly Dictionary<BuildingFunction, BuildingDefinition> buildingsByFunction = new Dictionary<BuildingFunction, BuildingDefinition>();
 
         /// <summary>Только числа баланса, без определений — для тестов и систем, которым хватает чисел.</summary>
         public DataRegistry(BalanceSettings balance)
@@ -46,6 +47,12 @@ namespace GuildMaster.Core
             {
                 if (axes.ContainsKey(axis.Axis)) throw new ArgumentException($"{config.name}: axis {axis.Axis} is defined twice");
                 axes.Add(axis.Axis, axis);
+            }
+
+            foreach (BuildingDefinition building in All<BuildingDefinition>())
+            {
+                if (building.Function != BuildingFunction.None && !buildingsByFunction.ContainsKey(building.Function))
+                    buildingsByFunction.Add(building.Function, building);
             }
 
             if (config.FeedTemplates != null)
@@ -105,6 +112,10 @@ namespace GuildMaster.Core
             for (int i = 0; i < list.Count; i++) result[i] = (T)list[i];
             return result;
         }
+
+        /// <summary>Постройка с этим назначением; нет такой — <c>null</c>.</summary>
+        public BuildingDefinition BuildingWith(BuildingFunction function) =>
+            buildingsByFunction.TryGetValue(function, out BuildingDefinition building) ? building : null;
 
         public AxisDefinition Axis(AxisId axis) =>
             axes.TryGetValue(axis, out AxisDefinition definition) ? definition : throw new KeyNotFoundException($"No axis {axis}");

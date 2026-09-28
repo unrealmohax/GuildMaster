@@ -83,6 +83,8 @@ namespace GuildMaster.Core
     /// и в архиве.</item>
     /// <item>«Заказы»: сколько пришло, повешено на доску, отклонено Регистратором и игроком, снято по сроку — из счётчиков.</item>
     /// <item>«Задания»: сколько заказов взято, выполнено, не выполнено — из счётчиков (уровни результата игроку не видны).</item>
+    /// <item>«Постройки»: что построено за месяц, что строится, что в очереди.</item>
+    /// <item>«Персонал»: кто нанят, кто ушёл сам и кто уволен за месяц, кому гильдия должна жалованье.</item>
     /// <item>«Репутация»: было → стало.</item>
     /// </list>
     /// </summary>
@@ -115,6 +117,23 @@ namespace GuildMaster.Core
         public const string QuestsDone = "report.quests.done";
         public const string QuestsFailed = "report.quests.failed";
 
+        public const string BuildingsTitle = "report.buildings";
+        public const string BuildingsReady = "report.buildings.ready";
+        public const string BuildingsUnderConstruction = "report.buildings.underConstruction";
+        public const string BuildingsQueued = "report.buildings.queued";
+
+        public const string StaffTitle = "report.staff";
+        public const string StaffHired = "report.staff.hired";
+        public const string StaffQuit = "report.staff.quit";
+        public const string StaffDismissed = "report.staff.dismissed";
+        public const string StaffUnpaid = "report.staff.unpaid";
+
+        /// <summary>Подробность строки-постройки: id в строке — id постройки.</summary>
+        public const string BuildingDetail = "building";
+
+        /// <summary>Подробность строки-сотрудника: id в строке — id сотрудника.</summary>
+        public const string StaffDetail = "staff";
+
         public const string ReputationTitle = "report.reputation";
         public const string ReputationChange = "report.reputation.change";
 
@@ -129,6 +148,8 @@ namespace GuildMaster.Core
             new MonthReportSection(OrdersTitle,
                 new[] { OrdersArrived, OrdersPosted, OrdersDeclinedByRegistrar, OrdersDeclinedByPlayer, OrdersExpired }, BuildOrders),
             new MonthReportSection(QuestsTitle, new[] { QuestsTaken, QuestsDone, QuestsFailed }, BuildQuests),
+            new MonthReportSection(BuildingsTitle, new[] { BuildingsReady, BuildingsUnderConstruction, BuildingsQueued }, BuildBuildings),
+            new MonthReportSection(StaffTitle, new[] { StaffHired, StaffQuit, StaffDismissed, StaffUnpaid }, BuildStaff),
             new MonthReportSection(ReputationTitle, new[] { ReputationChange }, BuildReputation),
         };
 
@@ -223,6 +244,56 @@ namespace GuildMaster.Core
                 ReportLine.Number(QuestsDone, to.Done - from.Done),
                 ReportLine.Number(QuestsFailed, to.Failed - from.Failed),
             };
+        }
+
+        /// <summary>Постройки: готовые за период (кроме стартовых), строится сейчас, в очереди — по порядку очереди.</summary>
+        private static List<ReportLine> BuildBuildings(ReportPeriod period)
+        {
+            BuildingBook book = period.World.Buildings;
+            var ready = new List<ReportItem>();
+            foreach (Building building in book.All)
+            {
+                if (building.IsReady && building.PaidCost > 0 && period.Contains(building.ConstructionEndsAtHours)
+                    && !period.WasReported(BuildingsReady, building.Id, BuildingDetail))
+                    ready.Add(new ReportItem(building.Id, BuildingDetail));
+            }
+
+            var lines = new List<ReportLine>();
+            AddPeople(lines, BuildingsReady, ready);
+            if (book.Current != null)
+                lines.Add(ReportLine.People(BuildingsUnderConstruction, new[] { new ReportItem(book.Current.Id, BuildingDetail) }));
+            var queued = new List<ReportItem>();
+            foreach (Building building in book.Queue) queued.Add(new ReportItem(building.Id, BuildingDetail));
+            AddPeople(lines, BuildingsQueued, queued);
+            return lines;
+        }
+
+        /// <summary>Персонал: нанятые за период, ушедшие сами и уволенные, у кого долг по зарплате сейчас.</summary>
+        private static List<ReportLine> BuildStaff(ReportPeriod period)
+        {
+            StaffRoster staff = period.World.Staff;
+            var everyone = new List<StaffMember>(staff.Members);
+            everyone.AddRange(staff.Former);
+
+            var hired = new List<ReportItem>();
+            var quit = new List<ReportItem>();
+            var dismissed = new List<ReportItem>();
+            var unpaid = new List<ReportItem>();
+            foreach (StaffMember member in everyone)
+            {
+                if (period.Contains(member.HiredAtHours) && !period.WasReported(StaffHired, member.Id, StaffDetail))
+                    hired.Add(new ReportItem(member.Id, StaffDetail));
+                if (member.LeaveReason == StaffLeaveReason.Quit && period.Contains(member.LeftAtHours)) quit.Add(new ReportItem(member.Id, StaffDetail));
+                if (member.LeaveReason == StaffLeaveReason.Dismissed && period.Contains(member.LeftAtHours)) dismissed.Add(new ReportItem(member.Id, StaffDetail));
+                if (member.LeaveReason == StaffLeaveReason.None && member.UnpaidSalary > 0) unpaid.Add(new ReportItem(member.Id, StaffDetail));
+            }
+
+            var lines = new List<ReportLine>();
+            AddPeople(lines, StaffHired, hired);
+            AddPeople(lines, StaffQuit, quit);
+            AddPeople(lines, StaffDismissed, dismissed);
+            AddPeople(lines, StaffUnpaid, unpaid);
+            return lines;
         }
 
         private static List<ReportLine> BuildReputation(ReportPeriod period) =>

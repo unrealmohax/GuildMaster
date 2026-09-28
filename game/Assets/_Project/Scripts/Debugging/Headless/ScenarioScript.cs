@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using GuildMaster.Core;
 
@@ -81,7 +82,39 @@ namespace GuildMaster.Debugging
                     var surcharge = (SetSurchargeCommand)command;
                     return Int(surcharge.OrderId) + " " + Int(surcharge.Amount);
                 }),
+            // build IdОпределения
+            new ScenarioCommandFormat("build", typeof(StartBuildingCommand),
+                args => new StartBuildingCommand(Arg(args, 0)),
+                command => ((StartBuildingCommand)command).DefinitionId),
+            // buildqueue IdПостройки,IdПостройки,…
+            new ScenarioCommandFormat("buildqueue", typeof(ReorderBuildQueueCommand),
+                args => new ReorderBuildQueueCommand(ParseIds(args, 0)),
+                command => string.Join(",", ((ReorderBuildQueueCommand)command).BuildingIds.Select(Int))),
+            // unbuild IdПостройки
+            new ScenarioCommandFormat("unbuild", typeof(CancelBuildingCommand),
+                args => new CancelBuildingCommand(ParseInt(args, 0)),
+                command => Int(((CancelBuildingCommand)command).BuildingId)),
+            // offer IdКандидата сумма
+            new ScenarioCommandFormat("offer", typeof(OfferSalaryCommand),
+                args => new OfferSalaryCommand(ParseInt(args, 0), ParseInt(args, 1)),
+                command =>
+                {
+                    var offer = (OfferSalaryCommand)command;
+                    return Int(offer.CandidateId) + " " + Int(offer.Amount);
+                }),
+            // dismiss IdСотрудника
+            new ScenarioCommandFormat("dismiss", typeof(DismissStaffCommand),
+                args => new DismissStaffCommand(ParseInt(args, 0)),
+                command => Int(((DismissStaffCommand)command).StaffId)),
         };
+
+        private static int[] ParseIds(string[] args, int index)
+        {
+            string[] parts = Arg(args, index).Split(',');
+            var ids = new int[parts.Length];
+            for (int i = 0; i < parts.Length; i++) ids[i] = ParseInt(parts, i);
+            return ids;
+        }
 
         public static ICommand Parse(string keyword, string[] args)
         {

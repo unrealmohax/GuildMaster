@@ -9,7 +9,8 @@ namespace GuildMaster.Core
     /// <list type="bullet">
     /// <item><c>{имя}</c> — первый участник, <c>{напарник}</c> — второй; <c>{лекарь}</c>, <c>{щит}</c>, <c>{решающий}</c> —
     /// id человека в данных события под ключами <c>medic</c>, <c>shield</c>, <c>leader</c>. Человек ищется среди
-    /// активных, в архиве и среди кандидатов; падежи имени — из списка имён.</item>
+    /// активных, в архиве и среди кандидатов; падежи имени — из списка имён. У событий персонала участников нет — <c>{имя}</c>
+    /// берётся из данных события под ключом <c>staff</c>.</item>
     /// <item>Названия — в данных события под ключами <c>party</c>, <c>place</c>, <c>enemy</c>, <c>client</c>, <c>cargo</c>,
     /// <c>decree</c>, <c>building</c>, <c>title</c> (название постоянной группы): <see cref="NounForms"/>, <see cref="TextValue"/>
     /// или строка.</item>
@@ -25,7 +26,7 @@ namespace GuildMaster.Core
         private static readonly Dictionary<string, Func<EventTextSource, TextValue>> Sources =
             new Dictionary<string, Func<EventTextSource, TextValue>>(StringComparer.Ordinal)
             {
-                ["имя"] = s => s.Participant(0),
+                ["имя"] = s => s.Participant(0) ?? s.NounFromPayload("staff"),
                 ["напарник"] = s => s.Participant(1),
                 ["лекарь"] = s => s.PersonFromPayload("medic"),
                 ["щит"] = s => s.PersonFromPayload("shield"),

@@ -356,6 +356,16 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("report.people.fled", O, None, "Сбежали с задания"));
             t.Add(Guild("report.reputation", O, None, "Репутация"));
             t.Add(Guild("report.reputation.change", O, None, "За месяц"));
+            // Новое (GM-13): разделы отчёта «Постройки» и «Персонал».
+            t.Add(Guild("report.buildings", O, None, "Постройки"));
+            t.Add(Guild("report.buildings.ready", O, None, "Построено"));
+            t.Add(Guild("report.buildings.underConstruction", O, None, "Строится"));
+            t.Add(Guild("report.buildings.queued", O, None, "В очереди"));
+            t.Add(Guild("report.staff", O, None, "Персонал"));
+            t.Add(Guild("report.staff.hired", O, None, "Наняты"));
+            t.Add(Guild("report.staff.quit", O, None, "Ушли, не дождавшись жалованья"));
+            t.Add(Guild("report.staff.dismissed", O, None, "Уволены"));
+            t.Add(Guild("report.staff.unpaid", O, None, "Ждут жалованья"));
             // Названия статей журнала казны.
             t.Add(Guild("ledger.tavern", O, None, "Таверна"));
             t.Add(Guild("ledger.commission", O, None, "Комиссия"));
@@ -363,6 +373,13 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("ledger.surcharges", O, None, "Доплаты"));
             t.Add(Guild("ledger.eventQuests", O, None, "Событийные задания"));
             t.Add(Guild("ledger.discoveries", O, None, "Находки"));
+            // Новое (GM-13): статьи построек и персонала.
+            t.Add(Guild("ledger.dormitory", O, None, "Общежитие"));
+            t.Add(Guild("ledger.infirmary", O, None, "Лазарет"));
+            t.Add(Guild("ledger.trainingYard", O, None, "Тренировочный двор"));
+            t.Add(Guild("ledger.construction", O, None, "Стройка"));
+            t.Add(Guild("ledger.upkeep", O, None, "Содержание"));
+            t.Add(Guild("ledger.salaries", O, None, "Зарплаты"));
 
             t.Add(Guild("guild.decree.enabled", O, None, "Объявлено: {распоряжение}"));
             t.Add(Guild("guild.decree.benefitCancelled", Z, None, "Новость об отмене {распоряжение:р} встретили молча"));
@@ -383,6 +400,11 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("guild.staff.quit", V, None, "{имя} уш[ёл|ла] со службы, так и не дождавшись жалованья"));
             t.Add(Guild("guild.staff.fired", Z, None, "{имя} больше не служит гильдии"));
             t.Add(Guild("guild.building.queued", O, None, "{постройка} — в очереди на стройку"));
+            // Новое (GM-13, 💡): кандидаты в персонал и жалованье. Строка «Жалованье не выплачено» — из ТЗ.
+            t.Add(Guild("guild.staffCandidate.arrived", O, None, "{имя} просится на службу в {постройка:в}"));
+            t.Add(Guild("guild.staffCandidate.left", O, None, "{имя} не дождал[ся|ась] ответа и уш[ёл|ла] искать другое место"));
+            t.Add(Guild("guild.staffCandidate.refused", O, None, "{имя} не согласил[ся|ась] на такое жалованье и уш[ёл|ла]"));
+            t.Add(Guild("guild.staff.unpaid", V, None, "Жалованье не выплачено. {имя} ждёт до следующего месяца"));
             // Правка (GM-11, ❔): [З] → [В] — событийное задание ждёт ответа игрока, как важный заказ, с автопаузой.
             t.Add(Guild("guild.eventQuest.found", V, None, "Регистратор записал находку у {место:р}. Какой ранг назначить — решать вам"));
 

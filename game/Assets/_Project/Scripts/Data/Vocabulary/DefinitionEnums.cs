@@ -111,6 +111,22 @@ namespace GuildMaster.Data
         HealingSpeed = 2,
     }
 
+    /// <summary>Что постройка даёт: по назначению её находит код правил (жильё, лечение, тренировки).</summary>
+    public enum BuildingFunction
+    {
+        None = 0,
+        /// <summary>Зал гильдии: доска заказов.</summary>
+        Hall = 1,
+        /// <summary>Таверна.</summary>
+        Tavern = 2,
+        /// <summary>Общежитие: места для жилья.</summary>
+        Dormitory = 3,
+        /// <summary>Лазарет: койки.</summary>
+        Infirmary = 4,
+        /// <summary>Тренировочный двор: места для тренировки.</summary>
+        TrainingYard = 5,
+    }
+
     public enum DecreeScopeKind
     {
         None = 0,

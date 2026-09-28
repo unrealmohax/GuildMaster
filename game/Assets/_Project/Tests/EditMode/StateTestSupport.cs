@@ -9,16 +9,25 @@ namespace GuildMaster.Tests
     /// <summary>
     /// Мир для тестов состояния и здоровья: реальные определения, числа по умолчанию, системы по умолчанию,
     /// стартовая шестёрка сразу уходит в архив — в гильдии только люди, которых тест добавил сам. Системы заказов нет,
-    /// стартовые заказы сняты с доски: заданий нет, тест видит только события своих людей.
+    /// стартовые заказы сняты с доски: заданий нет, тест видит только события своих людей. Стартовый персонал (Регистратор,
+    /// Трактирщик) остаётся, но с уровнем <see cref="NeutralStaffLevel"/> — эффект должности × 1, снятие стресса в таверне
+    /// не зависит от зерна.
     /// </summary>
     internal sealed class StateWorld : IDisposable
     {
+        /// <summary>Уровень возможностей, при котором эффект должности — × 1.</summary>
+        public const int NeutralStaffLevel = 50;
+
         public StateWorld(uint seed = 7u, IInfirmary infirmary = null, ISimSystem beforeState = null, SimLogger log = null)
         {
             Data = new PeopleData();
             List<ISimSystem> systems = SimulationSystems.CreateDefault();
             systems.RemoveAll(s => s is OrderSystem);
-            if (infirmary != null) systems[systems.FindIndex(s => s is HealthSystem)] = new HealthSystem(infirmary);
+            if (infirmary != null)
+            {
+                systems[systems.FindIndex(s => s is HealthSystem)] = new HealthSystem(infirmary);
+                systems[systems.FindIndex(s => s is DecisionSystem)] = new DecisionSystem(infirmary);
+            }
             if (beforeState != null) systems.Insert(systems.FindIndex(s => s is StateSystem), beforeState);
             Simulation = new Simulation(Data.Registry, seed, systems, log);
 
@@ -26,6 +35,7 @@ namespace GuildMaster.Tests
             {
                 foreach (Adventurer adventurer in ctx.World.Adventurers.Active.ToList()) AdventurerLifecycle.Retire(ctx, adventurer, LeaveReason.Left);
                 foreach (Order order in ctx.World.Orders.Open.ToList()) ctx.World.Orders.Close(order, ctx.Data.Balance.Orders.ClosedOrdersLimit);
+                foreach (StaffMember member in ctx.World.Staff.Members) member.Level = NeutralStaffLevel;
             });
         }
 
@@ -101,7 +111,10 @@ namespace GuildMaster.Tests
             sigmas * (float)Math.Sqrt(trials * chance * (1f - chance));
     }
 
-    /// <summary>Лазарет для тестов (в игре построек нет): койки, Лекарь, скорость.</summary>
+    /// <summary>
+    /// Лазарет для тестов здоровья без построек и персонала: койки, Лекарь и скорость задаются прямо. Подменяет запрос
+    /// и у лечения, и у решений (<see cref="StateWorld"/>).
+    /// </summary>
     internal sealed class FakeInfirmary : IInfirmary
     {
         public FakeInfirmary(int beds, bool hasMedic = true, float speed = 1f)

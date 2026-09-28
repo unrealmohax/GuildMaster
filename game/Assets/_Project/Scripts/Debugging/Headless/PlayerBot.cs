@@ -90,14 +90,20 @@ namespace GuildMaster.Debugging
         /// <summary>Комиссия бота «Простой».</summary>
         public const float SimpleCommission = 0.2f;
 
+        /// <summary>Сколько месяцев расходов бот «Простой» держит в запасе, прежде чем строить.</summary>
+        public const int SimpleReserveMonths = 3;
+
         /// <summary>
         /// Ставит комиссию 20%, принимает всех кандидатов в авантюристы, Регистратору велит брать все типы до высшего ранга людей
         /// гильдии без порога награды, важные заказы принимает, как только в гильдии есть человек этого ранга или выше; до тех пор
-        /// заказ ждёт, и без ответа заказчик уходит сам.
+        /// заказ ждёт, и без ответа заказчик уходит сам. Строит Общежитие → Лазарет → Тренировочный двор по одной, когда денег не
+        /// меньше цены и трёх месяцев расходов; на вакансию нанимает кандидата с высшим уровнем за просимую зарплату.
         /// </summary>
         public static PlayerBot Simple() =>
             new PlayerBot(SimpleName, new SetCommissionOnceRule(SimpleCommission), new AcceptAllCandidatesRule(),
-                new RegistrarUpToTopRankRule(), new AnswerImportantOrdersByRankRule(), new AnswerEventQuestsBySourceRankRule());
+                new RegistrarUpToTopRankRule(), new AnswerImportantOrdersByRankRule(), new AnswerEventQuestsBySourceRankRule(),
+                new BuildWithReserveRule(SimpleReserveMonths, BuildingFunction.Dormitory, BuildingFunction.Infirmary, BuildingFunction.TrainingYard),
+                new HireBestCandidateRule());
 
         /// <summary>Повторяет команды сценария в их такты.</summary>
         public static PlayerBot Scenario(ScenarioScript script) => new PlayerBot(ScenarioName, new ScenarioRule(script));
@@ -192,6 +198,61 @@ namespace GuildMaster.Debugging
                 Order order = orders[i];
                 if (order.Status != OrderStatus.AwaitingPlayer || !order.IsEventQuest || !anyone || order.SourceRank > top) continue;
                 turn.Send(new AnswerEventQuestCommand(order.Id, order.SourceRank));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Стройка по списку назначений: когда стройки и очереди нет, заказать первую ещё не построенную постройку списка, если в казне
+    /// не меньше её цены плюс <c>reserveMonths</c> месяцев расходов (зарплаты и содержание готовых построек).
+    /// </summary>
+    public sealed class BuildWithReserveRule : IBotRule
+    {
+        private readonly int reserveMonths;
+        private readonly BuildingFunction[] order;
+
+        public BuildWithReserveRule(int reserveMonths, params BuildingFunction[] order)
+        {
+            this.reserveMonths = reserveMonths;
+            this.order = order ?? Array.Empty<BuildingFunction>();
+        }
+
+        public void Act(BotTurn turn)
+        {
+            WorldState world = turn.World;
+            DataRegistry data = turn.Game.Data;
+            if (!data.HasDefinitions || world.Buildings.Current != null || world.Buildings.Queue.Count > 0) return;
+
+            foreach (BuildingFunction function in order)
+            {
+                BuildingDefinition definition = data.BuildingWith(function);
+                if (definition == null || world.Buildings.TryGetByDefinition(definition.Id, out _)) continue;
+
+                int reserve = reserveMonths * (StaffRules.MonthlySalaries(world) + BuildingRules.MonthlyUpkeep(world, data));
+                if (world.Treasury.Money >= definition.Cost + reserve) turn.Send(new StartBuildingCommand(definition.Id));
+                return;
+            }
+        }
+    }
+
+    /// <summary>Вакансия с кандидатами: предложить кандидату с высшим уровнем (при равенстве — пришедшему раньше) просимую зарплату.</summary>
+    public sealed class HireBestCandidateRule : IBotRule
+    {
+        public void Act(BotTurn turn)
+        {
+            IReadOnlyList<StaffCandidate> candidates = turn.World.Staff.Candidates;
+            var roles = new HashSet<string>();
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                string role = candidates[i].RoleId;
+                if (!roles.Add(role) || turn.World.Staff.HasRole(role)) continue;
+
+                StaffCandidate best = candidates[i];
+                for (int j = i + 1; j < candidates.Count; j++)
+                {
+                    if (candidates[j].RoleId == role && candidates[j].Level > best.Level) best = candidates[j];
+                }
+                turn.Send(new OfferSalaryCommand(best.Id, best.AskedSalary));
             }
         }
     }

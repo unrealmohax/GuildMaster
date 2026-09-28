@@ -433,14 +433,14 @@ namespace GuildMaster.ClaudeSandbox
 
         private static void FillBuildings(Dictionary<string, BuildingDefinition> b, Dictionary<string, StaffRoleDefinition> s)
         {
-            Building(b["GuildHall"], "Зал гильдии", M, cost: 0, days: 0, upkeep: 50, capacity: 0, atStart: true, s["Registrar"]);
-            Building(b["Tavern"], "Таверна", F, cost: 0, days: 0, upkeep: 40, capacity: 0, atStart: true, s["Innkeeper"]);
-            Building(b["Dormitory"], "Общежитие", N, cost: 800, days: 10, upkeep: 40, capacity: 10, atStart: false, null);
-            Building(b["Infirmary"], "Лазарет", M, cost: 1000, days: 14, upkeep: 60, capacity: 4, atStart: false, s["Healer"]);
-            Building(b["TrainingYard"], "Тренировочный двор", M, cost: 600, days: 7, upkeep: 30, capacity: 6, atStart: false, null);
+            Building(b["GuildHall"], BuildingFunction.Hall, "Зал гильдии", M, cost: 0, days: 0, upkeep: 50, capacity: 0, atStart: true, s["Registrar"]);
+            Building(b["Tavern"], BuildingFunction.Tavern, "Таверна", F, cost: 0, days: 0, upkeep: 40, capacity: 0, atStart: true, s["Innkeeper"]);
+            Building(b["Dormitory"], BuildingFunction.Dormitory, "Общежитие", N, cost: 800, days: 10, upkeep: 40, capacity: 10, atStart: false, null);
+            Building(b["Infirmary"], BuildingFunction.Infirmary, "Лазарет", M, cost: 1000, days: 14, upkeep: 60, capacity: 4, atStart: false, s["Healer"]);
+            Building(b["TrainingYard"], BuildingFunction.TrainingYard, "Тренировочный двор", M, cost: 600, days: 7, upkeep: 30, capacity: 6, atStart: false, null);
         }
 
-        private static void Building(BuildingDefinition asset, string name, GrammaticalGender gender, int cost, int days, int upkeep, int capacity, bool atStart, StaffRoleDefinition role)
+        private static void Building(BuildingDefinition asset, BuildingFunction function, string name, GrammaticalGender gender, int cost, int days, int upkeep, int capacity, bool atStart, StaffRoleDefinition role)
         {
             Def(asset, asset.name, name);
             Set(asset, "nameForms", new NounForms(name, gender));
@@ -449,6 +449,7 @@ namespace GuildMaster.ClaudeSandbox
             Set(asset, "upkeepPerMonth", upkeep);
             Set(asset, "capacity", capacity);
             Set(asset, "builtAtStart", atStart);
+            Set(asset, "function", function);
             Set(asset, "staffRole", role);
             Set(asset, "levelCostMultiplier", 1.5f);
             Set(asset, "levelTimeMultiplier", 1.5f);

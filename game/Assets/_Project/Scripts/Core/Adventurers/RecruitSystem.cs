@@ -93,7 +93,7 @@ namespace GuildMaster.Core
             Adventurer adventurer = candidate.Adventurer;
             roster.RemoveCandidate(candidate);
             adventurer.JoinedAtHours = ctx.World.Time.TotalHours;
-            adventurer.Housing = Housing.City; // Общежития пока нет
+            adventurer.Housing = Housing.City; // в Общежитие переселяет BuildingSystem, когда есть место
             LinkPartners(ctx, adventurer);
             roster.AddActive(adventurer);
 

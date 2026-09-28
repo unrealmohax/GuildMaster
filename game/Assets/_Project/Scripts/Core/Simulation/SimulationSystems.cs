@@ -8,8 +8,9 @@ namespace GuildMaster.Core
     ///  5. ActivitySystem  6. StateSystem     7. HealthSystem    8. DecisionSystem
     ///  9. PartySystem    10. DilemmaSystem  11. EconomySystem  12. BuildingSystem, StaffSystem
     /// 13. AdventurerSystem, RecruitSystem   14. DecreeSystem   15. FeedSystem     16. AutopauseSystem
-    /// Шаг 13 дополнен AdventurerSystem. Перед FeedSystem — MonthReportSystem: отчёт месяца собирается после всех систем,
-    /// которые меняют мир.
+    /// Шаг 12: StaffSystem (кандидаты, долги и уход персонала), BuildingSystem (стройка, Общежитие, тренировки, содержание),
+    /// SalarySystem (зарплаты в начале месяца — после содержания). Шаг 13 дополнен AdventurerSystem. Перед FeedSystem —
+    /// MonthReportSystem: отчёт месяца собирается после всех систем, которые меняют мир.
     /// </summary>
     public static class SimulationSystems
     {
@@ -24,6 +25,9 @@ namespace GuildMaster.Core
             new HealthSystem(),
             new DecisionSystem(),
             new EconomySystem(),
+            new StaffSystem(),
+            new BuildingSystem(),
+            new SalarySystem(),
             new AdventurerSystem(),
             new RecruitSystem(),
             new MonthReportSystem(), // после всех систем, которые меняют мир

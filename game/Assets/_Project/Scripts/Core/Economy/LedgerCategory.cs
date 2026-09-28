@@ -76,9 +76,28 @@ namespace GuildMaster.Core
         /// <summary>Награда группе за сообщение о находке.</summary>
         public static readonly LedgerCategory Discoveries = new LedgerCategory("discoveries", LedgerFlow.Expense, ExpenseKind.Mandatory);
 
+        /// <summary>Место в Общежитии: плата жильцов за сутки.</summary>
+        public static readonly LedgerCategory Dormitory = new LedgerCategory("dormitory", LedgerFlow.Income);
+
+        /// <summary>Лечение в Лазарете: плата больных за сутки (сколько смогли заплатить).</summary>
+        public static readonly LedgerCategory Infirmary = new LedgerCategory("infirmary", LedgerFlow.Income);
+
+        /// <summary>Тренировочный двор: плата за день тренировки.</summary>
+        public static readonly LedgerCategory TrainingYard = new LedgerCategory("trainingYard", LedgerFlow.Income);
+
+        /// <summary>Стройка: цена постройки, списывается, когда стройка начинается, — только если денег хватает.</summary>
+        public static readonly LedgerCategory Construction = new LedgerCategory("construction", LedgerFlow.Expense, ExpenseKind.IfAffordable);
+
+        /// <summary>Содержание построек в начале месяца — даже в минус.</summary>
+        public static readonly LedgerCategory Upkeep = new LedgerCategory("upkeep", LedgerFlow.Expense, ExpenseKind.Mandatory);
+
+        /// <summary>Зарплата сотруднику — только если денег хватает, иначе долг по зарплате; связанный объект — сотрудник.</summary>
+        public static readonly LedgerCategory Salaries = new LedgerCategory("salaries", LedgerFlow.Expense, ExpenseKind.IfAffordable);
+
         public static IReadOnlyList<LedgerCategory> All { get; } = new[]
         {
-            Tavern, Commission, DebtRepayment, Surcharges, EventQuests, Discoveries,
+            Tavern, Commission, DebtRepayment, Dormitory, Infirmary, TrainingYard,
+            Surcharges, EventQuests, Discoveries, Construction, Upkeep, Salaries,
         };
     }
 }

@@ -1,13 +1,14 @@
+using GuildMaster.Data;
+
 namespace GuildMaster.Core
 {
     /// <summary>
-    /// Запрос к постройкам: сколько коек в Лазарете, есть ли Лекарь гильдии и насколько он ускоряет лечение.
-    /// Пока построек нет — <see cref="NoInfirmary"/>: Лазарета нет, все лечатся со сроком × 1,5 и броском на осложнение.
-    /// Тесты подменяют запрос своим.
+    /// Запрос к Лазарету: сколько в нём коек, есть ли Лекарь гильдии и насколько он ускоряет лечение. В игре —
+    /// <see cref="BuildingInfirmary"/> (постройка и персонал мира); тесты подменяют запрос своим.
     /// </summary>
     public interface IInfirmary
     {
-        /// <summary>Коек в Лазарете (0 — Лазарета нет).</summary>
+        /// <summary>Коек в Лазарете (0 — Лазарета нет или он ещё строится).</summary>
         int Beds(SimContext ctx);
 
         /// <summary>Есть Лекарь гильдии: без него Лазарет не лечит.</summary>
@@ -17,15 +18,24 @@ namespace GuildMaster.Core
         float HealingSpeed(SimContext ctx);
     }
 
-    /// <summary>Построек нет: «свободной койки и Лекаря нет».</summary>
-    public sealed class NoInfirmary : IInfirmary
+    /// <summary>
+    /// Лазарет мира: койки — вместимость готовой постройки с назначением «Лазарет», Лекарь — сотрудник на должности
+    /// с эффектом «скорость лечения», ускорение — эффект его уровня (<see cref="StaffRules.LevelEffect"/>).
+    /// Лазарета нет — коек 0: все лечатся со сроком × 1,5 и броском на осложнение.
+    /// </summary>
+    public sealed class BuildingInfirmary : IInfirmary
     {
-        public static readonly NoInfirmary Instance = new NoInfirmary();
+        public static readonly BuildingInfirmary Instance = new BuildingInfirmary();
 
-        public int Beds(SimContext ctx) => 0;
+        public int Beds(SimContext ctx) =>
+            BuildingRules.IsReady(ctx.World, ctx.Data, BuildingFunction.Infirmary, out BuildingDefinition infirmary) ? BuildingRules.Capacity(infirmary) : 0;
 
-        public bool HasMedic(SimContext ctx) => false;
+        public bool HasMedic(SimContext ctx) =>
+            ctx.Data.HasDefinitions && StaffRules.TryGetWithEffect(ctx.World, ctx.Data, StaffLevelEffect.HealingSpeed, out _);
 
-        public float HealingSpeed(SimContext ctx) => 1f;
+        public float HealingSpeed(SimContext ctx) =>
+            StaffRules.TryGetWithEffect(ctx.World, ctx.Data, StaffLevelEffect.HealingSpeed, out StaffMember medic)
+                ? StaffRules.LevelEffect(medic.Level, ctx.Data.Balance.Staff)
+                : 1f;
     }
 }

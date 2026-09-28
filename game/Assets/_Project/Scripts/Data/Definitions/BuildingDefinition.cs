@@ -23,6 +23,9 @@ namespace GuildMaster.Data
 
         [SerializeField] private bool builtAtStart;
 
+        [Tooltip("Назначение: по нему правила находят Общежитие, Лазарет, двор")]
+        [SerializeField] private BuildingFunction function;
+
         [Tooltip("Какая должность здесь работает (пусто — никакая)")]
         [SerializeField, OptionalReference] private StaffRoleDefinition staffRole;
 
@@ -38,6 +41,7 @@ namespace GuildMaster.Data
         public int UpkeepPerMonth => upkeepPerMonth;
         public int Capacity => capacity;
         public bool BuiltAtStart => builtAtStart;
+        public BuildingFunction Function => function;
         public StaffRoleDefinition StaffRole => staffRole;
         public float LevelCostMultiplier => levelCostMultiplier;
         public float LevelTimeMultiplier => levelTimeMultiplier;

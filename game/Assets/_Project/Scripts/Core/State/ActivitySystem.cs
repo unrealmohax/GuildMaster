@@ -16,8 +16,10 @@ namespace GuildMaster.Core
     /// Выбранное решением занятие ставится только здесь, поэтому за час решения показатели считаются по прежнему занятию.
     /// Расходы занятия — раз в сутки, в первый его час: таверна — выпивка 2–5 (если стресс выше 30 или Пьяница) и еда
     /// в таверне (если кошелёк не меньше расходов на неделю; платится в 00:00); запой — выпивка <c>bingeDrinkPerDay</c>;
-    /// Лазарет — <c>infirmary</c>. Выпивка в таверне и в запое, за которую заплачено хоть что-то, — порция в доход таверны
-    /// (<see cref="TreasuryService"/>). Утром Пьяница может пропустить день (10%, при стрессе выше 50 — 20%).
+    /// Лазарет — <c>infirmary</c>, в казну — сколько заплачено (недостача — недополученный доход гильдии). Выпивка в таверне
+    /// и в запое, за которую заплачено хоть что-то, — порция в доход таверны (<see cref="TreasuryService"/>).
+    /// Тренировка — занятие на <c>trainingHoursPerDay</c> часов, плата <c>training</c> в казну при начале; после него человек
+    /// решает снова. Утром Пьяница может пропустить день (10%, при стрессе выше 50 — 20%).
     /// </summary>
     public sealed class ActivitySystem : ISimSystem
     {
@@ -43,7 +45,10 @@ namespace GuildMaster.Core
 
                 if (morning) TrySkipDay(ctx, adventurer);
 
-                state.Activity = Schedule(state, phase, now);
+                Activity previous = state.Activity;
+                Activity next = Schedule(state, phase, now);
+                if (next == Activity.Training) next = Train(ctx, adventurer, previous, now);
+                state.Activity = next;
                 state.PlannedActivity = null;
                 PayForActivity(ctx, adventurer);
             }
@@ -59,6 +64,31 @@ namespace GuildMaster.Core
             if (now < state.SkipsDayUntilHours) return Activity.Tavern;
             if (state.PlannedActivity.HasValue) return state.PlannedActivity.Value;
             return IsFreeTime(state.Activity) ? state.Activity : Activity.Resting;
+        }
+
+        /// <summary>
+        /// Тренировка на дворе: выбрал её — начинается занятие на <c>trainingHoursPerDay</c> часов (плата за день — в казну,
+        /// второй раз за сутки нельзя); занятие кончилось — человек отдыхает и в этом часу решает снова, как освободившийся.
+        /// </summary>
+        private static Activity Train(SimContext ctx, Adventurer adventurer, Activity previous, long now)
+        {
+            AdventurerState state = adventurer.State;
+            bool chosenNow = state.PlannedActivity == Activity.Training;
+            if (previous == Activity.Training && !chosenNow)
+            {
+                if (now < state.TrainingEndsAtHours) return Activity.Training;
+                state.TrainingStat = null;
+                state.WasFreeLastHour = false;
+                return Activity.Resting;
+            }
+
+            state.TrainingEndsAtHours = now + ctx.Data.Balance.Growth.TrainingHoursPerDay;
+            state.TrainingStat = null;
+            state.TrainedOnDay = DecisionPoints.Today(ctx);
+            int paid = WalletService.Pay(ctx, adventurer, WalletService.Coins(ctx.Data.Balance.Expenses.Training));
+            TreasuryService.Credit(ctx, LedgerCategories.TrainingYard, paid, "training", adventurer.Id);
+            ctx.Events.Publish(SimEventType.TrainingStarted, EventImportance.Normal, adventurer.Id);
+            return Activity.Training;
         }
 
         /// <summary>Занятие свободного человека, которое держится до следующего решения.</summary>
@@ -111,7 +141,8 @@ namespace GuildMaster.Core
                     if (!state.PaidInfirmaryToday)
                     {
                         state.PaidInfirmaryToday = true;
-                        WalletService.Pay(ctx, adventurer, WalletService.Coins(expenses.Infirmary)); // недостача не списывается; в казну не идёт — построек нет
+                        int paid = WalletService.Pay(ctx, adventurer, WalletService.Coins(expenses.Infirmary)); // недостача — недополученный доход
+                        TreasuryService.Credit(ctx, LedgerCategories.Infirmary, paid, "infirmary", adventurer.Id);
                     }
                     break;
             }

@@ -19,6 +19,12 @@ namespace GuildMaster.Core
 
         /// <summary>Пойти на заказ с группой, которая зовёт (приглашение, вариант постоянной группы).</summary>
         JoinParty,
+
+        /// <summary>Тренироваться на дворе — занятие на день тренировки.</summary>
+        Train,
+
+        /// <summary>Лечь в Лазарет — до выздоровления.</summary>
+        Heal,
     }
 
     /// <summary>
@@ -126,6 +132,8 @@ namespace GuildMaster.Core
     /// Цена — то, что спишется за поход: средняя выпивка, если человек пьёт и сегодня ещё не платил, и наценка еды в таверне,
     /// если он там ест.</item>
     /// <item>Сон: без выбора.</item>
+    /// <item>Тренировка: Слава 0,4, Безопасность 1, Товарищи 0,2 (если на дворе будет ещё кто-то), Отдых −0,3.</item>
+    /// <item>Лечение: Безопасность 1, Отдых 0,8, Утешение 0,3.</item>
     /// </list>
     /// Оценки ограничены −1..1.
     /// </summary>
@@ -137,6 +145,25 @@ namespace GuildMaster.Core
         public static readonly DecisionAction Rest = new DecisionAction(DecisionActionKind.Rest, Activity.Resting, false, ScoreRest);
         public static readonly DecisionAction Tavern = new DecisionAction(DecisionActionKind.Tavern, Activity.Tavern, true, ScoreTavern);
         public static readonly DecisionAction Sleep = new DecisionAction(DecisionActionKind.Sleep, Activity.Sleeping, false, null);
+        public static readonly DecisionAction Train = new DecisionAction(DecisionActionKind.Train, Activity.Training, false, ScoreTrain);
+        public static readonly DecisionAction Heal = new DecisionAction(DecisionActionKind.Heal, Activity.Infirmary, false, ScoreHeal);
+
+        private static void ScoreTrain(DecisionScope scope, Adventurer adventurer, float[] scores)
+        {
+            DecisionsBalance decisions = scope.Ctx.Data.Balance.Decisions;
+            scores[(int)Motive.Glory] = decisions.TrainingGlory;
+            scores[(int)Motive.Safety] = decisions.TrainingSafety;
+            scores[(int)Motive.Companions] = BuildingRules.Trainees(scope.Ctx.World, adventurer) > 0 ? decisions.TrainingCompanions : 0f;
+            scores[(int)Motive.Rest] = decisions.TrainingRest;
+        }
+
+        private static void ScoreHeal(DecisionScope scope, Adventurer adventurer, float[] scores)
+        {
+            DecisionsBalance decisions = scope.Ctx.Data.Balance.Decisions;
+            scores[(int)Motive.Safety] = decisions.HealSafety;
+            scores[(int)Motive.Rest] = decisions.HealRest;
+            scores[(int)Motive.Comfort] = decisions.HealComfort;
+        }
 
         private static void ScoreRest(DecisionScope scope, Adventurer adventurer, float[] scores)
         {
@@ -179,6 +206,6 @@ namespace GuildMaster.Core
             return scores;
         }
 
-        public static IReadOnlyList<DecisionAction> All { get; } = new[] { Rest, Tavern, Sleep };
+        public static IReadOnlyList<DecisionAction> All { get; } = new[] { Rest, Tavern, Sleep, Train, Heal };
     }
 }

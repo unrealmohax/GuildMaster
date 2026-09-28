@@ -297,7 +297,8 @@ namespace GuildMaster.Tests
             TickUntil(simulation, SimEventType.BankruptcyStarted, 31);
             Assert.IsTrue(simulation.World.Treasury.Bankruptcy.Active);
 
-            world.Do(ctx => TreasuryService.Credit(ctx, TestLedger.Income, 1000));
+            // До нуля: за месяц к долгу добавились содержание и зарплаты.
+            world.Do(ctx => TreasuryService.Credit(ctx, TestLedger.Income, -ctx.World.Treasury.Money));
             List<SimEvent> events = world.Collect(() => simulation.Tick());
 
             Assert.IsTrue(events.Any(e => e.Type == SimEventType.BankruptcyLifted));
@@ -392,7 +393,10 @@ namespace GuildMaster.Tests
             int income = treasury.Ledger.Where(e => e.Amount > 0).Sum(e => e.Amount);
             Assert.Greater(income, 0);
             Assert.AreEqual(income, report.Income);
-            Assert.AreEqual(70, report.Expense);
+            // 1-го числа — ещё содержание построек и зарплаты стартового персонала.
+            int guildCosts = -treasury.Ledger.Where(e => e.Category == LedgerCategories.Upkeep || e.Category == LedgerCategories.Salaries).Sum(e => e.Amount);
+            Assert.AreEqual(90 + StaffRules.MonthlySalaries(simulation.World), guildCosts);
+            Assert.AreEqual(70 + guildCosts, report.Expense);
             Assert.AreEqual(report.MoneyAtEnd, report.MoneyAtStart + report.Income - report.Expense);
 
             Assert.IsTrue(report.TryGetSection(MonthReportSections.MoneyTitle, out ReportSection money));
@@ -413,7 +417,7 @@ namespace GuildMaster.Tests
             Assert.AreEqual(EventImportance.Notable, ready.Importance);
             Assert.IsFalse(AutopauseRules.Default.ContainsKey(SimEventType.MonthReportReady));
             FeedEntry line = simulation.World.Feed.Guild.Last(e => e.TemplateKey == FeedKeys.MonthReport);
-            Assert.AreEqual($"Прошёл месяц. Заработано {income}, потрачено 70, погибших — 0", line.Text);
+            Assert.AreEqual($"Прошёл месяц. Заработано {income}, потрачено {70 + guildCosts}, погибших — 0", line.Text);
 
             var errors = new List<string>();
             List<string> text = MonthReportText.Lines(report, simulation.World, world.Registry, errors);

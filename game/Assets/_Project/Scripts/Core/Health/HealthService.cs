@@ -4,10 +4,22 @@ namespace GuildMaster.Core
 {
     /// <summary>
     /// Раны. Ранить — <see cref="Wound"/> (задания, драка при срыве), увечье — <see cref="Maim"/>.
-    /// Срок раны — поток вызывающей системы. Лечение и осложнения — <see cref="HealthSystem"/>.
+    /// Срок раны — поток вызывающей системы. Лечение и осложнения — <see cref="HealthSystem"/>. Лечь в Лазарет — <see cref="Admit"/>.
     /// </summary>
     public static class HealthService
     {
+        /// <summary>
+        /// Человек ложится в Лазарет: койка занята до выздоровления, со следующего часа — занятие «Лазарет».
+        /// Свободна ли койка, проверяет вызывающий. <paramref name="self"/> — лёг сам (решение), иначе положили (тяжёлая рана).
+        /// </summary>
+        public static void Admit(SimContext ctx, Adventurer adventurer, bool self)
+        {
+            adventurer.State.InInfirmary = true;
+            ctx.Events.Publish(SimEventType.InfirmaryAdmitted, EventImportance.Normal, adventurer.Id)
+                .With("heavy", adventurer.State.HasHeavyWound())
+                .With("self", self);
+        }
+
         /// <summary>
         /// Ранить: своя рана — стресс +10 (лёгкая) / +20 (тяжёлая) × черты. Несколько лёгких ран не складываются —
         /// остаётся самая длинная. Вторая тяжёлая при уже тяжёлой становится увечьем (черта «Калека», если её можно дать).

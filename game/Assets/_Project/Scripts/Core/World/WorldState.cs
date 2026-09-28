@@ -3,7 +3,7 @@ namespace GuildMaster.Core
     /// <summary>
     /// Всё текущее состояние мира. Снаружи Core — только чтение: сеттеры internal, менять мир можно
     /// только системами и командами.
-    /// Персонал, постройки, распоряжения, обращения добавляются по тому же правилу.
+    /// Распоряжения и обращения добавляются по тому же правилу.
     /// </summary>
     public sealed class WorldState
     {
@@ -40,5 +40,11 @@ namespace GuildMaster.Core
 
         /// <summary>Группы: под задание и постоянные.</summary>
         public PartyBook Parties { get; } = new PartyBook();
+
+        /// <summary>Постройки гильдии: готовые, стройка, очередь.</summary>
+        public BuildingBook Buildings { get; } = new BuildingBook();
+
+        /// <summary>Персонал: сотрудники, бывшие сотрудники, кандидаты на вакансии.</summary>
+        public StaffRoster Staff { get; } = new StaffRoster();
     }
 }

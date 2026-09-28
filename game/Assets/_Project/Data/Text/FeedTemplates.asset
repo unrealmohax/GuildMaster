@@ -1404,6 +1404,60 @@ MonoBehaviour:
     conditions: []
     variants:
     - "\u0417\u0430 \u043C\u0435\u0441\u044F\u0446"
+  - key: report.buildings
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u041F\u043E\u0441\u0442\u0440\u043E\u0439\u043A\u0438"
+  - key: report.buildings.ready
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u041F\u043E\u0441\u0442\u0440\u043E\u0435\u043D\u043E"
+  - key: report.buildings.underConstruction
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u0421\u0442\u0440\u043E\u0438\u0442\u0441\u044F"
+  - key: report.buildings.queued
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u0412 \u043E\u0447\u0435\u0440\u0435\u0434\u0438"
+  - key: report.staff
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u041F\u0435\u0440\u0441\u043E\u043D\u0430\u043B"
+  - key: report.staff.hired
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u041D\u0430\u043D\u044F\u0442\u044B"
+  - key: report.staff.quit
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u0423\u0448\u043B\u0438, \u043D\u0435 \u0434\u043E\u0436\u0434\u0430\u0432\u0448\u0438\u0441\u044C \u0436\u0430\u043B\u043E\u0432\u0430\u043D\u044C\u044F"
+  - key: report.staff.dismissed
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u0423\u0432\u043E\u043B\u0435\u043D\u044B"
+  - key: report.staff.unpaid
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u0416\u0434\u0443\u0442 \u0436\u0430\u043B\u043E\u0432\u0430\u043D\u044C\u044F"
   - key: ledger.tavern
     feed: 1
     importance: 0
@@ -1440,6 +1494,42 @@ MonoBehaviour:
     conditions: []
     variants:
     - "\u041D\u0430\u0445\u043E\u0434\u043A\u0438"
+  - key: ledger.dormitory
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u041E\u0431\u0449\u0435\u0436\u0438\u0442\u0438\u0435"
+  - key: ledger.infirmary
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u041B\u0430\u0437\u0430\u0440\u0435\u0442"
+  - key: ledger.trainingYard
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u0422\u0440\u0435\u043D\u0438\u0440\u043E\u0432\u043E\u0447\u043D\u044B\u0439 \u0434\u0432\u043E\u0440"
+  - key: ledger.construction
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u0421\u0442\u0440\u043E\u0439\u043A\u0430"
+  - key: ledger.upkeep
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u0421\u043E\u0434\u0435\u0440\u0436\u0430\u043D\u0438\u0435"
+  - key: ledger.salaries
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "\u0417\u0430\u0440\u043F\u043B\u0430\u0442\u044B"
   - key: guild.decree.enabled
     feed: 1
     importance: 0
@@ -1512,6 +1602,30 @@ MonoBehaviour:
     conditions: []
     variants:
     - "{\u043F\u043E\u0441\u0442\u0440\u043E\u0439\u043A\u0430} \u2014 \u0432 \u043E\u0447\u0435\u0440\u0435\u0434\u0438 \u043D\u0430 \u0441\u0442\u0440\u043E\u0439\u043A\u0443"
+  - key: guild.staffCandidate.arrived
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "{\u0438\u043C\u044F} \u043F\u0440\u043E\u0441\u0438\u0442\u0441\u044F \u043D\u0430 \u0441\u043B\u0443\u0436\u0431\u0443 \u0432 {\u043F\u043E\u0441\u0442\u0440\u043E\u0439\u043A\u0430:\u0432}"
+  - key: guild.staffCandidate.left
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "{\u0438\u043C\u044F} \u043D\u0435 \u0434\u043E\u0436\u0434\u0430\u043B[\u0441\u044F|\u0430\u0441\u044C] \u043E\u0442\u0432\u0435\u0442\u0430 \u0438 \u0443\u0448[\u0451\u043B|\u043B\u0430] \u0438\u0441\u043A\u0430\u0442\u044C \u0434\u0440\u0443\u0433\u043E\u0435 \u043C\u0435\u0441\u0442\u043E"
+  - key: guild.staffCandidate.refused
+    feed: 1
+    importance: 0
+    conditions: []
+    variants:
+    - "{\u0438\u043C\u044F} \u043D\u0435 \u0441\u043E\u0433\u043B\u0430\u0441\u0438\u043B[\u0441\u044F|\u0430\u0441\u044C] \u043D\u0430 \u0442\u0430\u043A\u043E\u0435 \u0436\u0430\u043B\u043E\u0432\u0430\u043D\u044C\u0435 \u0438 \u0443\u0448[\u0451\u043B|\u043B\u0430]"
+  - key: guild.staff.unpaid
+    feed: 1
+    importance: 2
+    conditions: []
+    variants:
+    - "\u0416\u0430\u043B\u043E\u0432\u0430\u043D\u044C\u0435 \u043D\u0435 \u0432\u044B\u043F\u043B\u0430\u0447\u0435\u043D\u043E. {\u0438\u043C\u044F} \u0436\u0434\u0451\u0442 \u0434\u043E \u0441\u043B\u0435\u0434\u0443\u044E\u0449\u0435\u0433\u043E \u043C\u0435\u0441\u044F\u0446\u0430"
   - key: guild.eventQuest.found
     feed: 1
     importance: 2

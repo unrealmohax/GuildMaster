@@ -16,9 +16,8 @@ namespace GuildMaster.Core
     /// <summary>
     /// Личные деньги. Кошелёк целочисленный: доли (Семейный, долг) округляются вниз,
     /// цены из <see cref="ExpensesBalance"/> — до целого. Не хватает — платит сколько может, остаток не списывается,
-    /// ставится флаг «кошелёк пуст». Кошелёк трогает казну только погашением долга; долю таверны с еды и выпивки засчитывают системы, которые
-    /// за них берут плату (<see cref="TreasuryService"/>); остальные платы гильдии (Общежитие, двор, Лазарет) только списываются
-    /// из кошелька — построек нет.
+    /// ставится флаг «кошелёк пуст». Сам кошелёк зачисляет в казну погашение долга и плату за Общежитие; долю таверны с еды
+    /// и выпивки, плату за Лазарет и тренировку засчитывают системы, которые за них берут плату (<see cref="TreasuryService"/>).
     /// </summary>
     public static class WalletService
     {
@@ -100,8 +99,17 @@ namespace GuildMaster.Core
         public static float MoneyMotiveMultiplier(Adventurer adventurer, BalanceSettings balance) =>
             IsBelowWeeklyExpenses(adventurer, balance.Expenses) ? balance.State.LowWalletMoneyMultiplier : 1f;
 
-        /// <summary>Суточные расходы (00:00): еда за прошедшие сутки и жильё. Возвращает, сколько заплачено.</summary>
-        internal static int PayDaily(SimContext ctx, Adventurer adventurer) =>
-            Pay(ctx, adventurer, DailyLivingCost(adventurer, adventurer.State.AteInTavernToday, ctx.Data.Balance.Expenses));
+        /// <summary>
+        /// Суточные расходы (00:00): еда за прошедшие сутки и жильё. Жильцы Общежития платят гильдии: сначала жильё — оно в казну
+        /// (<see cref="LedgerCategories.Dormitory"/>), остаток — еда. Возвращает, сколько заплачено.
+        /// </summary>
+        internal static int PayDaily(SimContext ctx, Adventurer adventurer)
+        {
+            ExpensesBalance expenses = ctx.Data.Balance.Expenses;
+            int paid = Pay(ctx, adventurer, DailyLivingCost(adventurer, adventurer.State.AteInTavernToday, expenses));
+            if (adventurer.Housing == Housing.Dorm)
+                TreasuryService.Credit(ctx, LedgerCategories.Dormitory, Math.Min(paid, Coins(expenses.DormHousing)), "dormitory", adventurer.Id);
+            return paid;
+        }
     }
 }

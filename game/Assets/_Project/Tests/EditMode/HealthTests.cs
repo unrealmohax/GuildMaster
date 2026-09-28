@@ -7,7 +7,7 @@ using NUnit.Framework;
 
 namespace GuildMaster.Tests
 {
-    /// <summary>Раны и лечение (Лазарета в игре нет, в тестах — подмена).</summary>
+    /// <summary>Раны и лечение; Лазарет — подмена (<see cref="FakeInfirmary"/>), без построек и персонала.</summary>
     public sealed class HealthTests
     {
         private StateWorld world;
@@ -72,9 +72,11 @@ namespace GuildMaster.Tests
                 Adventurer adventurer = world.Add();
                 ConditionKind kind = i % 2 == 0 ? ConditionKind.LightWound : ConditionKind.HeavyWound;
                 Condition condition = Wound(world, adventurer, kind);
+                if (kind == ConditionKind.LightWound) world.Do(ctx => HealthService.Admit(ctx, adventurer, self: true)); // лёгкий ложится сам
                 int expected = (int)Math.Ceiling(condition.Days * 0.7 - 1e-6);
                 Assert.AreEqual(expected, MidnightsToHeal(world, adventurer, condition), $"{kind} {condition.Days} days");
                 Assert.IsFalse(condition.IsComplicated, "в Лазарете осложнений нет");
+                Assert.IsFalse(adventurer.State.InInfirmary, "выздоровел — койка свободна");
                 world.Do(ctx => AdventurerLifecycle.Retire(ctx, adventurer, LeaveReason.Left));
             }
 
@@ -110,33 +112,52 @@ namespace GuildMaster.Tests
         }
 
         [Test]
-        public void Beds_HeavyWoundsFirst_ThenEarlierWounded()
+        public void Beds_HeavyWoundedLaidAutomatically_EarlierFirst_LightOnlyByChoice()
         {
             var infirmary = new FakeInfirmary(beds: 1);
             world = new StateWorld(infirmary: infirmary);
+            world.Data.Set("health.complicationChance", 0f);
             Adventurer lightEarly = world.Add();
             Adventurer heavyLate = world.Add();
             Adventurer heavyLater = world.Add();
 
             Wound(world, lightEarly, ConditionKind.LightWound);
-            world.Simulation.Tick();
             Wound(world, heavyLate, ConditionKind.HeavyWound);
             world.Simulation.Tick();
             Wound(world, heavyLater, ConditionKind.HeavyWound);
+            world.Simulation.Tick();
 
-            world.TickToHour(0);
-            Assert.IsTrue(heavyLate.State.InInfirmary);
-            Assert.IsFalse(heavyLater.State.InInfirmary);
-            Assert.IsFalse(lightEarly.State.InInfirmary);
+            Assert.IsTrue(heavyLate.State.InInfirmary, "тяжёлого кладут в тот же час");
+            Assert.IsFalse(heavyLater.State.InInfirmary, "коек нет — ждёт");
+            Assert.IsFalse(lightEarly.State.InInfirmary, "лёгкого сами не кладут");
 
             infirmary.BedCount = 2;
-            world.TickToHour(0);
-            Assert.IsTrue(heavyLate.State.InInfirmary && heavyLater.State.InInfirmary);
-            Assert.IsFalse(lightEarly.State.InInfirmary);
+            world.Simulation.Tick();
+            Assert.IsTrue(heavyLater.State.InInfirmary, "освободилась койка — следующий тяжёлый");
 
             infirmary.BedCount = 3;
-            world.TickToHour(0);
-            Assert.IsTrue(lightEarly.State.InInfirmary);
+            world.Simulation.Tick();
+            Assert.IsFalse(lightEarly.State.InInfirmary, "лёгкий ложится только решением");
+        }
+
+        [Test]
+        public void Beds_HeavyDoesNotBumpLight_AndNoMedicEmptiesInfirmary()
+        {
+            var infirmary = new FakeInfirmary(beds: 1);
+            world = new StateWorld(infirmary: infirmary);
+            Adventurer light = world.Add();
+            Adventurer heavy = world.Add();
+            Wound(world, light, ConditionKind.LightWound);
+            world.Do(ctx => HealthService.Admit(ctx, light, self: true));
+            Wound(world, heavy, ConditionKind.HeavyWound);
+            world.Simulation.Tick();
+
+            Assert.IsTrue(light.State.InInfirmary, "койка держится до выздоровления");
+            Assert.IsFalse(heavy.State.InInfirmary, "тяжёлый не вытесняет лёгкого");
+
+            infirmary.Medic = false;
+            world.Simulation.Tick();
+            Assert.IsFalse(light.State.InInfirmary || heavy.State.InInfirmary, "без Лекаря Лазарет не лечит — все выходят");
         }
 
         [Test]

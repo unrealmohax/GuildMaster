@@ -30,6 +30,7 @@ namespace GuildMaster.Tests
         public void Candidates_ArriveWithExpectedFrequency_OnceADayInTheMorning()
         {
             data.NoQuests(); // репутация от заданий меняет шанс кандидата
+            data.NoBankruptcy();
             const int days = 3600;
             const int seeds = 5;
             int total = 0;

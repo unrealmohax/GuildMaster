@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using GuildMaster.Data;
 
 namespace GuildMaster.Core
 {
@@ -51,7 +52,10 @@ namespace GuildMaster.Core
         /// <summary>Когда кончится срыв (запой — «в запое до …»).</summary>
         public long BreakdownEndsAtHours { get; internal set; }
 
-        /// <summary>Лежит в Лазарете (койку распределяет <see cref="HealthSystem"/> раз в сутки).</summary>
+        /// <summary>
+        /// Лежит в Лазарете: койка занята до выздоровления. Тяжело раненого кладёт <see cref="HealthSystem"/>, легко раненый
+        /// ложится сам (решение «лечь в Лазарет»).
+        /// </summary>
         public bool InInfirmary { get; internal set; }
 
         /// <summary>Пьяница пропускает этот день в таверне: до этого часа днём — таверна.</summary>
@@ -67,6 +71,17 @@ namespace GuildMaster.Core
 
         /// <summary>За текущие сутки уже заплатил за Лазарет.</summary>
         public bool PaidInfirmaryToday { get; internal set; }
+
+        // Тренировка на дворе.
+
+        /// <summary>Когда кончится текущее занятие на дворе; после него человек свободен и решает снова.</summary>
+        public long TrainingEndsAtHours { get; internal set; }
+
+        /// <summary>Что тренирует в текущем занятии; <c>null</c> — ещё не выбрано.</summary>
+        public StatId? TrainingStat { get; internal set; }
+
+        /// <summary>Номер суток последней тренировки (<c>часы / часов в сутках</c>); −1 — не тренировался. Второй раз за сутки нельзя.</summary>
+        public long TrainedOnDay { get; internal set; } = -1;
 
         /// <summary>Когда начался последний срыв; <c>null</c> — срывов не было.</summary>
         public long? LastBreakdownAtHours { get; internal set; }

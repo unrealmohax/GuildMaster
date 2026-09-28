@@ -23,14 +23,21 @@ namespace GuildMaster.Core
     public sealed class DecisionPoint
     {
         public DecisionPoint(DecisionPointKind kind, Func<SimContext, Adventurer, bool> isDue, IReadOnlyList<DecisionAction> options,
-            Action<SimContext, Adventurer> onDecided = null, bool offersOrders = false)
+            Action<SimContext, Adventurer> onDecided = null, bool offersOrders = false, bool offersServices = false)
         {
             Kind = kind;
             IsDue = isDue;
             Options = options;
             OnDecided = onDecided;
             OffersOrders = offersOrders;
+            OffersServices = offersServices;
         }
+
+        /// <summary>
+        /// В этой точке можно пойти на двор или лечь в Лазарет: варианты добавляются, только когда постройка готова (двор) или
+        /// есть рана, свободная койка и Лекарь (Лазарет).
+        /// </summary>
+        public bool OffersServices { get; }
 
         /// <summary>В этой точке можно взять заказ с доски: к вариантам добавляется по варианту на заказ (<see cref="OrderChoice"/>).</summary>
         public bool OffersOrders { get; }
@@ -56,7 +63,7 @@ namespace GuildMaster.Core
     /// <item>Освободился — в прошлом часу человек не был свободен, а сейчас свободен и не ночь; сюда же — только что
     /// вступивший и вернувшийся с задания.</item>
     /// </list>
-    /// Утром и когда освободился можно ещё взять заказ с доски. Решения на задании (после провала, по находке) — точка
+    /// Утром и когда освободился можно ещё взять заказ с доски, пойти на двор или лечь в Лазарет. Решения на задании (после провала, по находке) — точка
     /// «по событию», их принимает система заданий.
     /// </summary>
     public static class DecisionPoints
@@ -75,11 +82,11 @@ namespace GuildMaster.Core
                 (ctx, a) => ctx.Rhythm.PhaseAt(ctx.World.Time.Hour) == DayPhase.Morning && a.State.MorningDecisionDay != Today(ctx),
                 RestOrTavern,
                 (ctx, a) => a.State.MorningDecisionDay = Today(ctx),
-                offersOrders: true),
+                offersOrders: true, offersServices: true),
             new DecisionPoint(DecisionPointKind.Freed,
                 (ctx, a) => !a.State.WasFreeLastHour && ctx.Rhythm.PhaseAt(ctx.World.Time.Hour) != DayPhase.Night,
                 RestOrTavern,
-                offersOrders: true),
+                offersOrders: true, offersServices: true),
         };
 
         /// <summary>Номер суток от начала календаря.</summary>
@@ -116,7 +123,8 @@ namespace GuildMaster.Core
     /// Запреты вариантов. Утром и днём таверна — только Пьянице или при стрессе выше <c>daytimeTavernStress</c>. Заказ нельзя
     /// взять ни одному, ни с группой: выше ранга гильдии человека (кроме своего экзамена на следующий ранг); при тяжёлой ране,
     /// усталости выше 90, срыве; если выйти в следующем часу уже поздно; чужой экзамен; экзамен — только одному; заказ уже взят
-    /// (кроме приглашения: заказ уже у той группы, которая зовёт).
+    /// (кроме приглашения: заказ уже у той группы, которая зовёт). Тренировка: двор полон (мест — вместимость двора, считаются
+    /// и те, кто выбрал двор в этом часу); уже тренировался сегодня; есть рана; усталость выше 90; в кошельке меньше платы.
     /// </summary>
     public static class DecisionBans
     {
@@ -133,7 +141,24 @@ namespace GuildMaster.Core
                 (ctx, a, action) => action.Kind != DecisionActionKind.TakeOrder && OrderOf(ctx, action, out Order o) && o.IsPromotion),
             new DecisionBan("order taken by others",
                 (ctx, a, action) => action.Kind != DecisionActionKind.JoinParty && OrderOf(ctx, action, out Order o) && o.Status != OrderStatus.OnBoard),
+            new DecisionBan("training yard is full", IsYardFull),
+            new DecisionBan("already trained today",
+                (ctx, a, action) => action.Kind == DecisionActionKind.Train && a.State.TrainedOnDay == DecisionPoints.Today(ctx)),
+            new DecisionBan("no training while wounded",
+                (ctx, a, action) => action.Kind == DecisionActionKind.Train && a.State.Conditions.Count > 0),
+            new DecisionBan("too tired to train",
+                (ctx, a, action) => action.Kind == DecisionActionKind.Train && StateRules.IsTooTiredForQuests(a.State, ctx.Data.Balance.State)),
+            new DecisionBan("cannot pay for training",
+                (ctx, a, action) => action.Kind == DecisionActionKind.Train && a.State.Wallet < WalletService.Coins(ctx.Data.Balance.Expenses.Training)),
         };
+
+        private static bool IsYardFull(SimContext ctx, Adventurer adventurer, DecisionAction action)
+        {
+            if (action.Kind != DecisionActionKind.Train) return false;
+            if (!BuildingRules.IsReady(ctx.World, ctx.Data, BuildingFunction.TrainingYard, out BuildingDefinition yard)) return true;
+            int capacity = BuildingRules.Capacity(yard);
+            return capacity > 0 && BuildingRules.Trainees(ctx.World, adventurer) >= capacity;
+        }
 
         private static bool OrderOf(SimContext ctx, DecisionAction action, out Order order)
         {

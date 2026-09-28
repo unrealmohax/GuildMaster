@@ -5,10 +5,13 @@ using GuildMaster.Data;
 namespace GuildMaster.Core
 {
     /// <summary>
-    /// Шаг 7 такта: раз в сутки (00:00) — койки Лазарета, лечение, осложнения.
+    /// Шаг 7 такта: койки Лазарета (каждый час) и лечение (раз в сутки, 00:00).
     /// <list type="bullet">
-    /// <item>Койки: тяжёлые раны в приоритете, при равенстве — кто раньше ранен. Лечит только Лазарет с Лекарем
-    /// (<see cref="IInfirmary"/>; построек пока нет — <see cref="NoInfirmary"/>). Люди на задании коек не занимают.</item>
+    /// <item>Койка держится до выздоровления. Лечит только Лазарет с Лекарем (<see cref="IInfirmary"/>): Лекаря нет или
+    /// коек стало меньше — лишние больные выходят (остаются тяжёлые, при равенстве — кто раньше ранен).</item>
+    /// <item>Тяжело раненого (он сам не решает) кладут на свободную койку в тот же час: тяжёлые в очереди — кто раньше ранен,
+    /// затем по Id. Легко раненый ложится сам — решением (<see cref="HealthService.Admit"/>). Тяжёлый не вытесняет лёгкого,
+    /// а ждёт свободную койку. Люди на задании коек не занимают.</item>
     /// <item>У каждой раны срок уменьшается на 1 × множитель: в Лазарете — 1 / 0,7 × скорость Лекаря, без него — 1 / 1,5.</item>
     /// <item>Тяжёлая рана без Лазарета — один бросок на осложнение (в первые сутки лечения): +7 дней, стресс +10.</item>
     /// </list>
@@ -19,12 +22,14 @@ namespace GuildMaster.Core
         private const float HealedEpsilon = 1e-3f;
 
         private readonly IInfirmary infirmary;
+        private readonly List<Adventurer> patients = new List<Adventurer>();
+        private readonly List<Adventurer> waiting = new List<Adventurer>();
 
-        public HealthSystem() : this(NoInfirmary.Instance)
+        public HealthSystem() : this(BuildingInfirmary.Instance)
         {
         }
 
-        /// <summary>Свой запрос к Лазарету — для тестов и для построек.</summary>
+        /// <summary>Свой запрос к Лазарету — для тестов.</summary>
         public HealthSystem(IInfirmary infirmary)
         {
             this.infirmary = infirmary ?? throw new ArgumentNullException(nameof(infirmary));
@@ -34,9 +39,8 @@ namespace GuildMaster.Core
 
         public void Tick(SimContext ctx)
         {
+            UpdateBeds(ctx);
             if (ctx.World.Time.Hour != 0) return;
-
-            AssignBeds(ctx);
 
             HealthBalance health = ctx.Data.Balance.Health;
             float speed = infirmary.HealingSpeed(ctx);
@@ -59,33 +63,55 @@ namespace GuildMaster.Core
 
                     state.RemoveCondition(condition);
                     ctx.Events.Publish(SimEventType.WoundHealed, EventImportance.Normal, adventurer.Id)
-                        .With("kind", condition.Kind);
+                        .With("kind", condition.Kind)
+                        .With("infirmary", state.InInfirmary);
                 }
                 if (state.Conditions.Count == 0) state.InInfirmary = false;
             }
         }
 
-        /// <summary>Раздать койки на сутки: тяжёлые раны первыми, при равенстве — кто раньше ранен, затем по Id.</summary>
-        private void AssignBeds(SimContext ctx)
+        /// <summary>Свободных коек сейчас (Лазарет без Лекаря коек не даёт).</summary>
+        public static int FreeBeds(SimContext ctx, IInfirmary infirmary)
         {
-            var wounded = new List<Adventurer>();
+            int beds = infirmary.HasMedic(ctx) ? infirmary.Beds(ctx) : 0;
+            return beds - BuildingRules.Patients(ctx.World);
+        }
+
+        /// <summary>
+        /// Коек меньше, чем больных (нет Лекаря, нет Лазарета), — лишние выходят; есть свободные — ложатся тяжело раненые.
+        /// </summary>
+        private void UpdateBeds(SimContext ctx)
+        {
+            int beds = infirmary.HasMedic(ctx) ? infirmary.Beds(ctx) : 0;
+            patients.Clear();
+            waiting.Clear();
             foreach (Adventurer adventurer in ctx.World.Adventurers.Active)
             {
-                adventurer.State.InInfirmary = false;
-                if (adventurer.State.Conditions.Count > 0 && !adventurer.State.IsOnQuest()) wounded.Add(adventurer);
+                AdventurerState state = adventurer.State;
+                if (state.InInfirmary) patients.Add(adventurer);
+                else if (beds > 0 && state.HasHeavyWound() && !state.IsOnQuest()) waiting.Add(adventurer);
             }
 
-            int beds = infirmary.HasMedic(ctx) ? infirmary.Beds(ctx) : 0;
-            if (beds <= 0 || wounded.Count == 0) return;
-
-            wounded.Sort((a, b) =>
+            int occupied = patients.Count;
+            if (occupied > beds)
             {
-                int bySeverity = b.State.HasHeavyWound().CompareTo(a.State.HasHeavyWound());
-                if (bySeverity != 0) return bySeverity;
-                int byTime = FirstWoundedAt(a).CompareTo(FirstWoundedAt(b));
-                return byTime != 0 ? byTime : a.Id.CompareTo(b.Id);
-            });
-            for (int i = 0; i < wounded.Count && i < beds; i++) wounded[i].State.InInfirmary = true;
+                patients.Sort(ByPriority);
+                for (int i = beds; i < patients.Count; i++) patients[i].State.InInfirmary = false;
+                occupied = beds;
+            }
+
+            if (waiting.Count == 0 || occupied >= beds) return;
+            waiting.Sort(ByPriority);
+            for (int i = 0; i < waiting.Count && occupied < beds; i++, occupied++) HealthService.Admit(ctx, waiting[i], self: false);
+        }
+
+        /// <summary>Очередь на койку: тяжёлые раны первыми, при равенстве — кто раньше ранен, затем по Id.</summary>
+        private static int ByPriority(Adventurer a, Adventurer b)
+        {
+            int bySeverity = b.State.HasHeavyWound().CompareTo(a.State.HasHeavyWound());
+            if (bySeverity != 0) return bySeverity;
+            int byTime = FirstWoundedAt(a).CompareTo(FirstWoundedAt(b));
+            return byTime != 0 ? byTime : a.Id.CompareTo(b.Id);
         }
 
         /// <summary>Когда получена самая тяжёлая из ран человека (при нескольких — самая ранняя).</summary>

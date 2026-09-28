@@ -13,14 +13,14 @@ description: Тесты GuildMaster (EditMode, сборка GuildMaster.Tests) �
 | Помощник (файл) | Когда |
 |---|---|
 | `TestData` (`TestSupport.cs`) | только `BalanceSettings` без ассета — время, случайность, ядро; людей и заказов нет |
-| `PeopleData` (`PeopleTestData.cs`) | реальные определения из `GameConfig` + баланс **по умолчанию** в памяти; `Set("раздел.поле", число)`; `NoQuests()` — люди не берут заказов |
-| `StateWorld` (`StateTestSupport.cs`) | мир без стартовой шестёрки и без `OrderSystem`, стартовые заказы сняты; `Add(черты…)` — ровный человек (параметры 30, оси 0, денег много); `AddMany`, `Do(ctx => …)`, `TickToHour`, `Days`, `Collect`; параметры `infirmary`, `beforeState` (система перед `StateSystem`), `log` |
+| `PeopleData` (`PeopleTestData.cs`) | реальные определения из `GameConfig` + баланс **по умолчанию** в памяти; `Set("раздел.поле", число)`; `NoQuests()` — люди не берут заказов; `NoBankruptcy()` — огромная стартовая казна: без заданий содержание и зарплаты разоряют гильдию примерно за 10 месяцев, и долгий прогон встаёт (тесты частот за годы) |
+| `StateWorld` (`StateTestSupport.cs`) | мир без стартовой шестёрки и без `OrderSystem`, стартовые заказы сняты; `Add(черты…)` — ровный человек (параметры 30, оси 0, денег много); `AddMany`, `Do(ctx => …)`, `TickToHour`, `Days`, `Collect`; параметры `infirmary` (подменяет Лазарет и в `HealthSystem`, и в `DecisionSystem`), `beforeState` (система перед `StateSystem`), `log`. Стартовые постройки (Зал, Таверна) и персонал (Регистратор, Трактирщик) остаются, персоналу — уровень `NeutralStaffLevel` 50 (эффект × 1); 1-го числа — содержание 90 и зарплаты |
 | `QuestWorld` (`QuestTests.cs`) | поверх `StateWorld`: `AddOrder(тип, ранг, требование, награда, расстояние)`, `Start(заказ, люди…)`, `StartParty`, `MakePermanent`, `AtSite(run, провалов)`, `RunToEnd`, `DoEvents` |
 | `PartyTestSupport.Person` (`PartyTests.cs`) | человек с заданными параметрами, Слаженностью и рангом |
 | `SimulationRun` (`TestSupport.cs`) | `Do` — вызвать службу Core как команду на паузе (`ActionCommand` + `ApplyCommandsNow`), `Days`, `Collect` — события прогона |
 | `SimulationLog.Record` | лог событий прогона строкой — для сравнения двух прогонов |
 | `LambdaSystem` | код в своём месте такта (держать стресс, подменить состояние) |
-| `FakeInfirmary` | Лазарет с койками и Лекарем (в игре построек нет) |
+| `FakeInfirmary` | Лазарет с койками, Лекарем и скоростью, заданными прямо, — для тестов здоровья без построек и персонала. С постройками — помощники `Ready`/`Hire` в `BuildingStaffTests` |
 | `Frequency.Tolerance(испытаний, шанс, σ)` | допуск частоты случайного события (3σ биномиального) |
 | `GameData` (`DataTests.cs`) | реальный `GameConfig`, копии ассетов в памяти для порчи: `Copy`, `Edit(объект, путь, p => …)` |
 | `NoiseSystem`, `TraceCommand` | системы и команды, которые тратят броски — для тестов детерминизма |

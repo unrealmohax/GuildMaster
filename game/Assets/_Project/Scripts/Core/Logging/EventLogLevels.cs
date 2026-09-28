@@ -8,6 +8,7 @@ namespace GuildMaster.Core
     /// лог на <see cref="SimLogLevel.Info"/> читался: начало суток — <see cref="SimLogLevel.Debug"/> (разделитель дней
     /// среди бросков), часы и фазы дня — <see cref="SimLogLevel.Trace"/>. Мелкие шаги задания (выход, ночлег, потери, раны,
     /// синергии, обратный путь, трофеи) — <see cref="SimLogLevel.Debug"/>: на Info их и так рассказывают строки ленты задания.
+    /// Будни построек (лёг в Лазарет, начал тренировку, переселился в Общежитие) — тоже <see cref="SimLogLevel.Debug"/>.
     /// Новое частое событие — одна строка в таблице.
     /// </summary>
     public static class EventLogLevels
@@ -28,6 +29,9 @@ namespace GuildMaster.Core
             { SimEventType.Synergy, SimLogLevel.Debug },
             { SimEventType.ReturnTrip, SimLogLevel.Debug },
             { SimEventType.LootHandedIn, SimLogLevel.Debug },
+            { SimEventType.InfirmaryAdmitted, SimLogLevel.Debug },
+            { SimEventType.TrainingStarted, SimLogLevel.Debug },
+            { SimEventType.MovedToDormitory, SimLogLevel.Debug },
         };
 
         public static SimLogLevel Of(SimEventType type) => Levels.TryGetValue(type, out SimLogLevel level) ? level : SimLogLevel.Info;

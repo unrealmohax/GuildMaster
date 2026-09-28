@@ -15,7 +15,7 @@ description: Модель решений GuildMaster — DecisionSystem (шаг 
 | `DecisionSystem.cs` | шаг 8: `Tick`, `Decide`, `Evaluate`, `Choose`, `MainReasons`, запись в лог |
 | `DecisionSystem.Parties.cs` | группы: `AddSeekParty`, `Gather`, `InviteWhileValueGrows`, `Invite`, `PermanentPartiesDecide` (скилл `gm-parties`) |
 | `DecisionPoints.cs` | `DecisionPoint`, `DecisionPoints.Default` (ночь → вечер → утро → освободился), `CanDecide`, `Today`; `DecisionBan`, `DecisionBans.Default` |
-| `DecisionActions.cs` | `DecisionActionKind` (Rest, Tavern, Sleep, TakeOrder, SeekParty, JoinParty), `DecisionAction`, `DecisionScope` (`FriendsHeadingTo`, `Profiles`), `DecisionActions.Rest/Tavern/Sleep`, `TavernPrice`, `Scores` |
+| `DecisionActions.cs` | `DecisionActionKind` (Rest, Tavern, Sleep, TakeOrder, SeekParty, JoinParty, Train, Heal), `DecisionAction`, `DecisionScope` (`FriendsHeadingTo`, `Profiles`), `DecisionActions.Rest/Tavern/Sleep/Train/Heal`, `TavernPrice`, `Scores` |
 | `Motives.cs` | `Motives.Weigh(человек, данные, вТаверне)` → `MotiveWeights` (+ `Factors`), `StateFactor` |
 | `OrderChoice.cs` | варианты «взять заказ», `RefusesFromNightmares`, `Take`, `Reserve`, `Release`, `Commit`, `Refused` (раскрытия Семейного, Жадного, Ленивого), `AverageReward` |
 | `TavernEvening.cs` | итоги вечера в начале ночи: отношения, ссоры (`Quarrel` [З]), раскрытие Соперников |
@@ -30,11 +30,13 @@ description: Модель решений GuildMaster — DecisionSystem (шаг 
    на приглашение) и не взял заказ — первая наступившая точка из `DecisionPoints.Default` → `Decide`. В конце —
    `WasFreeLastHour`.
 
-`Decide`: варианты точки (+ по варианту на каждый заказ доски, если `OffersOrders`) → запреты `DecisionBans` → варианты
+`Decide`: варианты точки (+ по варианту на каждый заказ доски, если `OffersOrders`; + `Train`, если двор готов, и `Heal`, если
+есть рана, Лекарь и свободная койка, — если `OffersServices`: утро и «освободился») → запреты `DecisionBans` → варианты
 «собрать группу» → нет вариантов — ничего; один без оценок (сон) — без выбора → `Evaluate` (ценность = Σ вес мотива × оценка,
 оценки −1..1; сортировка по убыванию, при равенстве — по порядку) → `Choose` (лучший с шансом `bestChoiceChance`, бросок
 `decision-best`; один вариант — без броска; Кошмары могут отказаться от заказа — тогда следующий) → `PlannedActivity` →
-по виду: `TakeOrder` — `OrderChoice.Take`; `SeekParty` — `Gather`; не заказ, хотя заказы были — `OrderChoice.Refused`.
+по виду: `TakeOrder` — `OrderChoice.Take`; `SeekParty` — `Gather`; `Heal` — сразу занять койку (`HealthService.Admit`); не заказ,
+хотя заказы были — `OrderChoice.Refused`. `DecisionSystem(IInfirmary)` — тот же Лазарет, что у `HealthSystem`.
 
 **Решение действует со следующего часа**: `ActivitySystem` поставит `PlannedActivity`, `QuestSystem` выведет по `PlannedOrderId`.
 
@@ -50,7 +52,8 @@ description: Модель решений GuildMaster — DecisionSystem (шаг 
 
 Таверна утром и днём — только Пьянице или при стрессе выше `daytimeTavernStress`. Заказ (одному и с группой): выше ранга
 (кроме своего экзамена), `!CanTakeQuests`, выйти в следующем часу поздно, чужой экзамен, экзамен — только одному, заказ уже
-взят (кроме `JoinParty` той группы, что зовёт). Причина запрета — в лог `Debug` (`ban …`).
+взят (кроме `JoinParty` той группы, что зовёт). Тренировка: двор полон (считаются и выбравшие двор в этом часу), уже тренировался
+сегодня, есть рана, усталость выше 90, в кошельке меньше платы. Причина запрета — в лог `Debug` (`ban …`).
 
 ## Причины ухода
 
@@ -76,6 +79,8 @@ description: Модель решений GuildMaster — DecisionSystem (шаг 
 ## Ловушки
 
 - Любой новый вариант сдвигает броски `decision-best` у всех, кому он доступен, а значит — и всё после них (задания, группы).
-  Если вариант бывает «пустым», он не должен добавляться и тратить броски.
+  Если вариант бывает «пустым», он не должен добавляться и тратить броски (так сделаны `Train` и `Heal`).
+- Оценки `Train` (Слава 0,4, Безопасность 1, Товарищи 0,2, Отдых −0,3) проигрывают отдыху у нейтральных людей: тренируются в основном
+  те, у кого Слава ↑ (Амбициозные, Безрассудные).
 - Тесты, которые проверяют расписание вечера, ставят `decisions.bestChoiceChance = 1`.
 - `DecisionScope` живёт один час: друзья и профили кешируются на час (отношения и параметры за час не меняются).

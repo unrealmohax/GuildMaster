@@ -36,6 +36,12 @@ namespace GuildMaster.Tests
         /// </summary>
         public void NoQuests() => Set("time.latestDepartureHour", Balance.Time.MorningHour);
 
+        /// <summary>
+        /// Казна на старте так велика, что содержание построек и зарплаты не уводят её в минус за долгий прогон: для тестов частот
+        /// за годы без доходов (без заданий гильдия иначе разоряется и закрывается, и симуляция встаёт).
+        /// </summary>
+        public void NoBankruptcy() => Set("guild.startMoney", 10_000_000);
+
         public void Dispose()
         {
             data.Dispose();

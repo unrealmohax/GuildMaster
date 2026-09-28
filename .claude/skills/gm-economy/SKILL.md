@@ -19,7 +19,7 @@ description: Экономика гильдии GuildMaster — казна Treasu
 | `HardTimes.cs` | `IsNow` (банкротство или уход за месяц), `Apply` (Проверенный, раскрытие Преданного) |
 | `SetCommissionCommand.cs` | комиссия в пределах `commissionLimits`, смена — `CommissionChanged` [О] |
 | `MonthReport.cs` | `MonthReport`, `ReportSection`, `ReportLine` (`Money`, `Number`, `Change`, `People`), `ReportItem`, `MonthReportHistory` (`World.Reports`) |
-| `MonthReportSections.cs` | `ReportPeriod`, `MonthReportSection`, `MonthReportSections.Default` (Деньги, Люди, Заказы, Задания, Репутация), ключи `report.*`, `TextKeys` |
+| `MonthReportSections.cs` | `ReportPeriod`, `MonthReportSection`, `MonthReportSections.Default` (Деньги, Люди, Заказы, Задания, Постройки, Персонал, Репутация), ключи `report.*`, `TextKeys`; подробности строк `BuildingDetail`/`StaffDetail` |
 | `MonthReportSystem.cs` | перед `FeedSystem`: в 00:00 первого числа — `Build` → история, лог `Info`, событие `MonthReportReady` [З] |
 | `MonthReportText.cs` | отчёт строками: `Lines`, `Label` (первый вариант шаблона), `Amount`, `Value` |
 
@@ -28,9 +28,12 @@ description: Экономика гильдии GuildMaster — казна Treasu
 - **`StartMoney + Σ Ledger.Amount == Money`.** Деньги гильдии меняет только `TreasuryService` — каждая операция = запись журнала
   + строка лога `Debug` (`ledger tavern +3 money=2014 food=4 drinks=2`). Отмечает, с какого часа казна в минусе.
 - Нулевая сумма записи не даёт. `Debit` `IfAffordable`-статьи без денег — `false`, ничего не пишет.
-- Кошельки людей — не казна (скилл `gm-state-health`). Казну трогают: таверна, комиссия, погашение долга, доплаты, событийные
-  задания, находки. Трофеи заданий — деньги извне, казну не трогают.
-- Статьи сейчас: доходы — `Tavern`, `Commission`, `DebtRepayment`; обязательные расходы — `Surcharges`, `EventQuests`, `Discoveries`.
+- Кошельки людей — не казна (скилл `gm-state-health`). Казну трогают: таверна, комиссия, погашение долга, платы за Общежитие,
+  Лазарет и двор, доплаты, событийные задания, находки, стройка, содержание, зарплаты. Трофеи заданий — деньги извне.
+- Статьи сейчас: доходы — `Tavern`, `Commission`, `DebtRepayment`, `Dormitory`, `Infirmary`, `TrainingYard`; обязательные расходы —
+  `Surcharges`, `EventQuests`, `Discoveries`, `Upkeep`; только если хватает — `Construction`, `Salaries` (скилл `gm-buildings-staff`).
+- **1-е число, 00:00**: `EconomySystem` (трудные времена) → `StaffSystem` (долги по зарплате, уход) → `BuildingSystem` (содержание) →
+  `SalarySystem` (зарплаты) → `MonthReportSystem` — всё это в отчёте прошедшего месяца.
 
 ## Банкротство (каждый час, `EconomySystem`)
 
@@ -64,5 +67,8 @@ description: Экономика гильдии GuildMaster — казна Treasu
 
 - `MonthReportSystem` пишет отчёт и в пустом мире — тесты, сравнивающие логи чужих систем, отбрасывают его строки.
 - `EconomySystem` бросков не тратит; `EconomySystems_DoNotShiftOtherSystems` это проверяет — не добавлять случайность без причины.
-- Трудные времена считают уходы с `LeaveReason.Left` за месяц до часа проверки включительно, не раньше начала игры.
+- Трудные времена считают уходы с `LeaveReason.Left` за месяц до часа проверки включительно, не раньше начала игры. Уход персонала
+  трудными временами не считается.
+- С постройками и персоналом у тестов, доживающих до 1-го числа, в расходах есть содержание (Зал 50 + Таверна 40) и зарплаты
+  стартового персонала.
 - Комиссия действует на награды, выплаченные после смены, и на цель довольства со следующего расчёта (00:00).

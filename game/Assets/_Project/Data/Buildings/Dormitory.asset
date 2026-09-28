@@ -27,6 +27,7 @@ MonoBehaviour:
   upkeepPerMonth: 40
   capacity: 10
   builtAtStart: 0
+  function: 3
   staffRole: {fileID: 0}
   levelCostMultiplier: 1.5
   levelTimeMultiplier: 1.5

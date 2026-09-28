@@ -60,6 +60,16 @@ namespace GuildMaster.Core
         public const string PartyMemberLeftQuarrel = "guild.party.memberLeft.quarrel";
         public const string PartyMemberLeftLoner = "guild.party.memberLeft.loner";
         public const string PartyMemberJoined = "guild.party.memberJoined";
+        public const string BuildingQueued = "guild.building.queued";
+        public const string BuildingStarted = "guild.building.started";
+        public const string BuildingReady = "guild.building.ready";
+        public const string StaffCandidateArrived = "guild.staffCandidate.arrived";
+        public const string StaffCandidateLeft = "guild.staffCandidate.left";
+        public const string StaffCandidateRefused = "guild.staffCandidate.refused";
+        public const string StaffHired = "guild.staff.hired";
+        public const string StaffDismissed = "guild.staff.fired";
+        public const string StaffQuit = "guild.staff.quit";
+        public const string SalaryUnpaid = "guild.staff.unpaid";
 
         public const string QuestDeparted = "quest.departed";
         public const string QuestTravel = "quest.travel";
@@ -98,6 +108,8 @@ namespace GuildMaster.Core
             PartyGatheredPair, PartyGatheredThree, PartyGatheredFour, PartyGatheredFive, PartyGatheredSix, PermanentPartySetOut,
             PartyNotGathered, PartyNotGatheredSolo, InvitationDeclined, InvitationDeclinedSolo,
             PermanentPartyFormed, PermanentPartyFormedPair, PermanentPartyDisbanded, PartyMemberLeftQuarrel, PartyMemberLeftLoner, PartyMemberJoined,
+            BuildingQueued, BuildingStarted, BuildingReady,
+            StaffCandidateArrived, StaffCandidateLeft, StaffCandidateRefused, StaffHired, StaffDismissed, StaffQuit, SalaryUnpaid,
             QuestDeparted, QuestTravel, QuestCamp, QuestCeiling, QuestDeath, QuestLost, QuestOnlyFugitive, QuestMedicSaved,
             QuestReturnTrip, QuestReturnTripHard, QuestRetreat, QuestFlee, QuestLootHandedIn, QuestLootSkimmed,
         }.Concat(Prefixed("quest.loss.", QuestLossKinds)).Concat(Prefixed("quest.wound.", QuestWoundKinds))
@@ -184,7 +196,24 @@ namespace GuildMaster.Core
                 { SimEventType.PermanentPartyDisbanded, (e, w, d) => PermanentPartyDisbanded },
                 { SimEventType.PartyMemberLeft, (e, w, d) => MemberLeft(e) },
                 { SimEventType.PartyMemberJoined, (e, w, d) => PartyMemberJoined },
+                { SimEventType.BuildingQueued, (e, w, d) => BuildingQueued },
+                { SimEventType.BuildingStarted, (e, w, d) => BuildingStarted },
+                { SimEventType.BuildingReady, (e, w, d) => BuildingReady },
+                { SimEventType.StaffCandidateArrived, (e, w, d) => StaffCandidateArrived },
+                { SimEventType.StaffCandidateLeft, (e, w, d) => StaffCandidateLeftKey(e) },
+                { SimEventType.StaffHired, (e, w, d) => StaffHired },
+                { SimEventType.StaffDismissed, (e, w, d) => StaffDismissed },
+                { SimEventType.StaffQuit, (e, w, d) => StaffQuit },
+                { SimEventType.SalaryUnpaid, (e, w, d) => SalaryUnpaid },
             };
+
+        /// <summary>Кандидат в персонал ушёл: не дождался или отказался; место заняли — без строки.</summary>
+        private static string StaffCandidateLeftKey(SimEvent simEvent)
+        {
+            simEvent.TryGet("cause", out string cause);
+            if (cause == StaffService.CandidateRefused) return StaffCandidateRefused;
+            return cause == StaffService.CandidatePlaceFilled ? null : StaffCandidateLeft;
+        }
 
         /// <summary>Ключ строки события; <c>null</c> — событие строки не даёт.</summary>
         public static string Of(SimEvent simEvent, WorldState world, DataRegistry data) =>

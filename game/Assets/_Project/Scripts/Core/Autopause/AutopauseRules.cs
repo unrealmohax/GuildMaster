@@ -23,6 +23,7 @@ namespace GuildMaster.Core
                 { SimEventType.QuestCatastrophe, AutopauseKind.QuestCatastrophe },
                 { SimEventType.PartyRetreated, AutopauseKind.PartyRetreated },
                 { SimEventType.AdventurerDisappeared, AutopauseKind.MemberLeftGuild },
+                { SimEventType.StaffQuit, AutopauseKind.MemberLeftGuild },
             };
     }
 }

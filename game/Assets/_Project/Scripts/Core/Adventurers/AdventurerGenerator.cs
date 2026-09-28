@@ -138,7 +138,8 @@ namespace GuildMaster.Core
             }
         }
 
-        private static string PickName(Rng rng, NameList names, Gender gender, ICollection<string> namesInUse)
+        /// <summary>Имя из списка имён по полу: свободное от <paramref name="namesInUse"/>, а если свободных нет — любое.</summary>
+        internal static string PickName(Rng rng, NameList names, Gender gender, ICollection<string> namesInUse)
         {
             if (names == null) throw new InvalidOperationException("GameConfig has no NameList");
             IReadOnlyList<NounForms> list = gender == Gender.Male ? names.MaleNames : names.FemaleNames;

@@ -136,13 +136,18 @@ namespace GuildMaster.Core
             state.Loyalty = StateRules.Clamp(rng.RangeInclusive(balance.StartLoyalty.Min, balance.StartLoyalty.Max));
         }
 
-        /// <summary>Час занятия: усталость и стресс по таблице занятий × множители черт.</summary>
+        /// <summary>
+        /// Час занятия: усталость и стресс по таблице занятий × множители черт. Снятие стресса в таверне × эффект Трактирщика
+        /// (<see cref="StaffRules.EffectMultiplier"/>; нет Трактирщика — как уровень 0).
+        /// </summary>
         internal static void ApplyHour(SimContext ctx, Adventurer adventurer, PartyContext party)
         {
             StateBalance balance = ctx.Data.Balance.State;
             Activity activity = adventurer.State.Activity;
             AddFatigue(ctx, adventurer, StateRules.FatiguePerHour(activity, balance), party);
-            AddStress(ctx, adventurer, StateRules.StressPerHour(activity, balance), party);
+            float stress = StateRules.StressPerHour(activity, balance);
+            if (activity == Activity.Tavern && stress < 0f) stress *= StaffRules.EffectMultiplier(ctx.World, ctx.Data, StaffLevelEffect.TavernStressRelief);
+            AddStress(ctx, adventurer, stress, party);
         }
 
         /// <summary>Довольство — на <c>contentmentDailyStep</c> × множитель черт к цели, не проскакивая её.</summary>

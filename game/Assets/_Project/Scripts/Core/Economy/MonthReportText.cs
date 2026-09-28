@@ -8,7 +8,8 @@ namespace GuildMaster.Core
     /// <summary>
     /// Отчёт месяца строками: заголовок раздела, затем «подпись: значение». Подписи — шаблоны из набора шаблонов ленты
     /// (первый вариант); реестр только из чисел — вместо подписи ключ. Люди — по именам, раскрытия — «Имя — Трус»,
-    /// нейтральная ось — «Имя — Риск: уравновешенность».
+    /// нейтральная ось — «Имя — Риск: уравновешенность»; постройки — названием, сотрудники — «Имя — должность»
+    /// (с долгом по зарплате — и суммой долга).
     /// </summary>
     public static class MonthReportText
     {
@@ -58,6 +59,27 @@ namespace GuildMaster.Core
 
         private static void AppendItem(StringBuilder text, ReportItem item, WorldState world, DataRegistry data, List<string> errors)
         {
+            if (item.Detail == MonthReportSections.BuildingDetail)
+            {
+                bool known = world.Buildings.TryGetById(item.PersonId, out Building building);
+                text.Append(known && data.TryGet(building.DefinitionId, out BuildingDefinition definition) ? definition.DisplayName
+                    : known ? building.DefinitionId : "#" + item.PersonId.ToString(CultureInfo.InvariantCulture));
+                return;
+            }
+            if (item.Detail == MonthReportSections.StaffDetail)
+            {
+                if (!world.Staff.TryGetKnown(item.PersonId, out StaffMember member))
+                {
+                    text.Append('#').Append(item.PersonId.ToString(CultureInfo.InvariantCulture));
+                    return;
+                }
+                text.Append(member.Name).Append(" — ")
+                    .Append(data.TryGet(member.RoleId, out StaffRoleDefinition role) ? role.DisplayName : member.RoleId);
+                if (member.UnpaidSalary > 0 && member.LeaveReason == StaffLeaveReason.None)
+                    text.Append(' ').Append(member.UnpaidSalary.ToString(CultureInfo.InvariantCulture));
+                return;
+            }
+
             Adventurer adventurer = EventTextSource.FindPerson(world, item.PersonId);
             text.Append(adventurer != null ? adventurer.Name : "#" + item.PersonId.ToString(CultureInfo.InvariantCulture));
             if (item.Detail.Length == 0) return;

@@ -299,6 +299,7 @@ namespace GuildMaster.Tests
         {
             data.Set("guild.startReputation", reputation);
             data.NoQuests(); // задания меняют репутацию, а с ней — число заказов
+            data.NoBankruptcy();
             const int days = 400;
             var simulation = Simulation.CreateDefault(data.Registry, 4u);
             List<SimEvent> arrived = SimulationRun.Collect(simulation, sim => SimulationRun.Days(sim, days))
@@ -505,6 +506,7 @@ namespace GuildMaster.Tests
         {
             const int days = 1500;
             data.NoQuests(); // репутация стоит на месте
+            data.NoBankruptcy();
             var simulation = Simulation.CreateDefault(data.Registry, 17u);
             SimulationRun.Do(simulation, ctx => ReputationService.Change(ctx, 55f, "test"));
             float chance = RecruitSystem.CandidateChance(data.Registry, simulation.World.Guild.Reputation);

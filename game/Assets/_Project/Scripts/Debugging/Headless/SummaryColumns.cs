@@ -14,7 +14,8 @@ namespace GuildMaster.Debugging
     public static class SummaryColumns
     {
         /// <summary>По месяцам: люди, приход и уход, срывы, раны, раскрытия, средние показатели на конец месяца, кошельки,
-        /// строки ленты гильдии по важности, казна на конец месяца, доходы и расходы, банкротство, заказы, репутация на конец месяца.</summary>
+        /// строки ленты гильдии по важности, казна на конец месяца, доходы и расходы, банкротство, заказы, репутация на конец месяца,
+        /// задания и группы, постройки (готовые, Общежитие, Лазарет, двор), персонал и долги по зарплате.</summary>
         public static readonly IReadOnlyList<MonthColumn> Monthly = new[]
         {
             new MonthColumn("Людей", m => m.World.Adventurers.Active.Count, SummaryTotal.Last, "0"),
@@ -67,7 +68,37 @@ namespace GuildMaster.Debugging
             new MonthColumn("Постоянных групп", m => m.World.Parties.GetPermanentCount(), SummaryTotal.Last, "0"),
             new MonthColumn("Групп сложилось", m => m.Count(SimEventType.PermanentPartyFormed), SummaryTotal.Sum, "0"),
             new MonthColumn("Групп распалось", m => m.Count(SimEventType.PermanentPartyDisbanded), SummaryTotal.Sum, "0"),
+            new MonthColumn("Построек готово", m => ReadyBuildings(m.World), SummaryTotal.Last, "0"),
+            new MonthColumn("Построено", m => m.Count(SimEventType.BuildingReady), SummaryTotal.Sum, "0"),
+            new MonthColumn("В Общежитии", m => BuildingRules.DormitoryResidents(m.World), SummaryTotal.Last, "0"),
+            new MonthColumn("В Лазарете, %", m => m.ActivityShare(Activity.Infirmary), SummaryTotal.Mean, "0.#"),
+            new MonthColumn("Легли в Лазарет", m => m.Count(SimEventType.InfirmaryAdmitted), SummaryTotal.Sum, "0"),
+            new MonthColumn("Вылечено в Лазарете", m => m.Count(SimEventType.WoundHealed, e => e.TryGet("infirmary", out bool bed) && bed), SummaryTotal.Sum, "0"),
+            new MonthColumn("На дворе, %", m => m.ActivityShare(Activity.Training), SummaryTotal.Mean, "0.#"),
+            new MonthColumn("Тренировок", m => m.Count(SimEventType.TrainingStarted), SummaryTotal.Sum, "0"),
+            new MonthColumn("Персонал", m => m.World.Staff.Members.Count, SummaryTotal.Last, "0"),
+            new MonthColumn("Нанято", m => m.Count(SimEventType.StaffHired), SummaryTotal.Sum, "0"),
+            new MonthColumn("Персонал ушёл", m => m.Count(SimEventType.StaffQuit) + m.Count(SimEventType.StaffDismissed), SummaryTotal.Sum, "0"),
+            new MonthColumn("Невыплат жалованья", m => m.Count(SimEventType.SalaryUnpaid), SummaryTotal.Sum, "0"),
+            new MonthColumn("Долг по зарплате", m => UnpaidSalaries(m.World), SummaryTotal.Last, "0"),
         };
+
+        private static int ReadyBuildings(WorldState world)
+        {
+            int count = 0;
+            foreach (Building building in world.Buildings.All)
+            {
+                if (building.IsReady) count++;
+            }
+            return count;
+        }
+
+        private static int UnpaidSalaries(WorldState world)
+        {
+            int total = 0;
+            foreach (StaffMember member in world.Staff.Members) total += member.UnpaidSalary;
+            return total;
+        }
 
         private static bool IsPromotion(SimEvent simEvent) => simEvent.TryGet("promotion", out bool promotion) && promotion;
 

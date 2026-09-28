@@ -15,6 +15,8 @@ namespace GuildMaster.Core
     /// ценность = Σ вес × оценка → лучший с вероятностью <c>bestChoiceChance</c>, иначе второй → главные причины;</item>
     /// <item>вечером отмечает, кто в таверне.</item>
     /// </list>
+    /// Утром и когда освободился — ещё тренировка на дворе и лечение в Лазарете (<see cref="DecisionPoint.OffersServices"/>);
+    /// выбравший лечение сразу занимает койку.
     /// Выбранное занятие действует со следующего часа (<see cref="AdventurerState.PlannedActivity"/>).
     /// Лог: решение и причины — <see cref="SimLogLevel.Info"/>, запреты и сон — <see cref="SimLogLevel.Debug"/>, оценки по
     /// вариантам и мотивам — <see cref="SimLogLevel.Trace"/>. Причины обычных решений игроку не показываются.
@@ -28,6 +30,18 @@ namespace GuildMaster.Core
 
         /// <summary>Кто уже решил в этом часу (в том числе ответом на приглашение) — второй раз не решает.</summary>
         private readonly HashSet<int> decidedThisHour = new HashSet<int>();
+
+        private readonly IInfirmary infirmary;
+
+        public DecisionSystem() : this(BuildingInfirmary.Instance)
+        {
+        }
+
+        /// <summary>Свой запрос к Лазарету (тот же, что у <see cref="HealthSystem"/>) — для тестов.</summary>
+        public DecisionSystem(IInfirmary infirmary)
+        {
+            this.infirmary = infirmary ?? throw new System.ArgumentNullException(nameof(infirmary));
+        }
 
         public string Name => nameof(DecisionSystem);
 
@@ -71,6 +85,7 @@ namespace GuildMaster.Core
             candidates.Clear();
             candidates.AddRange(point.Options);
             if (point.OffersOrders) candidates.AddRange(OrderChoice.Actions(ctx, adventurer));
+            if (point.OffersServices) AddServices(ctx, adventurer, candidates);
             FilterBans(ctx, adventurer, candidates, allowed);
             if (point.OffersOrders) AddSeekParty(scope, adventurer, allowed);
             if (allowed.Count == 0)
@@ -97,6 +112,7 @@ namespace GuildMaster.Core
             }
 
             adventurer.State.PlannedActivity = chosen.Action.Activity;
+            if (chosen.Action.Kind == DecisionActionKind.Heal) HealthService.Admit(ctx, adventurer, self: true);
             if (ctx.Log.IsOn(SimLogLevel.Info)) WriteDecision(ctx.Log, adventurer, Point(point), chosen, best, options, ctx.Data.Balance.Decisions.MaxReasons);
 
             if (chosen.Action.Kind == DecisionActionKind.TakeOrder)
@@ -113,6 +129,17 @@ namespace GuildMaster.Core
                 if (bestOrder.HasValue) OrderChoice.Refused(ctx, adventurer, bestOrder.Value.Action, point.Kind == DecisionPointKind.Morning);
             }
             point.OnDecided?.Invoke(ctx, adventurer);
+        }
+
+        /// <summary>
+        /// Варианты построек: тренировка — если двор готов (запреты двора — <see cref="DecisionBans"/>); лечение — если есть рана,
+        /// Лекарь и свободная койка. Построек нет — вариантов нет, и выбор идёт как без них.
+        /// </summary>
+        private void AddServices(SimContext ctx, Adventurer adventurer, List<DecisionAction> actions)
+        {
+            if (!ctx.Data.HasDefinitions) return;
+            if (BuildingRules.IsReady(ctx.World, ctx.Data, BuildingFunction.TrainingYard)) actions.Add(DecisionActions.Train);
+            if (adventurer.State.Conditions.Count > 0 && HealthSystem.FreeBeds(ctx, infirmary) > 0) actions.Add(DecisionActions.Heal);
         }
 
         /// <summary>Оценить варианты: ценность каждого для человека; по убыванию ценности, при равенстве — по порядку.</summary>

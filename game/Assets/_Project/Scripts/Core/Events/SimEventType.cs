@@ -281,5 +281,55 @@ namespace GuildMaster.Core
 
         /// <summary>Гость стал членом постоянной группы: <c>party</c>. [О].</summary>
         PartyMemberJoined,
+
+        // Постройки. Участников нет; <c>building</c> — название (формы и род), <c>definition</c> — id определения.
+
+        /// <summary>Стройка поставлена в очередь (сразу начать нельзя). [О].</summary>
+        BuildingQueued,
+
+        /// <summary>Стройка началась, деньги списаны: <c>cost</c>, <c>endsAt</c>. [О].</summary>
+        BuildingStarted,
+
+        /// <summary>Постройка готова. [З].</summary>
+        BuildingReady,
+
+        /// <summary>Игрок снял стройку из очереди. Без строки.</summary>
+        BuildingCancelled,
+
+        /// <summary>Игрок поменял порядок очереди строек. Без строки.</summary>
+        BuildQueueReordered,
+
+        /// <summary>Человек переселился в Общежитие: участник — он. Без строки.</summary>
+        MovedToDormitory,
+
+        /// <summary>Человек лёг в Лазарет: участник — он, <c>heavy</c> — тяжёлая рана, <c>self</c> — лёг сам. Без строки.</summary>
+        InfirmaryAdmitted,
+
+        /// <summary>Человек начал занятие на тренировочном дворе: участник — он. Без строки.</summary>
+        TrainingStarted,
+
+        // Персонал. Участников нет; <c>staff</c> — имя (падежи и род), <c>staffId</c>, <c>role</c> — id должности,
+        // <c>building</c> — название постройки, где работает должность.
+
+        /// <summary>Пришёл кандидат на вакансию: <c>level</c>, <c>asked</c> — просимая зарплата, <c>expiresAt</c>. [О].</summary>
+        StaffCandidateArrived,
+
+        /// <summary>Кандидат ушёл: <c>cause</c> — expired (не дождался), refused (не согласился на зарплату), filled (место заняли, без строки). [О].</summary>
+        StaffCandidateLeft,
+
+        /// <summary>Сотрудник нанят: <c>salary</c>, <c>asked</c>. [О].</summary>
+        StaffHired,
+
+        /// <summary>Игрок уволил сотрудника. [З].</summary>
+        StaffDismissed,
+
+        /// <summary>Сотрудник ушёл, не дождавшись жалованья: <c>unpaid</c>. [В], автопауза <see cref="AutopauseKind.MemberLeftGuild"/>.</summary>
+        StaffQuit,
+
+        /// <summary>Жалованье не выплачено — в казне не хватило денег: <c>salary</c>, <c>unpaid</c> — весь долг. [В].</summary>
+        SalaryUnpaid,
+
+        /// <summary>Долг по зарплате погашен: <c>amount</c>. Без строки.</summary>
+        SalaryDebtPaid,
     }
 }
