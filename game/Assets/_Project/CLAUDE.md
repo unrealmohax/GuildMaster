@@ -7,7 +7,8 @@
 `04-adventurers.md` (GM-04, авантюристы), `05-state-health.md` (GM-05, состояние и здоровье), `06-debug-logging.md` (GM-06, лог
 и прогон без интерфейса), `07-event-feed.md` (GM-07, лента событий), `08-decision-model.md` (GM-08, модель решений),
 `09-economy.md` (GM-09, экономика гильдии), `10-orders.md` (GM-10, заказы, доска и репутация), `11-quests.md` (GM-11, задания),
-`12-groups.md` (GM-12, группы), `13-buildings-staff.md` (GM-13, постройки и персонал; им закончился этап 1).
+`12-groups.md` (GM-12, группы), `13-buildings-staff.md` (GM-13, постройки и персонал; им закончился этап 1),
+`14-ui-observation.md` (GM-14, интерфейс наблюдения; им начался этап 2).
 
 ## Комментарии в коде: без ссылок на документацию
 
@@ -57,16 +58,20 @@ _Project/
 │   │   ├── Parties/     группы: оценка, жизнь постоянных групп, причины отказа
 │   │   ├── Buildings/   постройки: очередь и стройка, Общежитие, двор, содержание, назначение построек
 │   │   ├── Staff/       персонал: кандидаты, переговоры, найм и уход, зарплаты и долг, эффект уровня
+│   │   ├── DebugTools/  отладочные команды (Debug…Command), запросы для интерфейса ObserverQueries и отладки DebugQueries
 │   │   └── World/       WorldState, IdGenerator
-│   ├── UI/          GuildMaster.UI        — UiRoot (экранов пока нет)
-│   ├── Bootstrap/   GuildMaster.Bootstrap — GameRunner
+│   ├── UI/          GuildMaster.UI        — интерфейс наблюдения (скилл gm-ui): UiRoot, Theme/UiTheme, Text/ (UiStrings,
+│   │                шаблоны ui.*, форматы, ленты со ссылками), Navigation/ (UiNavigator, Destination, LinkRouter),
+│   │                Models/ (модели экранов — обычный C#), Views/ (фабрика элементов, экраны, окна, отладочная панель)
+│   ├── Bootstrap/   GuildMaster.Bootstrap — GameRunner (+ IGameSession: перезапуск с зерном, перемотка)
 │   └── Debugging/   GuildMaster.Debugging — Headless/ (прогон без интерфейса, окно GuildMaster → Run Headless…, боты,
 │                    сценарий, сводка, LogFiles), Validation/ (DataValidator, меню GuildMaster → Validate Data), EditorAssets
 ├── Data/            GameConfig, BalanceSettings, StatCatalog + папки Axes, Traits, Archetypes, QuestTypes,
-│                    Encounters, Buildings, Staff, Decrees, Dilemmas, Text (FeedTemplates, NameList, OrderTextTemplates)
+│                    Encounters, Buildings, Staff, Decrees, Dilemmas, Text (FeedTemplates, NameList, OrderTextTemplates),
+│                    UI (UiTheme, шрифт LiberationSans Cyrillic SDF)
 ├── ClaudeSandbox/   песочница Claude: генератор данных и меню-зонды (см. её README)
 ├── Prefabs/UI/
-├── Scenes/Main.unity  — единственная сцена: Main Camera, Global Light 2D, UI (Canvas + UiRoot), EventSystem, GameRunner
+├── Scenes/Main.unity  — единственная сцена: Main Camera, Global Light 2D, UI (Canvas + UiRoot с UiTheme), EventSystem, GameRunner
 └── Tests/EditMode/  GuildMaster.Tests
 ```
 
@@ -76,10 +81,10 @@ _Project/
 |---|---|---|
 | `GuildMaster.Data` | — | Только определения и числа, без логики |
 | `GuildMaster.Core` | Data | Без MonoBehaviour, сцен, `UnityEngine.Random`, `Time`, `DateTime.Now`, `Stopwatch` |
-| `GuildMaster.UI` | Core, Data, UnityEngine.UI, Unity.TextMeshPro | Читает мир, отправляет команды |
+| `GuildMaster.UI` | Core, Data, UnityEngine.UI, Unity.TextMeshPro, Unity.InputSystem | Читает мир, отправляет команды; F1 и Esc |
 | `GuildMaster.Bootstrap` | Core, Data, UI, Unity.InputSystem | Создаёт симуляцию, крутит такты, горячие клавиши |
 | `GuildMaster.Debugging` | Core, Data, UI | Отладка; Editor-код — под `#if UNITY_EDITOR` |
-| `GuildMaster.Tests` | Core, Data, Debugging | EditMode; видит internal Core (`InternalsVisibleTo`) |
+| `GuildMaster.Tests` | Core, Data, Debugging, UI, UnityEngine.UI, Unity.TextMeshPro | EditMode; видит internal Core (`InternalsVisibleTo`) |
 
 Правила проверяются тестами `ArchitectureTests`: ссылки asmdef, отсутствие Unity-объектов в Core,
 поиск запрещённых API в исходниках Core, отсутствие публичных сеттеров у `WorldState` и его частей (публичные
@@ -99,6 +104,10 @@ _Project/
 - **Данные**: ScriptableObject — только определения и числа; числа баланса — только в `BalanceSettings`; перечисления,
   записанные в ассетах, — новые значения только в конец; ассеты заполняет генератор в песочнице, проверяет Validate Data.
 - **Решение человека действует со следующего часа** (`PlannedActivity`, `PlannedOrderId`).
+- **Интерфейс только наблюдает**: читает мир через `ISimulationClient`, меняет — командами; в Core для него — только запросы
+  (`ObserverQueries`) и данные без логики интерфейса. Профиль заказа, шанс и скрытые черты — только в отладке («Раскрыть всё»,
+  `DebugQueries`). Числа интерфейса — `UiTheme`, не баланс; подписи — `UiStrings`, строки с игровым смыслом — шаблоны `ui.*`.
+  TMP Essential Resources лежат в `Assets/TextMesh Pro/` (вне `_Project`).
 
 ## Подсистемы — в скиллах
 
@@ -116,6 +125,7 @@ _Project/
 | Задания: путь, раунды, напряжение, находки, итог, экзамены | `gm-quests` | GM-11 |
 | Группы | `gm-parties` | GM-12 |
 | Постройки и персонал: стройка, Общежитие, Лазарет, двор, найм, зарплаты | `gm-buildings-staff` | GM-13 |
+| Интерфейс: экраны, навигация, ссылки лент, уведомления, автопауза, отладочная панель | `gm-ui` | GM-14 |
 | Тестовые миры и шаблоны тестов | `gm-testing` | — |
 | Как вести задачу по ТЗ | `gm-implement-techspec` | — |
 
@@ -133,8 +143,9 @@ _Project/
 | GM-11 | ~1900 заданий (от ~58 в первый месяц до ~215 в двенадцатый), выполнено ~93%, гибелей 4–11, экзаменов 54–74, репутация 100 к 4-му месяцу, казна ~54 тыс.; лог `Info` — ~55 тыс. строк |
 | GM-12 | ~2000 заданий (73% соло, средняя группа 2,35), выполнено 94%, гибелей ~7, шанс раунда 0,83; постоянных групп ~12 в год, распадается ~4; год без лога — ~1,65 с (без групп ~1,46 с) |
 | GM-13 | Общежитие к ~13-му дню, Лазарет к ~66-му, двор к ~89-му; ~2060 заданий (72% соло, группа 2,35), выполнено 95%, гибелей ~6; ~500 тренировок и ~93 «лёг в Лазарет» за год, лечение в Лазарете — ~0,85 номинала против ~1,45 без; персонал — 3 (Лекарь нанят один раз), невыплат нет; расходы гильдии ~860 в месяц, казна ~60 тыс.; год с логом `Info` — ~2,0 с, лог ~66 тыс. строк |
+| GM-14 | цифры те же, что после GM-13 (броски не сдвинуты: ~2060 заданий, выполнено ~95%, гибелей ~6, казна ~60 тыс.); год с логом `Info` — ~1,9 с. Play Mode: кадр на ×4 — ~2,1 мс, скрипты (такты + интерфейс) — ~0,04 мс в среднем |
 
 ## Тесты
 
-`Tests/EditMode`, 431 тест. Помощники, тестовые миры и шаблоны тестов — скилл `gm-testing`. Запуск — Test Runner или MCP
+`Tests/EditMode`, 450 тестов. Помощники, тестовые миры и шаблоны тестов — скилл `gm-testing`. Запуск — Test Runner или MCP
 `run_tests`.

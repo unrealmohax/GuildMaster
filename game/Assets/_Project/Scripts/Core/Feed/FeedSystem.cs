@@ -19,6 +19,7 @@ namespace GuildMaster.Core
     public sealed class FeedSystem : ISimSystem
     {
         private readonly List<string> errors = new List<string>();
+        private readonly List<TextSpan> spans = new List<TextSpan>();
 
         public string Name => nameof(FeedSystem);
 
@@ -66,7 +67,9 @@ namespace GuildMaster.Core
 
             string variant = PickVariant(ctx, key, template.Variants);
             errors.Clear();
-            string text = TextRenderer.Render(variant, new EventTextSource(simEvent, ctx.World, ctx.Data), errors);
+            spans.Clear();
+            string text = TextRenderer.Render(variant, new EventTextSource(simEvent, ctx.World, ctx.Data), errors, spans);
+            TextSpan[] textSpans = spans.ToArray();
             foreach (string error in errors) ctx.Log.Write(SimLogLevel.Error, "feed {0}: {1}", key, error);
 
             EventImportance importance = ToImportance(template.Importance);
@@ -81,22 +84,22 @@ namespace GuildMaster.Core
                     ctx.Log.Write(SimLogLevel.Error, "feed {0}: template is for the quest feed, event {1} has no quest", key, simEvent.Type);
                     return;
                 }
-                var entry = new FeedEntry(simEvent.TimeHours, FeedKind.Quest, importance, text, links, key, run.Id);
+                var entry = new FeedEntry(simEvent.TimeHours, FeedKind.Quest, importance, text, links, key, run.Id, textSpans);
                 ctx.World.Feed.AddQuest(run, entry);
                 ctx.Log.Write(SimLogLevel.Info, "feed quest #{0} {1} {2}: {3}", run.Id, Mark(importance), key, text);
                 if (guildCopy)
                 {
-                    ctx.World.Feed.AddGuild(new FeedEntry(simEvent.TimeHours, FeedKind.Guild, importance, text, links, key, run.Id), guildLimit);
+                    ctx.World.Feed.AddGuild(new FeedEntry(simEvent.TimeHours, FeedKind.Guild, importance, text, links, key, run.Id, textSpans), guildLimit);
                     ctx.Log.Write(SimLogLevel.Info, "feed {0} {1}: {2}", Mark(importance), key, text);
                 }
                 return;
             }
 
             int questOfSubject = QuestOfSubject(ctx, simEvent);
-            ctx.World.Feed.AddGuild(new FeedEntry(simEvent.TimeHours, template.Feed, importance, text, links, key, questOfSubject), guildLimit);
+            ctx.World.Feed.AddGuild(new FeedEntry(simEvent.TimeHours, template.Feed, importance, text, links, key, questOfSubject, textSpans), guildLimit);
             ctx.Log.Write(SimLogLevel.Info, "feed {0} {1}: {2}", Mark(importance), key, text);
             if (questOfSubject != 0 && ctx.World.Quests.TryGetRun(questOfSubject, out QuestRun subjectRun))
-                ctx.World.Feed.AddQuest(subjectRun, new FeedEntry(simEvent.TimeHours, FeedKind.Quest, importance, text, links, key, subjectRun.Id));
+                ctx.World.Feed.AddQuest(subjectRun, new FeedEntry(simEvent.TimeHours, FeedKind.Quest, importance, text, links, key, subjectRun.Id, textSpans));
         }
 
         /// <summary>Раскрытие у человека на задании — строка и в ленте его задания; иначе 0.</summary>

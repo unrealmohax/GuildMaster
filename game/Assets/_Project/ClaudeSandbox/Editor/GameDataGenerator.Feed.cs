@@ -380,6 +380,33 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("ledger.construction", O, None, "Стройка"));
             t.Add(Guild("ledger.upkeep", O, None, "Содержание"));
             t.Add(Guild("ledger.salaries", O, None, "Зарплаты"));
+            // Новое (GM-14): деньги, добавленные и снятые отладочной панелью.
+            t.Add(Guild("ledger.debugIncome", O, None, "Отладка: пополнение"));
+            t.Add(Guild("ledger.debugExpense", O, None, "Отладка: изъятие"));
+
+            // Новое (GM-14): строки интерфейса с игровым смыслом — занятие, срыв, фаза задания, раны, стадии построек.
+            t.Add(Guild("ui.activity.resting", O, None, "отдыхает"));
+            t.Add(Guild("ui.activity.sleeping", O, None, "спит"));
+            t.Add(Guild("ui.activity.tavern", O, None, "в таверне"));
+            t.Add(Guild("ui.activity.training", O, None, "тренируется на дворе"));
+            t.Add(Guild("ui.activity.infirmary", O, None, "лечится в Лазарете"));
+            t.Add(Guild("ui.activity.binge", O, None, "в запое"));
+            t.Add(Guild("ui.activity.questTravel", O, None, "в пути: {название}, {место}"));
+            t.Add(Guild("ui.activity.questRound", O, None, "на задании: {название}, {место}"));
+            t.Add(Guild("ui.activity.questCamp", O, None, "ночлег в пути: {название}, {место}"));
+            t.Add(Guild("ui.breakdown.brawl", O, None, "срыв: драка"));
+            t.Add(Guild("ui.breakdown.refuseQuests", O, None, "срыв: не берёт заданий"));
+            t.Add(Guild("ui.breakdown.collapse", O, None, "срыв: без сил"));
+            t.Add(Guild("ui.phase.travelOut", O, None, "путь туда"));
+            t.Add(Guild("ui.phase.atSite", O, None, "на месте, раунд {число}"));
+            t.Add(Guild("ui.phase.travelBack", O, None, "назад"));
+            t.Add(Guild("ui.phase.returned", O, None, "вернулись"));
+            t.Add(Guild("ui.wound.light", O, None, "лёгкая рана — {число} дн."));
+            t.Add(Guild("ui.wound.heavy", O, None, "тяжёлая рана — {число} дн."));
+            t.Add(Guild("ui.building.ready", O, None, "готова"));
+            t.Add(Guild("ui.building.construction", O, None, "строится — ещё {число} дн."));
+            t.Add(Guild("ui.building.queued", O, None, "в очереди"));
+            t.Add(Guild("ui.building.notBuilt", O, None, "не построена"));
 
             t.Add(Guild("guild.decree.enabled", O, None, "Объявлено: {распоряжение}"));
             t.Add(Guild("guild.decree.benefitCancelled", Z, None, "Новость об отмене {распоряжение:р} встретили молча"));

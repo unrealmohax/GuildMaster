@@ -64,7 +64,7 @@ namespace GuildMaster.ClaudeSandbox
 
         private static bool TryGetRunner(out GameRunner runner)
         {
-            runner = EditorApplication.isPlaying ? Object.FindFirstObjectByType<GameRunner>() : null;
+            runner = EditorApplication.isPlaying ? Object.FindAnyObjectByType<GameRunner>() : null;
             if (runner != null && runner.Simulation != null) return true;
 
             Debug.Log("[TimeProbe] needs Play Mode with a running GameRunner");

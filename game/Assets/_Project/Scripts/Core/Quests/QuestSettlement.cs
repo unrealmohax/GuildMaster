@@ -33,7 +33,7 @@ namespace GuildMaster.Core
             DataRegistry data = ctx.Data;
             List<Adventurer> returned = QuestParty.Present(ctx.World, run);
             run.Phase = QuestPhase.Returned;
-            run.PhaseHoursLeft = 0;
+            run.StartPhaseHours(0);
             run.ReturnedAtHours = ctx.World.Time.TotalHours;
             run.Result = ResultOf(run);
             ctx.World.Quests.Finish(run);

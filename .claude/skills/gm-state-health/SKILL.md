@@ -62,6 +62,7 @@ description: Состояние и здоровье авантюристов Gui
 - **Лазарета нет** (постройка не готова): коек 0, лечатся медленнее, с броском осложнения. Платы Общежития (в `PayDaily`, жильё
   первым), двора и Лазарета идут в казну. Тесты без построек подменяют Лазарет: `new StateWorld(infirmary: new FakeInfirmary(…))` —
   подмена и в `HealthSystem`, и в `DecisionSystem`.
+- Причина ухода для карточки — `Adventurer.LeaveReasonText`, её ставит `StateSystem` сразу после `Retire`.
 - Лояльность игрок видит словами: `StateRules.LoyaltyWord` (тексты пока в коде, `LoyaltyWordsMale/Female`).
 
 ## Рецепты

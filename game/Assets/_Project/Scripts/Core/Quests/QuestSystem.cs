@@ -236,7 +236,7 @@ namespace GuildMaster.Core
             TravelBalance travel = ctx.Data.Balance.Travel;
             int hours = run.Distance == OrderDistance.Far ? ctx.Rng.RangeInclusive(travel.FarHours.Min, travel.FarHours.Max) : travel.NearHours;
             run.Phase = phase;
-            run.PhaseHoursLeft = Math.Max(1, hours);
+            run.StartPhaseHours(Math.Max(1, hours));
             run.LegHoursDone = 0;
             run.TravelEventHour = 0;
             if (run.IsPromotion) return;
@@ -315,7 +315,7 @@ namespace GuildMaster.Core
         {
             run.Phase = QuestPhase.AtSite;
             run.Round = 1;
-            run.PhaseHoursLeft = RoundHours(ctx, run);
+            run.StartPhaseHours(RoundHours(ctx, run));
         }
 
         /// <summary>Длительность раунда — у типа задания (не меньше часа).</summary>

@@ -13,8 +13,9 @@ namespace GuildMaster.Bootstrap
     /// Пауза и скорость — <see cref="GameClock"/>; горячие клавиши: Пробел — пауза / продолжить, 1 / 2 / 3 — скорости.
     /// Отладочная скорость — только в редакторе и Development Build (<see cref="Debug.isDebugBuild"/>).
     /// Гильдия закрыта (игра проиграна) — пауза, такты больше не идут.
+    /// Для отладочной панели интерфейса — <see cref="IGameSession"/>: перезапуск с зерном и перемотка.
     /// </summary>
-    public sealed class GameRunner : MonoBehaviour
+    public sealed class GameRunner : MonoBehaviour, IGameSession
     {
         [SerializeField] private GameConfig config;
         [SerializeField] private UiRoot ui;
@@ -36,6 +37,8 @@ namespace GuildMaster.Bootstrap
         public Simulation Simulation { get; private set; }
         public GameClock Clock { get; private set; }
 
+        public uint Seed => seed;
+
         private void Awake()
         {
             if (config == null)
@@ -46,22 +49,54 @@ namespace GuildMaster.Bootstrap
             }
 
             if (randomSeed) seed = unchecked((uint)Guid.NewGuid().GetHashCode());
+            StartSimulation(startPaused);
+        }
+
+        private void Start()
+        {
+            if (Simulation != null && ui != null) ui.Bind(Simulation, Clock, this);
+        }
+
+        private void OnDestroy()
+        {
+            if (Clock != null) Clock.Changed -= OnClockChanged;
+        }
+
+        private void StartSimulation(bool paused)
+        {
+            if (Clock != null) Clock.Changed -= OnClockChanged;
             Simulation = Simulation.CreateDefault(DataRegistry.FromConfig(config), seed);
-            Clock = new GameClock(Simulation.Data.Balance.Time, Debug.isDebugBuild, startPaused);
+            Clock = new GameClock(Simulation.Data.Balance.Time, Debug.isDebugBuild, paused);
             Clock.Changed += OnClockChanged;
             ShowTime();
             ShowSpeed();
             Debug.Log($"[GuildMaster] Simulation started, seed {seed}, {currentSpeed}", this);
         }
 
-        private void Start()
+        /// <summary>Начать заново с этим зерном — на паузе; интерфейс привязывается к новой симуляции.</summary>
+        public void Restart(uint newSeed)
         {
-            if (Simulation != null && ui != null) ui.Bind(Simulation);
+            if (config == null) return;
+            seed = newSeed;
+            StartSimulation(paused: true);
+            if (ui != null) ui.Bind(Simulation, Clock, this);
         }
 
-        private void OnDestroy()
+        /// <summary>
+        /// Прокрутить <paramref name="hours"/> тактов подряд, сейчас. Автопауза пропускается (причины — в лог Unity), остановка —
+        /// если гильдия закрылась.
+        /// </summary>
+        public void Advance(int hours)
         {
-            if (Clock != null) Clock.Changed -= OnClockChanged;
+            if (Simulation == null || hours <= 0) return;
+            Simulation.ApplyCommandsNow();
+            for (int i = 0; i < hours && !Simulation.IsFinished; i++)
+            {
+                Simulation.Tick();
+                if (Simulation.ConsumePauseRequest()) LogAutopause();
+            }
+            ShowTime();
+            Debug.Log($"[GuildMaster] Advanced {hours} h to {Simulation.World.Time}", this);
         }
 
         private void Update()
@@ -105,7 +140,7 @@ namespace GuildMaster.Bootstrap
         private void ReadHotkeys()
         {
             Keyboard keyboard = Keyboard.current;
-            if (keyboard == null) return;
+            if (keyboard == null || (ui != null && ui.WantsKeyboard)) return;
 
             if (keyboard.spaceKey.wasPressedThisFrame) Clock.TogglePause();
             if (keyboard.digit1Key.wasPressedThisFrame) Clock.SetSpeed(0);

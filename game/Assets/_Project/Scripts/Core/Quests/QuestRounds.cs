@@ -84,7 +84,7 @@ namespace GuildMaster.Core
             if (QuestChoices.DecideAfterFailure(ctx, run, order))
             {
                 run.Round++;
-                run.PhaseHoursLeft = QuestSystem.RoundHours(ctx, run) * Math.Max(1, ctx.Data.Balance.Rounds.ExtraRoundsPerFailure);
+                run.StartPhaseHours(QuestSystem.RoundHours(ctx, run) * Math.Max(1, ctx.Data.Balance.Rounds.ExtraRoundsPerFailure));
             }
             else
             {

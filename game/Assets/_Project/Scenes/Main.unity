@@ -393,9 +393,9 @@ MonoBehaviour:
   ui: {fileID: 1941012969}
   randomSeed: 1
   seed: 0
-  paused: 0
-  speed: 1
+  startPaused: 0
   currentTime: 
+  currentSpeed: 
 --- !u!4 &807204972
 Transform:
   m_ObjectHideFlags: 0
@@ -522,6 +522,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f68252b339fc1ad4f834730e25973e31, type: 3}
   m_Name: 
   m_EditorClassIdentifier: GuildMaster.UI::GuildMaster.UI.UiRoot
+  theme: {fileID: 11400000, guid: 1d8ebb7d3150c1046b21c0b754270667, type: 2}
 --- !u!114 &1941012970
 MonoBehaviour:
   m_ObjectHideFlags: 0

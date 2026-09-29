@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8d499d70cca6c7c4fa15ecf093f34476, type: 3}
+  m_Name: UiTheme
+  m_EditorClassIdentifier: GuildMaster.UI::GuildMaster.UI.UiTheme
+  font: {fileID: 11400000, guid: 98a7b4381e181624fb9c3cbee6abfaa2, type: 2}
+  background: {r: 0.08235294, g: 0.09019608, b: 0.10980392, a: 1}
+  panel: {r: 0.11764706, g: 0.12941177, b: 0.15686275, a: 1}
+  panelAlt: {r: 0.14901961, g: 0.16470589, b: 0.2, a: 1}
+  rowSelected: {r: 0.2, g: 0.21176471, b: 0.24705882, a: 1}
+  text: {r: 0.84705883, g: 0.83137256, b: 0.8, a: 1}
+  textDim: {r: 0.5411765, g: 0.5411765, b: 0.5411765, a: 1}
+  accent: {r: 0.83137256, g: 0.63529414, b: 0.29803923, a: 1}
+  danger: {r: 0.78431374, g: 0.33333334, b: 0.29411766, a: 1}
+  barBack: {r: 0.18039216, g: 0.19607843, b: 0.23137255, a: 1}
+  overlayShade: {r: 0, g: 0, b: 0, a: 0.55}
+  fontSize: 20
+  fontSizeSmall: 17
+  fontSizeLarge: 24
+  fontSizeTitle: 30
+  rowHeight: 34
+  topBarHeight: 60
+  navWidth: 200
+  feedWidth: 440
+  padding: 12
+  topBarRefreshPerSecond: 10
+  screenRefreshPerSecond: 4
+  feedLinesShown: 150

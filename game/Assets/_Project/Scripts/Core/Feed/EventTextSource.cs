@@ -19,6 +19,9 @@ namespace GuildMaster.Core
     /// <item><c>{архетип}</c> — название архетипа в роде первого участника: id из данных события (<c>to</c>, <c>archetype</c>)
     /// или текущий архетип человека.</item>
     /// </list>
+    /// Ссылки (<see cref="TextValue.Link"/>): люди — на человека, <c>{имя}</c> сотрудника — на сотрудника (<c>staffId</c>),
+    /// место, враг, заказчик, груз — на задание (<c>quest</c>), а без него — на заказ (<c>order</c>); постройка — на постройку
+    /// с этим названием; группа и её название — на группу (<c>partyId</c>), а без неё — на задание.
     /// Новая метка с источником в событии — строка в <see cref="Sources"/>.
     /// </summary>
     public sealed class EventTextSource : ITextSource
@@ -26,18 +29,18 @@ namespace GuildMaster.Core
         private static readonly Dictionary<string, Func<EventTextSource, TextValue>> Sources =
             new Dictionary<string, Func<EventTextSource, TextValue>>(StringComparer.Ordinal)
             {
-                ["имя"] = s => s.Participant(0) ?? s.NounFromPayload("staff"),
+                ["имя"] = s => s.Participant(0) ?? s.Staff(),
                 ["напарник"] = s => s.Participant(1),
                 ["лекарь"] = s => s.PersonFromPayload("medic"),
                 ["щит"] = s => s.PersonFromPayload("shield"),
                 ["решающий"] = s => s.PersonFromPayload("leader"),
-                ["группа"] = s => s.NounFromPayload("party"),
-                ["место"] = s => s.NounFromPayload("place"),
-                ["враг"] = s => s.NounFromPayload("enemy"),
-                ["заказчик"] = s => s.NounFromPayload("client"),
-                ["груз"] = s => s.NounFromPayload("cargo"),
+                ["группа"] = s => s.PartyNoun("party"),
+                ["место"] = s => s.QuestNoun("place"),
+                ["враг"] = s => s.QuestNoun("enemy"),
+                ["заказчик"] = s => s.QuestNoun("client"),
+                ["груз"] = s => s.QuestNoun("cargo"),
                 ["распоряжение"] = s => s.NounFromPayload("decree"),
-                ["постройка"] = s => s.NounFromPayload("building"),
+                ["постройка"] = s => s.BuildingNoun(),
                 ["число"] = s => s.NumberFromPayload("count"),
                 ["всего"] = s => s.NumberFromPayload("total"),
                 ["сумма"] = s => s.NumberFromPayload("amount"),
@@ -45,7 +48,7 @@ namespace GuildMaster.Core
                 ["расход"] = s => s.NumberFromPayload("expense"),
                 ["архетип"] = s => s.Archetype(),
                 ["причина"] = s => s.NounFromPayload("reason"),
-                ["название"] = s => s.NounFromPayload("title"),
+                ["название"] = s => s.PartyNoun("title"),
             };
 
         private readonly SimEvent simEvent;
@@ -85,7 +88,44 @@ namespace GuildMaster.Core
         private TextValue Person(int id)
         {
             Adventurer adventurer = FindPerson(world, id);
-            return adventurer != null ? PersonValue(adventurer, data) : null;
+            return adventurer != null ? PersonValue(adventurer, data).WithLink(new TextLink(TextLinkKind.Adventurer, id)) : null;
+        }
+
+        private TextValue Staff()
+        {
+            TextValue value = NounFromPayload("staff");
+            return value != null && simEvent.TryGet("staffId", out int id) ? value.WithLink(new TextLink(TextLinkKind.Staff, id)) : value;
+        }
+
+        private TextValue QuestNoun(string key)
+        {
+            TextValue value = NounFromPayload(key);
+            if (value == null) return null;
+            if (simEvent.TryGet("quest", out int questId) && questId != 0) return value.WithLink(new TextLink(TextLinkKind.Quest, questId));
+            if (simEvent.TryGet("order", out int orderId) && orderId != 0) return value.WithLink(new TextLink(TextLinkKind.Order, orderId));
+            return value;
+        }
+
+        private TextValue PartyNoun(string key)
+        {
+            TextValue value = NounFromPayload(key);
+            if (value == null) return null;
+            if (simEvent.TryGet("partyId", out int id) && id != 0) return value.WithLink(new TextLink(TextLinkKind.Party, id));
+            return simEvent.TryGet("quest", out int questId) && questId != 0 ? value.WithLink(new TextLink(TextLinkKind.Quest, questId)) : value;
+        }
+
+        /// <summary>Постройка — по названию из данных события: ссылка на постройку мира с тем же определением.</summary>
+        private TextValue BuildingNoun()
+        {
+            TextValue value = NounFromPayload("building");
+            if (value == null || !simEvent.TryGet("building", out NounForms forms)) return value;
+
+            foreach (Building building in world.Buildings.All)
+            {
+                if (data.TryGet(building.DefinitionId, out BuildingDefinition definition) && definition.NameForms == forms)
+                    return value.WithLink(new TextLink(TextLinkKind.Building, building.Id));
+            }
+            return value;
         }
 
         private TextValue NounFromPayload(string key)

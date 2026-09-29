@@ -12,12 +12,13 @@ namespace GuildMaster.Core
         private readonly NounForms forms;
         private readonly string plain;
 
-        private TextValue(NounForms forms, string plain, GrammaticalGender gender, bool isPerson)
+        private TextValue(NounForms forms, string plain, GrammaticalGender gender, bool isPerson, TextLink link = default)
         {
             this.forms = forms;
             this.plain = plain ?? string.Empty;
             Gender = gender;
             IsPerson = isPerson;
+            Link = link;
         }
 
         /// <summary>Род для скобок <c>[м|ж]</c> и <c>[м|ж|ср|мн]</c>; не задан — мужской.</summary>
@@ -25,6 +26,12 @@ namespace GuildMaster.Core
 
         /// <summary>Человек: скобки рода без привязки <c>@</c> берут род ближайшего человека.</summary>
         public bool IsPerson { get; }
+
+        /// <summary>На что указывает значение (человек, заказ, задание…); нет — <see cref="TextLink.IsNone"/>.</summary>
+        public TextLink Link { get; }
+
+        /// <summary>То же значение со ссылкой на объект.</summary>
+        public TextValue WithLink(TextLink link) => new TextValue(forms, plain, Gender, IsPerson, link);
 
         /// <summary>Человек: имя с формами из списка имён (<paramref name="forms"/> может быть <c>null</c> — тогда имя не склоняется).</summary>
         public static TextValue Person(string name, NounForms forms, Gender gender) =>

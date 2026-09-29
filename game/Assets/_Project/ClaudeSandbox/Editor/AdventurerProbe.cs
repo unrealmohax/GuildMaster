@@ -120,7 +120,7 @@ namespace GuildMaster.ClaudeSandbox
 
         internal static bool TryGetRunner(out GameRunner runner)
         {
-            runner = EditorApplication.isPlaying ? Object.FindFirstObjectByType<GameRunner>() : null;
+            runner = EditorApplication.isPlaying ? Object.FindAnyObjectByType<GameRunner>() : null;
             if (runner != null && runner.Simulation != null) return true;
 
             Debug.Log("[AdventurerProbe] needs Play Mode with a running GameRunner");

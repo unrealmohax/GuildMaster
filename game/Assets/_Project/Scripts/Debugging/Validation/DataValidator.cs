@@ -559,6 +559,10 @@ namespace GuildMaster.Debugging
                 {
                     if (!feedKeys.Contains(key)) report.Error(feed, "templates", $"нет шаблона «{key}»: это текст отчёта месяца");
                 }
+                foreach (string key in GuildMaster.UI.UiTextKeys.All)
+                {
+                    if (!feedKeys.Contains(key)) report.Error(feed, "templates", $"нет шаблона «{key}»: это строка интерфейса");
+                }
             }
 
             private void CheckConditions(Object asset, string path, IReadOnlyList<FeedCondition> conditions)

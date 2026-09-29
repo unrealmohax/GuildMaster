@@ -175,6 +175,9 @@ namespace GuildMaster.Core
         /// <summary>Сколько ходовых часов осталось в текущей фазе (пути или раунде); ночлег не считается.</summary>
         public int PhaseHoursLeft { get; internal set; }
 
+        /// <summary>Сколько ходовых часов было в текущей фазе при её начале (для полоски хода); 0 — задание кончилось.</summary>
+        public int PhaseHours { get; internal set; }
+
         /// <summary>Номер раунда на месте, с 1; 0 — ещё не дошли.</summary>
         public int Round { get; internal set; }
 
@@ -206,6 +209,13 @@ namespace GuildMaster.Core
 
         /// <summary>Когда задание кончилось; −1 — идёт.</summary>
         public long ReturnedAtHours { get; internal set; } = -1;
+
+        /// <summary>Начать отсчёт фазы (пути или раунда): столько ходовых часов осталось и столько было в начале.</summary>
+        internal void StartPhaseHours(int hours)
+        {
+            PhaseHoursLeft = hours;
+            PhaseHours = hours;
+        }
 
         /// <summary>Строки ленты задания, от старых к новым.</summary>
         public IReadOnlyList<FeedEntry> Log => log;

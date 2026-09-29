@@ -49,7 +49,7 @@ description: Тесты GuildMaster (EditMode, сборка GuildMaster.Tests) �
 и мутирующих публичных методов (**новую часть мира — в список теста**). `DataTests.cs` — валидатор на реальном конфиге
 (`RealConfig_HasNoErrors`), реестр, баланс. По подсистемам: `AdventurerTests`, `TraitTests`, `GrowthTests`, `RecruitTests`,
 `StateTests`, `WalletTests`, `HealthTests`, `StateTraitTests`, `LoggingTests`, `HeadlessRunTests`, `FeedTests`, `DecisionTests`,
-`EconomyTests`, `OrderTests`, `QuestTests`, `PartyTests`; ядро — `RngTests` (эталонные числа PCG32), `TimeTests`, `DayRhythmTests`,
+`EconomyTests`, `OrderTests`, `QuestTests`, `PartyTests`, `UiTests` (модели экранов, ссылки, отладочные команды, сборка `UiRoot` в EditMode); ядро — `RngTests` (эталонные числа PCG32), `TimeTests`, `DayRhythmTests`,
 `GameClockTests`, `AutopauseTests`, `SimulationTests`, `DeterminismTests`.
 
 ## Когда тест упал после новой механики

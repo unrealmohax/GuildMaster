@@ -24,7 +24,7 @@ namespace GuildMaster.Tests
 
         [TestCase("Data")]
         [TestCase("Core", "GuildMaster.Data")]
-        [TestCase("UI", "GuildMaster.Core", "GuildMaster.Data", "UnityEngine.UI", "Unity.TextMeshPro")]
+        [TestCase("UI", "GuildMaster.Core", "GuildMaster.Data", "UnityEngine.UI", "Unity.TextMeshPro", "Unity.InputSystem")]
         [TestCase("Bootstrap", "GuildMaster.Core", "GuildMaster.Data", "GuildMaster.UI", "Unity.InputSystem")]
         [TestCase("Debugging", "GuildMaster.Core", "GuildMaster.Data", "GuildMaster.UI")]
         public void AssemblyReferences_MatchSpec(string folder, params string[] expected)

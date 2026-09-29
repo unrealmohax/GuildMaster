@@ -28,8 +28,9 @@ namespace GuildMaster.Core
     {
         /// <param name="atStart">Стартовый человек: только слабый и средний уровень, черты раздаёт сценарий старта.</param>
         /// <param name="namesInUse">Имена, которые уже заняты: по возможности не повторять.</param>
+        /// <param name="fixedType">Тип задан заранее — без броска типа; <c>null</c> — по весам.</param>
         public static GeneratedAdventurer Generate(Rng rng, DataRegistry data, WorldState world, int id, bool atStart,
-            ICollection<string> namesInUse)
+            ICollection<string> namesInUse, ArchetypeDefinition fixedType = null)
         {
             AdventurersBalance balance = data.Balance.Adventurers;
             var adventurer = new Adventurer(id);
@@ -41,7 +42,7 @@ namespace GuildMaster.Core
             adventurer.Age = rng.RangeInclusive(balance.Age.Min, balance.Age.Max);
 
             // 2. Тип — по весам определений (временные шансы).
-            ArchetypeDefinition type = PickType(rng, data);
+            ArchetypeDefinition type = fixedType ?? PickType(rng, data);
 
             // 3. Уровень: у Новичка всегда слабый; на старте — не выше startMaxLevel.
             GenerationLevel level = PickLevel(rng, balance, type, atStart ? balance.StartMaxLevel : AdventurerLevel.Strong);

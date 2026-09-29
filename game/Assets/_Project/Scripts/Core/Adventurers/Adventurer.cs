@@ -110,6 +110,9 @@ namespace GuildMaster.Core
 
         public LeaveReason LeaveReason { get; internal set; }
 
+        /// <summary>Причина ухода словами — та же, что в строке ленты об уходе; пусто — ушёл не сам или ещё в гильдии.</summary>
+        public string LeaveReasonText { get; internal set; } = string.Empty;
+
         public float GetStat(StatId stat) => stats[(int)stat];
 
         public float GetAxis(AxisId axis) => axes[(int)axis];

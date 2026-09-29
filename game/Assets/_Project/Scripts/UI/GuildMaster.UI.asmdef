@@ -5,7 +5,8 @@
         "GuildMaster.Core",
         "GuildMaster.Data",
         "UnityEngine.UI",
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -4,12 +4,13 @@ using GuildMaster.Data;
 
 namespace GuildMaster.Core
 {
-    /// <summary>Строка ленты: готовый текст и ссылки на людей для перехода по клику.</summary>
+    /// <summary>Строка ленты: готовый текст, участники и места в тексте со ссылками на объекты — для перехода по клику.</summary>
     public sealed class FeedEntry
     {
         internal FeedEntry(long timeHours, FeedKind feed, EventImportance importance, string text, int[] links, string templateKey,
-            int questRunId = 0)
+            int questRunId = 0, TextSpan[] spans = null)
         {
+            Spans = Array.AsReadOnly(spans ?? Array.Empty<TextSpan>());
             QuestRunId = questRunId;
             TimeHours = timeHours;
             Feed = feed;
@@ -31,6 +32,9 @@ namespace GuildMaster.Core
 
         /// <summary>Id людей и других участников события строки.</summary>
         public IReadOnlyList<int> Links { get; }
+
+        /// <summary>Где в <see cref="Text"/> стоят имена и названия со ссылками, по порядку.</summary>
+        public IReadOnlyList<TextSpan> Spans { get; }
 
         /// <summary>Ключ шаблона — для отладки.</summary>
         public string TemplateKey { get; }

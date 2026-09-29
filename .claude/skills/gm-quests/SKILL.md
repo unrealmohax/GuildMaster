@@ -95,3 +95,5 @@ description: Задания GuildMaster — QuestSystem (шаг 4: выход, �
 - Взятый заказ уходит с доски сразу; не смог выйти — `ReturnToOpen`.
 - На задании люди не срываются от стресса по суткам и не уходят из гильдии.
 - `QuestSystem_WithoutQuests_DoesNotShiftOtherSystems` — без заданий система не тратит бросков.
+- Длина фазы: `run.StartPhaseHours(n)` ставит и `PhaseHoursLeft`, и `PhaseHours` (интерфейс рисует долю фазы) — не присваивать
+  `PhaseHoursLeft` напрямую. Час возвращения на обратном пути — `ObserverQueries.TryGetReturnAtHours`.

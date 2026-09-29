@@ -72,7 +72,7 @@ namespace GuildMaster.Core
             {
                 run.Retreated = true;
                 QuestSystem.StartReturn(ctx, run);
-                run.PhaseHoursLeft = Math.Max(1, run.OutHoursDone);
+                run.StartPhaseHours(Math.Max(1, run.OutHoursDone));
                 return;
             }
 
@@ -151,7 +151,7 @@ namespace GuildMaster.Core
             {
                 run.Retreated = true;
                 QuestSystem.StartReturn(ctx, run);
-                run.PhaseHoursLeft = Math.Max(1, run.OutHoursDone);
+                run.StartPhaseHours(Math.Max(1, run.OutHoursDone));
             }
         }
 

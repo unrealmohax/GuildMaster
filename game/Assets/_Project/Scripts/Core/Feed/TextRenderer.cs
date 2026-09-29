@@ -15,7 +15,8 @@ namespace GuildMaster.Core
     /// (текст, который потом встаёт в другую строку: «жадн[ый|ая]@имя — мало платят»).</item>
     /// </list>
     /// Метка без источника остаётся в строке как есть, скобка без владельца — мужская форма; обе — ошибка в списке.
-    /// Значение в начале предложения пишется с заглавной буквы.
+    /// Значение в начале предложения пишется с заглавной буквы. Значения со ссылкой (<see cref="TextValue.Link"/>) дают места
+    /// в готовом тексте (<see cref="TextSpan"/>) — по ним интерфейс делает имена кликабельными.
     /// </summary>
     public static class TextRenderer
     {
@@ -45,7 +46,12 @@ namespace GuildMaster.Core
         }
 
         /// <summary>Подставить значения. Ошибки дописываются в <paramref name="errors"/> (может быть <c>null</c>).</summary>
-        public static string Render(string template, ITextSource source, List<string> errors)
+        public static string Render(string template, ITextSource source, List<string> errors) => Render(template, source, errors, null);
+
+        /// <summary>
+        /// Подставить значения и дописать в <paramref name="spans"/> (может быть <c>null</c>) места значений со ссылкой.
+        /// </summary>
+        public static string Render(string template, ITextSource source, List<string> errors, List<TextSpan> spans)
         {
             if (string.IsNullOrEmpty(template)) return string.Empty;
 
@@ -80,6 +86,8 @@ namespace GuildMaster.Core
                         {
                             string text = token.Value.Get(token.Case);
                             if (sentenceStart && text.Length > 0) text = char.ToUpperInvariant(text[0]) + text.Substring(1);
+                            if (spans != null && text.Length > 0 && !token.Value.Link.IsNone)
+                                spans.Add(new TextSpan(result.Length, text.Length, token.Value.Link));
                             result.Append(text);
                         }
                         sentenceStart = false;

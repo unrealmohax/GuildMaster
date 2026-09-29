@@ -331,5 +331,8 @@ namespace GuildMaster.Core
 
         /// <summary>Долг по зарплате погашен: <c>amount</c>. Без строки.</summary>
         SalaryDebtPaid,
+
+        /// <summary>Мир изменён командой отладочной панели: <c>what</c> — что сделано, остальное — по действию. Без строки.</summary>
+        DebugAction,
     }
 }

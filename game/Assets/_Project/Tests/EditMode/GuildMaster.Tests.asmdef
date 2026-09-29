@@ -5,6 +5,9 @@
         "GuildMaster.Core",
         "GuildMaster.Data",
         "GuildMaster.Debugging",
+        "GuildMaster.UI",
+        "UnityEngine.UI",
+        "Unity.TextMeshPro",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

@@ -62,6 +62,8 @@ description: Отладка и прогоны GuildMaster без интерфе�
 | Feed → Dump Templates / Year Feed Seed 1 | вычитка текстов | без |
 | Quests → Order Preferences 10 Years | кто какие заказы берёт (~10 с) | без |
 | Parties → Groups 10 Years / Chronicle Year Seed 1 / Trace Counts / Cost Benchmark / Year Time With And Without Parties | группы | без |
+| UI → Capture All / Capture Current 1920x1080, 1280x720 / Measure Frames 10s / Log Screen State / Restore Game View Size | снимки экранов в `Logs/UiShots/`, замер кадра (скилл `gm-ui`) | Play Mode |
+| UI → Import TMP Essentials / Build Font And Theme (`UiSetup`) | шрифт с кириллицей и `UiTheme.asset` | без |
 | Generate Game Data | перезаписать ассеты данных | без |
 
 ## Через Unity MCP
@@ -70,7 +72,7 @@ description: Отладка и прогоны GuildMaster без интерфе�
 - Тесты — `run_tests` (EditMode), подробности — `include_details`.
 - Play Mode не крутит кадры без фокуса окна: `Toggle Run In Background` на время проверки, выключить **до** выхода из Play Mode и
   сверить `ProjectSettings.asset` на диске.
-- После проверки удалить файлы прогонов из `Logs/` (`sim_*`, `summary_*`, `scenario_*`, `feed_*`, `parties_*`).
+- После проверки удалить файлы прогонов из `Logs/` (`sim_*`, `summary_*`, `scenario_*`, `feed_*`, `parties_*`, `UiShots/`).
 - Всё, что MCP трогал, вернуть (сцена, выделение, Play Mode); сцену без просьбы не сохранять.
 
 ## Как разбирать «почему так вышло»

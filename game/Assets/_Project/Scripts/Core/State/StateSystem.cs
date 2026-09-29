@@ -109,6 +109,7 @@ namespace GuildMaster.Core
                 float loyalty = adventurer.State.Loyalty;
                 string reason = LeaveReasons.Text(ctx, adventurer, causes);
                 AdventurerLifecycle.Retire(ctx, adventurer, LeaveReason.Left);
+                adventurer.LeaveReasonText = reason;
                 ctx.Events.Publish(SimEventType.AdventurerLeft, EventImportance.Important, adventurer.Id)
                     .With("cause", causes[0])
                     .With("causes", string.Join(",", causes))
