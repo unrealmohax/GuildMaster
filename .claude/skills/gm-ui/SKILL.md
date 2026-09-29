@@ -1,17 +1,19 @@
 ---
 name: gm-ui
-description: Интерфейс GuildMaster (uGUI + TMP, сборка GuildMaster.UI) — UiRoot (слои Canvas, частота перерисовки, F1/Esc, Bind(клиент, часы, сессия)), UiTheme (цвета, шрифт, размеры, частоты), UiFactory и виджеты (TableView, FeedView, BarView, LinkClickHandler, CycleSelector), навигация UiNavigator/Destination/LinkRouter, модели экранов (TopBarModel, PeopleModel, BoardModel, QuestsModel, CardModel, CalendarModel, NotificationsModel, AutopauseModel), экраны Гильдия/Доска/Задания, окна (карточка, время, автопауза, уведомления, отчёт), отладочная панель и отладочные команды Core, ссылки в строках ленты (TextLink, TextSpan, FeedEntry.Spans), строки ui.*, IGameSession в GameRunner, зонд UiProbe. Использовать при правке или добавлении экрана, окна, столбца, уведомления, вида календаря, отладочной функции, при проблемах раскладки и ссылок.
+description: Интерфейс GuildMaster (uGUI + TMP, сборка GuildMaster.UI) — UiRoot (слои Canvas, частота перерисовки, F1/Esc, Bind(клиент, часы, сессия)), UiTheme (цвета, шрифт, размеры, частоты), UiFactory и виджеты (TableView, FeedView, BarView, LinkClickHandler, CycleSelector), навигация UiNavigator/Destination/LinkRouter, модели экранов (TopBarModel, PeopleModel, BoardModel, RegistrarModel, QuestsModel, CardModel, CalendarModel, NotificationsModel, AutopauseModel, TreasuryModel, DefeatModel) и действия игрока (BoardActions, BuildingActions, StaffModel.Offer/Dismiss, PeopleActions), экраны Гильдия/Доска/Задания/Казна, окна (карточка, время, автопауза, уведомления, отчёт, кандидат, кандидат в персонал, поражение) и очередь окон решений PopupQueue, отладочная панель и отладочные команды Core, ссылки в строках ленты (TextLink, TextSpan, FeedEntry.Spans), строки ui.*, IGameSession в GameRunner, зонд UiProbe. Использовать при правке или добавлении экрана, окна, столбца, уведомления, вида календаря, отладочной функции, при проблемах раскладки и ссылок.
 ---
 
 # Интерфейс
 
 Код — `game/Assets/_Project/Scripts/UI/` (сборка `GuildMaster.UI`: Core, Data, UnityEngine.UI, Unity.TextMeshPro, Unity.InputSystem).
 Ассеты — `Data/UI/` (`UiTheme.asset`, `LiberationSans Cyrillic SDF.asset`). TMP Essential Resources — `Assets/TextMesh Pro/`.
-Дизайн — `TechJob/14-ui-observation.md`, решения — `docs/decisions.md` (2026-09-28, GM-14).
+Дизайн — `TechJob/14-ui-observation.md` (наблюдение), `TechJob/15-ui-decisions.md` (решения игрока); решения — `docs/decisions.md`
+(2026-09-28 GM-14, 2026-09-29 GM-15). Проверяется только в 1920×1080 (прототип).
 
 ## Главное правило
 
-Интерфейс **только наблюдает**: читает мир через `ISimulationClient`, меняет — только командами (`Client.Send`). Никаких `SimContext`,
+Интерфейс читает мир через `ISimulationClient`, меняет — только командами (`Client.Send`); действие игрока — метод модели/действий,
+который шлёт существующую команду (на паузе `GameRunner` применяет её в тот же кадр — `Simulation.ApplyCommandsNow`). Никаких `SimContext`,
 `ctx.Rng`, internal-сеттеров. Для интерфейса в Core — только запросы без мутаций (`ObserverQueries`), скрытое — `DebugQueries` и только
 при `Context.RevealAll`. Профиль заказа, шанс раунда, скрытые черты, число скрытых черт, число лояльности — нигде, кроме «Раскрыть всё».
 
@@ -27,10 +29,14 @@ description: Интерфейс GuildMaster (uGUI + TMP, сборка GuildMaste
 | `Text/FeedFormatter.cs` | `LinkCodec` (`<link="Adventurer:12">`), `FeedFormatter.WithLinks` (разметка по `Spans`, экранирование `<>`), `Format` — важность [О]/[З]/[В] |
 | `Navigation/Destination.cs` | `ScreenId`, `GuildTab`, `Destination` (карточка или экран+вкладка+выбор), `LinkRouter.Resolve(TextLink)` |
 | `Navigation/UiNavigator.cs` | `IGameSession`, `UiContext` (клиент, часы, сессия, фабрика, навигатор, `RevealAll`), базовые `UiView`/`ScreenView`/`WindowView`, `UiNavigator` (Register, ShowScreen, Go, Open/Close/Toggle, CloseTop, RefreshVisible, LastCardId, LastQuestId) |
-| `Models/*.cs` | модели экранов — обычный C#, их тестирует `UiTests` |
-| `Views/UiFactory.cs` | детали: Node/Stretch/TopStrip/Centered/Size, Panel, Vertical/Horizontal, Label/Heading/LinkLabel, Button/RowButton + цвета, Scroll, Input, `DestroyObject` |
-| `Views/Widgets.cs` | `LinkClickHandler`, `BarView`, `TableView` (заголовки с сортировкой, пул строк), `FeedView` (новые сверху, дописывает по последней строке), `CycleSelector` |
-| `Views/TopBarView.cs`, `GuildScreen.cs`, `BoardScreen.cs`, `QuestsScreen.cs`, `Windows.cs`, `DebugPanel.cs` | виды |
+| `Models/*.cs` | модели экранов — обычный C#, их тестируют `UiTests` и `UiDecisionTests` |
+| `Models/BoardModel.cs` | + «Ждут решения» (`Awaiting`), доплата выбранного; `RegistrarModel` (типы, ранг, награда, комиссия; неприменённая правка — `pending`, следующая строится от неё); `BoardActions` (доплата, ответы на важный заказ и событийное задание) |
+| `Models/GuildTabsModel.cs` | + `BuildingRow` (цена, срок, `CanOrder`, `Queued`, `RowId` — отрицательный у не начатых), `BuildingActions` (заказ, `Move`/`MoveTo` очереди, снять), `StaffModel.Vacancies/Offer/Dismiss` |
+| `Models/NotificationsModel.cs` | + `Popup`/`PopupKind` (окно решения в уведомлении), `RejectedStaffCandidates` (отказ кандидату в персонал — только в интерфейсе), `PopupQueue` (что открыть само) |
+| `Models/TreasuryModel.cs` | `TreasuryModel` (казна, банкротство словами, журнал месяца с фильтром статей, `Describe` — к чему относится запись), `DefeatModel` (итоги, `NewSeed`) |
+| `Views/UiFactory.cs` | детали: Node/Stretch/TopStrip/Centered/Size, Panel, Vertical/Horizontal, Label/Heading/LinkLabel, Button/RowButton + цвета, Scroll, Slider, Input, `DestroyObject` |
+| `Views/Widgets.cs` | `LinkClickHandler`, `BarView`, `TableView` (заголовки с сортировкой, пул строк), `FeedView` (новые сверху, дописывает по последней строке), `CycleSelector` (`Changed`, `SetIndex`, `Root`), `SliderReleaseHandler` (команда — когда отпустили), `DragReorder` (перетаскивание строки среди соседей) |
+| `Views/TopBarView.cs`, `GuildScreen.cs`, `BoardScreen.cs`, `QuestsScreen.cs`, `TreasuryScreen.cs`, `Windows.cs`, `DebugPanel.cs` | виды; в `Windows.cs` — `CandidateWindow`, `StaffCandidateWindow`, `DefeatWindow`, общий текст карточки `CardWindow.StatsText` и отчёта `ReportWindow.Render` |
 | `Core/DebugTools/DebugCommands.cs` | `DebugMoneyCommand`, `DebugSetReputationCommand`, `DebugSpawnAdventurerCommand`, `DebugSetStat/Axis/StateCommand`, `DebugSpawnOrderCommand`, `DebugEventCommand` (засада, находка, срыв); событие `DebugAction` |
 | `Core/DebugTools/ObserverQueries.cs` | `ObserverQueries` (возвращение на обратном пути, доля фазы), `DebugQueries` (профиль заказа, шанс раунда) |
 | `Core/Feed/TextLink.cs` | `TextLinkKind`, `TextLink`, `TextSpan` |
@@ -74,10 +80,19 @@ description: Интерфейс GuildMaster (uGUI + TMP, сборка GuildMaste
 
 - `UiTests` (EditMode): ссылки и их места, маршруты, скрытое/«Раскрыть всё», обновление моделей, календарь, уведомления, причина ухода,
   отладочные команды и их детерминизм, сборка `UiRoot` в EditMode (все экраны, окна, панель только при `Debug.isDebugBuild`).
-- Play Mode — зонд `ClaudeSandbox/Editor/UiProbe.cs` (меню GuildMaster → Sandbox → UI): `Capture All 1920x1080 / 1280x720`,
-  `Capture Current …`, `Measure Frames 10s` (компонент `ClaudeSandbox/FrameMeter.cs`), `Log Screen State`, `Restore Game View Size`.
+- `UiDecisionTests` (EditMode): действие → команда → на паузе видно в модели (доплата, «Ждут решения», Регистратор и комиссия, стройка
+  и очередь, найм и увольнение), окна решений и уведомления, журнал и отчёты, поражение и перезапуск, детерминизм действий.
+- Play Mode — зонд `ClaudeSandbox/Editor/UiProbe.cs` (меню GuildMaster → Sandbox → UI): `Advance 45 Days`, `Capture All 1920x1080`
+  (с казной, окнами кандидатов, отчётом и итогами поражения — предпросмотр), `Capture Current …`, `Measure Frames 10s` (компонент `ClaudeSandbox/FrameMeter.cs`), `Log Screen State`, `Restore Game View Size`.
   Без фокуса окна включить Time → Toggle Run In Background и выключить до выхода из Play Mode. Снимки — `Logs/UiShots/`, после просмотра
   удалить. Время игры вперёд — Time → Debug Speed (снимает паузу после автопаузы).
+
+## Окна решений
+
+`PopupQueue` в `UiRoot.ShowPendingPopup` (каждый кадр): гильдия закрыта — окно поражения сразу; иначе, только если поверх экрана нет окон
+(кроме отладочной панели), — первый не показанный кандидат, кандидат в персонал (не отказанный), непрочитанный отчёт. Открытое окно
+(само, по уведомлению или по ссылке) отмечается и само больше не приходит. Ссылка на кандидата (`CardOpener`) ведёт в окно кандидата.
+Открыть окно из экрана — `Context.OpenPopup(new Popup(…))`.
 
 ## Ловушки
 
@@ -92,3 +107,7 @@ description: Интерфейс GuildMaster (uGUI + TMP, сборка GuildMaste
   (`Build Font And Theme` пересобирает шрифт только если его нет — удалить ассет перед пересборкой).
 - Правка скрипта в Play Mode — перекомпиляция посреди игры: выйти из Play Mode (сначала выключить Run In Background).
 - Экзамен висит на доске без срока (`ExpiresAtHours = long.MaxValue`) — «без срока».
+- **Две правки подряд, пока время идёт** (команды применятся в начале такта): новая правка должна строиться от отправленной, а не от
+  мира — как `RegistrarModel.pending`; иначе вторая затрёт первую.
+- Поле ввода не перезаписывать из мира, пока в нём фокус (`isFocused`), и заполнять заново только при смене объекта.
+- Снимки зонда без фокуса окна Unity иногда теряются (записывается только последний) — повторить `Capture All`.

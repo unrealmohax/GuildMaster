@@ -9,7 +9,9 @@ using UnityEngine.UI;
 namespace GuildMaster.UI
 {
     /// <summary>
-    /// Экран «Гильдия»: вкладки Люди, Группы, Постройки, Персонал и лента гильдии справа (всегда на этом экране).
+    /// Экран «Гильдия»: вкладки Люди, Группы, Постройки, Персонал и лента гильдии справа (всегда на этом экране). На вкладке
+    /// «Постройки» — заказать стройку, порядок очереди (перетаскиванием или ▲▼), снять из очереди; на «Персонале» — вакансии,
+    /// предложение зарплаты кандидатам, увольнение. Всё — командами.
     /// </summary>
     public sealed class GuildScreen : ScreenView
     {
@@ -37,8 +39,28 @@ namespace GuildMaster.UI
         private readonly List<TextMeshProUGUI> partyLabels = new List<TextMeshProUGUI>();
         private TableView buildingsTable;
         private List<BuildingRow> buildingRows = new List<BuildingRow>();
+        private Button buildButton;
+        private RectTransform queueList;
+        private TextMeshProUGUI queueEmpty;
+        private readonly List<(RectTransform Root, TextMeshProUGUI Text)> queueViews = new List<(RectTransform, TextMeshProUGUI)>();
+        private List<QueueRow> queueRows = new List<QueueRow>();
         private TableView staffTable;
-        private TextMeshProUGUI staffCandidates;
+        private TextMeshProUGUI staffSelected;
+        private Button dismissButton;
+        private int dismissArmedFor;
+        private TextMeshProUGUI vacancies;
+        private RectTransform staffCandidateList;
+        private readonly List<StaffCandidateView> staffCandidateViews = new List<StaffCandidateView>();
+
+        private sealed class StaffCandidateView
+        {
+            public RectTransform Root;
+            public TextMeshProUGUI Text;
+            public TMP_InputField Offer;
+            public Button OfferButton;
+            public Button RejectButton;
+            public int CandidateId;
+        }
 
         private GuildTab tab = GuildTab.People;
         private int selectedBuilding;
@@ -284,14 +306,59 @@ namespace GuildMaster.UI
             var columns = new List<TableColumn>
             {
                 new TableColumn { Title = UiStrings.ColBuilding, Width = -1 },
-                new TableColumn { Title = UiStrings.ColState, Width = 360 },
-                new TableColumn { Title = UiStrings.ColCapacity, Width = 140 },
+                new TableColumn { Title = UiStrings.ColState, Width = 320 },
+                new TableColumn { Title = UiStrings.ColCapacity, Width = 110 },
+                new TableColumn { Title = UiStrings.ColCost, Width = 120 },
+                new TableColumn { Title = UiStrings.ColBuildTime, Width = 100 },
             };
             buildingsTable = new TableView(Factory, page, columns, id =>
             {
                 selectedBuilding = id;
-                buildingsTable.SetSelected(id);
+                RefreshBuildings();
             });
+
+            buildButton = Factory.Button(page, UiStrings.SelectBuilding, OrderSelectedBuilding, 620);
+
+            RectTransform queueHeader = UiFactory.Node(page, "QueueHeader");
+            Factory.Horizontal(queueHeader, 12);
+            UiFactory.Size(queueHeader, height: Theme.FontSizeLarge + 10);
+            TextMeshProUGUI queueTitle = Factory.Label(queueHeader, UiStrings.BuildQueue, Theme.FontSizeLarge, Theme.Accent);
+            UiFactory.Size(queueTitle, 260);
+            TextMeshProUGUI hint = Factory.Label(queueHeader, UiStrings.QueueHint, Theme.FontSizeSmall, Theme.TextDim);
+            UiFactory.Size(hint, flexWidth: 1);
+
+            queueList = UiFactory.Node(page, "Queue");
+            Factory.Vertical(queueList, 4);
+            queueEmpty = Factory.Label(page, UiStrings.QueueEmpty, Theme.FontSizeSmall, Theme.TextDim);
+            UiFactory.Size(queueEmpty, height: Theme.RowHeight);
+        }
+
+        /// <summary>Выбранная строка «Построек» (id постройки или отрицательный номер не начатой).</summary>
+        public int SelectedBuilding
+        {
+            get => selectedBuilding;
+            set => selectedBuilding = value;
+        }
+
+        /// <summary>Строки вкладки «Постройки» после последней перерисовки.</summary>
+        public IReadOnlyList<BuildingRow> BuildingRows => buildingRows;
+
+        /// <summary>Заказать выбранную постройку, если её можно заказать.</summary>
+        public void OrderSelectedBuilding()
+        {
+            BuildingRow row = SelectedBuildingRow();
+            if (row == null || !row.CanOrder) return;
+            BuildingActions.Order(Client, row.DefinitionId);
+            Refresh();
+        }
+
+        private BuildingRow SelectedBuildingRow()
+        {
+            foreach (BuildingRow row in buildingRows)
+            {
+                if (row.RowId == selectedBuilding) return row;
+            }
+            return null;
         }
 
         private void RefreshBuildings()
@@ -302,11 +369,64 @@ namespace GuildMaster.UI
             for (int i = 0; i < buildingRows.Count; i++)
             {
                 BuildingRow row = buildingRows[i];
-                buildingsTable.SetRowId(i, row.Id);
+                buildingsTable.SetRowId(i, row.RowId);
                 buildingsTable.SetText(i, 0, row.Name, row.Id == 0 ? Theme.TextDim : (Color?)null);
                 buildingsTable.SetText(i, 1, row.State, row.Ready ? (Color?)null : row.Id != 0 ? Theme.Accent : Theme.TextDim);
                 buildingsTable.SetText(i, 2, row.Capacity);
+                buildingsTable.SetText(i, 3, row.Ready ? "—" : UiFormat.Money(row.Cost), Theme.TextDim);
+                buildingsTable.SetText(i, 4, row.Ready ? "—" : string.Format(UiStrings.DaysFormat, row.BuildDays), Theme.TextDim);
             }
+
+            BuildingRow selected = SelectedBuildingRow();
+            bool canOrder = selected != null && selected.CanOrder;
+            buildButton.interactable = canOrder;
+            Factory.SetButtonColors(buildButton, canOrder);
+            buildButton.GetComponentInChildren<TextMeshProUGUI>().text = canOrder
+                ? string.Format(UiStrings.BuildFormat, selected.Name, UiFormat.Money(selected.Cost), selected.BuildDays)
+                : selected != null ? selected.Name + " — " + selected.State : UiStrings.SelectBuilding;
+
+            RefreshQueue();
+        }
+
+        private void RefreshQueue()
+        {
+            queueRows = BuildingActions.Queue(Client);
+            queueEmpty.gameObject.SetActive(queueRows.Count == 0);
+            while (queueViews.Count < queueRows.Count) queueViews.Add(CreateQueueRow(queueViews.Count));
+            for (int i = 0; i < queueViews.Count; i++)
+            {
+                bool show = i < queueRows.Count;
+                queueViews[i].Root.gameObject.SetActive(show);
+                if (show) queueViews[i].Text.text = $"{i + 1}. {queueRows[i].Name} <color={UiTheme.ToHex(Theme.TextDim)}>— {queueRows[i].Details}</color>";
+            }
+        }
+
+        private (RectTransform, TextMeshProUGUI) CreateQueueRow(int index)
+        {
+            Image panel = Factory.Panel(queueList, "Queued", Theme.PanelAlt, blocksClicks: true);
+            HorizontalLayoutGroup layout = Factory.Horizontal(panel, 6);
+            layout.padding = new RectOffset(10, 6, 2, 2);
+            UiFactory.Size(panel, height: Theme.RowHeight + 4);
+            panel.gameObject.AddComponent<DragReorder>().Dropped = (from, to) => MoveQueued(from, to);
+
+            TextMeshProUGUI text = Factory.Label(panel.transform, string.Empty);
+            UiFactory.Size(text, flexWidth: 1);
+            Factory.Button(panel.transform, UiStrings.Up, () => MoveQueued(index, index - 1), 44);
+            Factory.Button(panel.transform, UiStrings.Down, () => MoveQueued(index, index + 1), 44);
+            Factory.Button(panel.transform, UiStrings.RemoveFromQueue, () =>
+            {
+                if (index < queueRows.Count) BuildingActions.Cancel(Client, queueRows[index].Id);
+                Refresh();
+            }, 120, fontSize: Theme.FontSizeSmall);
+            return (panel.rectTransform, text);
+        }
+
+        /// <summary>Переставить стройку очереди с места <paramref name="from"/> на <paramref name="to"/>.</summary>
+        public void MoveQueued(int from, int to)
+        {
+            if (from < 0 || from >= queueRows.Count) return;
+            BuildingActions.MoveTo(Client, queueRows[from].Id, to);
+            Refresh();
         }
 
         // ---------- Персонал ----------
@@ -324,9 +444,44 @@ namespace GuildMaster.UI
             staffTable = new TableView(Factory, page, columns, id =>
             {
                 selectedStaff = id;
-                staffTable.SetSelected(id);
+                RefreshStaff();
             });
-            staffCandidates = Factory.Label(page, string.Empty, Theme.FontSizeSmall, wrap: true);
+
+            RectTransform actions = UiFactory.Node(page, "Actions");
+            Factory.Horizontal(actions, 12);
+            UiFactory.Size(actions, height: Theme.RowHeight);
+            staffSelected = Factory.Label(actions, string.Empty, Theme.FontSize, Theme.TextDim);
+            UiFactory.Size(staffSelected, 420);
+            dismissButton = Factory.Button(actions, UiStrings.Dismiss, OnDismiss, 240);
+
+            Factory.Heading(page, UiStrings.Vacancies);
+            vacancies = Factory.Label(page, string.Empty, Theme.FontSizeSmall, wrap: true);
+
+            Factory.Heading(page, UiStrings.StaffCandidates);
+            staffCandidateList = UiFactory.Node(page, "Candidates");
+            Factory.Vertical(staffCandidateList, 4);
+        }
+
+        /// <summary>Выбранный сотрудник на «Персонале» (id).</summary>
+        public int SelectedStaff
+        {
+            get => selectedStaff;
+            set => selectedStaff = value;
+        }
+
+        /// <summary>«Уволить»: первое нажатие спрашивает «Точно уволить?», второе — увольняет.</summary>
+        public void OnDismiss()
+        {
+            if (!Client.World.Staff.TryGetMember(selectedStaff, out _)) return;
+            if (dismissArmedFor != selectedStaff)
+            {
+                dismissArmedFor = selectedStaff;
+                RefreshStaff();
+                return;
+            }
+            dismissArmedFor = 0;
+            StaffModel.Dismiss(Client, selectedStaff);
+            Refresh();
         }
 
         private void RefreshStaff()
@@ -345,19 +500,74 @@ namespace GuildMaster.UI
                 staffTable.SetText(i, 4, row.Unpaid > 0 ? UiFormat.Money(row.Unpaid) : "—", row.Unpaid > 0 ? Theme.Danger : Theme.TextDim);
             }
 
-            List<StaffCandidateRow> candidateRows = StaffModel.Candidates(Client);
-            if (candidateRows.Count == 0)
+            bool member = Client.World.Staff.TryGetMember(selectedStaff, out StaffMember selected);
+            if (dismissArmedFor != 0 && dismissArmedFor != selectedStaff) dismissArmedFor = 0;
+            staffSelected.text = member ? $"{selected.Name}, {StaffModel.RoleName(Client.Data, selected.RoleId)}" : UiStrings.SelectStaff;
+            dismissButton.interactable = member;
+            bool armed = member && dismissArmedFor == selectedStaff;
+            dismissButton.GetComponentInChildren<TextMeshProUGUI>().text = armed ? UiStrings.DismissConfirm : UiStrings.Dismiss;
+            Factory.SetButtonColors(dismissButton, armed);
+
+            List<string> vacancyLines = StaffModel.Vacancies(Client);
+            vacancies.text = vacancyLines.Count == 0
+                ? $"<color={UiTheme.ToHex(Theme.TextDim)}>{UiStrings.NoVacancies}</color>"
+                : string.Join("\n", vacancyLines);
+
+            RefreshStaffCandidates();
+        }
+
+        private void RefreshStaffCandidates()
+        {
+            List<StaffCandidateRow> rows = StaffModel.Candidates(Client, Context.Notifications?.RejectedStaffCandidates);
+            while (staffCandidateViews.Count < rows.Count) staffCandidateViews.Add(CreateStaffCandidate());
+            string dim = UiTheme.ToHex(Theme.TextDim);
+            for (int i = 0; i < staffCandidateViews.Count; i++)
             {
-                staffCandidates.text = string.Empty;
-                return;
-            }
-            var text = new StringBuilder($"<color={UiTheme.ToHex(Theme.Accent)}>{UiStrings.StaffCandidates}</color>\n");
-            foreach (StaffCandidateRow row in candidateRows)
-            {
+                StaffCandidateView view = staffCandidateViews[i];
+                bool show = i < rows.Count;
+                view.Root.gameObject.SetActive(show);
+                if (!show) continue;
+
+                StaffCandidateRow row = rows[i];
+                bool fresh = view.CandidateId != row.Id;
+                view.CandidateId = row.Id;
                 string marker = row.Id == selectedStaff ? "► " : string.Empty;
-                text.Append($"{marker}{row.Role}: {row.Name} — {row.Details}\n");
+                string line = string.Format(UiStrings.StaffCandidateRowFormat, row.Role, row.Name, row.Level, UiFormat.Money(row.AskedSalary), row.Waits);
+                view.Text.text = row.Rejected ? $"<color={dim}>{line} · {UiStrings.Rejected}</color>" : marker + line;
+                view.Offer.gameObject.SetActive(!row.Rejected);
+                view.OfferButton.gameObject.SetActive(!row.Rejected);
+                view.RejectButton.gameObject.SetActive(!row.Rejected);
+                if (fresh && !view.Offer.isFocused) view.Offer.text = row.AskedSalary.ToString(System.Globalization.CultureInfo.InvariantCulture);
             }
-            staffCandidates.text = text.ToString().TrimEnd('\n');
+        }
+
+        private StaffCandidateView CreateStaffCandidate()
+        {
+            var view = new StaffCandidateView();
+            Image panel = Factory.Panel(staffCandidateList, "Candidate", Theme.PanelAlt);
+            view.Root = panel.rectTransform;
+            HorizontalLayoutGroup layout = Factory.Horizontal(panel, 8);
+            layout.padding = new RectOffset(10, 6, 2, 2);
+            UiFactory.Size(panel, height: Theme.RowHeight + 4);
+
+            view.Text = Factory.Label(panel.transform, string.Empty, Theme.FontSizeSmall);
+            UiFactory.Size(view.Text, flexWidth: 1);
+            view.Offer = Factory.Input(panel.transform, UiStrings.SalaryHint, 130, TMP_InputField.ContentType.IntegerNumber);
+            view.OfferButton = Factory.Button(panel.transform, UiStrings.Offer, () => OfferSalary(view), 170, fontSize: Theme.FontSizeSmall);
+            Factory.SetButtonColors(view.OfferButton, true);
+            view.RejectButton = Factory.Button(panel.transform, UiStrings.Reject, () =>
+            {
+                Context.Notifications?.RejectStaffCandidate(view.CandidateId);
+                Refresh();
+            }, 140, fontSize: Theme.FontSizeSmall);
+            return view;
+        }
+
+        private void OfferSalary(StaffCandidateView view)
+        {
+            if (!UiFormat.TryParseAmount(view.Offer.text, out int amount)) return;
+            StaffModel.Offer(Client, view.CandidateId, amount);
+            Refresh();
         }
     }
 }

@@ -16,6 +16,10 @@ namespace GuildMaster.UI
     /// верхняя панель и открытый экран с окнами перерисовываются не чаще, чем задано в <see cref="UiTheme"/>. Скрытые экраны не
     /// обновляются. Клавиши: F1 — отладочная панель (только в отладочной сборке), Esc — закрыть верхнее окно.
     /// </para>
+    /// <para>
+    /// Окна решений (<see cref="PopupQueue"/>): закрытие гильдии — сразу; новый кандидат и новый отчёт месяца — сами, по одному,
+    /// когда поверх экрана нет других окон. Время они не останавливают.
+    /// </para>
     /// </summary>
     public sealed class UiRoot : MonoBehaviour
     {
@@ -31,8 +35,12 @@ namespace GuildMaster.UI
         private AutopauseWindow autopause;
         private NotificationsWindow notificationsWindow;
         private ReportWindow report;
+        private CandidateWindow candidate;
+        private StaffCandidateWindow staffCandidate;
+        private DefeatWindow defeat;
         private DebugPanel debug;
         private NotificationsModel notifications;
+        private PopupQueue popups;
 
         private bool topDirty;
         private bool screenDirty;
@@ -133,16 +141,31 @@ namespace GuildMaster.UI
             navigator.Register(new GuildScreen(context, work));
             navigator.Register(new BoardScreen(context, work));
             navigator.Register(new QuestsScreen(context, work));
+            navigator.Register(new TreasuryScreen(context, work));
             navigator.Changed += MarkDirty;
 
             notifications = new NotificationsModel();
+            popups = new PopupQueue();
+            context.Notifications = notifications;
+            context.PopupOpener = OpenPopup;
             card = new CardWindow(context, windowLayer);
             time = new TimeWindow(context, windowLayer);
             autopause = new AutopauseWindow(context, windowLayer);
             report = new ReportWindow(context, windowLayer);
-            notificationsWindow = new NotificationsWindow(context, windowLayer, notifications, OpenReport);
+            candidate = new CandidateWindow(context, windowLayer);
+            staffCandidate = new StaffCandidateWindow(context, windowLayer);
+            defeat = new DefeatWindow(context, windowLayer);
+            notificationsWindow = new NotificationsWindow(context, windowLayer, notifications);
+
+            // Ссылка на кандидата в авантюристы ведёт в окно решения по нему, на остальных людей — в карточку.
             navigator.CardOpener = id =>
             {
+                if (Client.World.Adventurers.TryGetCandidate(id, out _))
+                {
+                    popups.MarkShown(new Popup(PopupKind.AdventurerCandidate, id), notifications);
+                    candidate.CandidateId = id;
+                    return candidate;
+                }
                 card.SetPerson(id);
                 return card;
             };
@@ -186,11 +209,50 @@ namespace GuildMaster.UI
             return layer;
         }
 
-        private void OpenReport(int index)
+        /// <summary>Открыть окно решения: кандидат, кандидат в персонал, отчёт месяца, поражение.</summary>
+        public void OpenPopup(Popup popup)
         {
-            report.ReportIndex = index;
-            notifications.ReportsSeen = Mathf.Max(notifications.ReportsSeen, index + 1);
-            navigator.Open(report);
+            if (navigator == null || !popup.IsValid) return;
+            popups.MarkShown(popup, notifications);
+            switch (popup.Kind)
+            {
+                case PopupKind.AdventurerCandidate:
+                    candidate.CandidateId = popup.Id;
+                    navigator.Open(candidate);
+                    break;
+                case PopupKind.StaffCandidate:
+                    staffCandidate.CandidateId = popup.Id;
+                    navigator.Open(staffCandidate);
+                    break;
+                case PopupKind.Report:
+                    report.ReportIndex = popup.Id;
+                    navigator.Open(report);
+                    break;
+                case PopupKind.Defeat:
+                    navigator.Open(defeat);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Открыть окно решения, которое ждёт своей очереди: закрытие гильдии — поверх всего; остальное — только если поверх
+        /// экрана нет окон (отладочная панель не мешает). Открыто — true.
+        /// </summary>
+        public bool ShowPendingPopup()
+        {
+            if (Client == null || navigator == null) return false;
+            if (popups.TryUrgent(Client, out Popup urgent))
+            {
+                OpenPopup(urgent);
+                return true;
+            }
+            foreach (WindowView window in navigator.Windows)
+            {
+                if (!(window is DebugPanel)) return false;
+            }
+            if (!popups.TryNext(Client, notifications, out Popup popup)) return false;
+            OpenPopup(popup);
+            return true;
         }
 
         // ---------- Кадр ----------
@@ -201,6 +263,7 @@ namespace GuildMaster.UI
 
             ReadKeys();
             CheckAutopause();
+            ShowPendingPopup();
 
             float now = Time.unscaledTime;
             if (topDirty && now >= nextTopRefresh)

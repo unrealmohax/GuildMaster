@@ -12,7 +12,7 @@ namespace GuildMaster.UI
         public int Reputation { get; private set; }
         public string Headcount { get; private set; }
 
-        /// <summary>«до закрытия: 3 мес. 12 дн.»; пусто — банкротства нет.</summary>
+        /// <summary>«до закрытия: 3 мес. 12 дн.», «Гильдия закрыта»; пусто — банкротства нет.</summary>
         public string Bankruptcy { get; private set; }
 
         public bool Paused { get; private set; }
@@ -39,7 +39,11 @@ namespace GuildMaster.UI
             model.SpeedIndex = clock == null || clock.DebugSpeed ? -1 : clock.SpeedIndex;
 
             Bankruptcy bankruptcy = world.Treasury.Bankruptcy;
-            if (bankruptcy.Active)
+            if (world.Treasury.IsClosed)
+            {
+                model.Bankruptcy = UiStrings.GuildClosed;
+            }
+            else if (bankruptcy.Active)
             {
                 string left = UiFormat.Duration(bankruptcy.EndsAtHours - world.Time.TotalHours, client.Calendar);
                 model.Bankruptcy = string.Format(UiStrings.BankruptcyFormat, left);

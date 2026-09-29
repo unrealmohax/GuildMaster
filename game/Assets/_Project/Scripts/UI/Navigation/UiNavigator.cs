@@ -43,6 +43,17 @@ namespace GuildMaster.UI
         public bool IsDebugBuild => Debug.isDebugBuild;
 
         public void OnLink(TextLink link) => Navigator.Go(LinkRouter.Resolve(link, Client));
+
+        /// <summary>Уведомления и то, что игрок решил только в интерфейсе (отказ кандидату в персонал).</summary>
+        public NotificationsModel Notifications { get; internal set; }
+
+        /// <summary>Открывает окна решений (кандидаты, отчёт, поражение); задаёт корень интерфейса.</summary>
+        public Action<Popup> PopupOpener { get; set; }
+
+        public void OpenPopup(Popup popup)
+        {
+            if (popup.IsValid) PopupOpener?.Invoke(popup);
+        }
     }
 
     /// <summary>Часть интерфейса: корень, показ и скрытие, перерисовка из мира.</summary>

@@ -46,6 +46,8 @@ namespace GuildMaster.UI
         [SerializeField, Min(1)] private float screenRefreshPerSecond = 4f;
         [Tooltip("Сколько строк ленты держать на экране")]
         [SerializeField, Min(10)] private int feedLinesShown = 150;
+        [Tooltip("Сколько записей журнала казны показывать (новые сверху)")]
+        [SerializeField, Min(10)] private int ledgerRowsShown = 300;
 
         public TMP_FontAsset Font => font;
         public Color Background => background;
@@ -70,6 +72,7 @@ namespace GuildMaster.UI
         public float TopBarRefreshPerSecond => topBarRefreshPerSecond;
         public float ScreenRefreshPerSecond => screenRefreshPerSecond;
         public int FeedLinesShown => feedLinesShown;
+        public int LedgerRowsShown => ledgerRowsShown;
 
         /// <summary>Цвет строкой для разметки TMP: «#RRGGBB».</summary>
         public static string ToHex(Color color) => "#" + ColorUtility.ToHtmlStringRGB(color);

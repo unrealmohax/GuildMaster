@@ -159,4 +159,14 @@ namespace GuildMaster.UI
             return SortDescending ? -result : result;
         }
     }
+
+    /// <summary>Действия игрока с кандидатами в авантюристы: принять или отказать — командами.</summary>
+    public static class PeopleActions
+    {
+        public static void AnswerCandidate(ISimulationClient client, int candidateId, bool accept)
+        {
+            if (accept) client.Send(new AcceptCandidateCommand(candidateId));
+            else client.Send(new RejectCandidateCommand(candidateId));
+        }
+    }
 }

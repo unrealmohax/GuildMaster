@@ -13,6 +13,7 @@ namespace GuildMaster.UI
         public const string Guild = "Гильдия";
         public const string Board = "Доска";
         public const string Quests = "Задания";
+        public const string TreasuryScreen = "Казна";
         public const string People = "Люди";
         public const string Parties = "Группы";
         public const string Buildings = "Постройки";
@@ -181,6 +182,90 @@ namespace GuildMaster.UI
         public const string BalancedMale = "уравновешен";
         public const string BalancedFemale = "уравновешена";
         public const string HiddenMark = "скрыта";
+
+        // Доска — действия
+        public const string AwaitingDecision = "Ждут решения";
+        public const string Accept = "Принять";
+        public const string Decline = "Отклонить";
+        public const string Reject = "Отказать";
+        public const string SurchargeHint = "доплата";
+        public const string SetSurcharge = "Назначить доплату";
+        public const string SurchargeNote = "Доплату гильдия платит из казны, только если заказ выполнен.";
+        public const string AwaitingImportantFormat = "Важный: {0} {1}, {2} · ответ ещё {3}";
+        public const string AwaitingEventFormat = "Событийное: {0}, {1} · ответ ещё {2}";
+        public const string EventRankHint = "ранг";
+        public const string Registrar = "Регистратор";
+        public const string RegistrarTypes = "Берёт типы:";
+        public const string RegistrarMaxRank = "сам — до ранга";
+        public const string RegistrarMinReward = "награда не ниже";
+        public const string RulesNote = "Правила Регистратора действуют на заказы, которые придут после изменения, комиссия — на награды, выплаченные после него.";
+        public const string Commission = "Комиссия";
+
+        // Постройки и персонал — действия
+        public const string ColCost = "Цена";
+        public const string ColBuildTime = "Срок";
+        public const string DaysFormat = "{0} дн.";
+        public const string BuildFormat = "Построить: {0} — {1}, {2} дн.";
+        public const string SelectBuilding = "Выберите постройку";
+        public const string BuildQueue = "Очередь строек";
+        public const string QueueEmpty = "Очередь пуста";
+        public const string QueueHint = "перетащите строку или ▲▼; первая начнётся, когда нет стройки и хватает денег";
+        public const string Up = "▲";
+        public const string Down = "▼";
+        public const string RemoveFromQueue = "Снять";
+        public const string Dismiss = "Уволить";
+        public const string DismissConfirm = "Точно уволить?";
+        public const string SelectStaff = "Выберите сотрудника";
+        public const string Vacancies = "Вакансии";
+        public const string NoVacancies = "Вакансий нет";
+        public const string VacancyWaitsFormat = "{0}: кандидаты придут через {1}";
+        public const string VacancyCandidatesFormat = "{0}: кандидатов — {1}";
+        public const string VacancyOpenFormat = "{0}: вакансия открыта";
+        public const string Offer = "Предложить";
+        public const string SalaryHint = "зарплата";
+        public const string Rejected = "отказано";
+        public const string StaffCandidateRowFormat = "{0}: {1}, уровень {2}, просит {3}, ждёт ещё {4}";
+
+        // Казна
+        public const string TreasuryNow = "Казна сейчас";
+        public const string CommissionFormat = "комиссия {0}";
+        public const string MonthSoFarFormat = "этот месяц: доходы {0}, расходы {1}";
+        public const string BankruptcyNone = "Банкротства нет";
+        public const string BankruptcyNegativeFormat = "Казна в минусе с {0}: банкротство начнётся через {1}";
+        public const string BankruptcyActiveFormat = "Банкротство: если казна будет в минусе через {0} — гильдия закроется";
+        public const string GuildClosed = "Гильдия закрыта";
+        public const string Ledger = "Журнал операций";
+        public const string Incomes = "Доходы";
+        public const string Expenses = "Расходы";
+        public const string AllCategories = "Все";
+        public const string CurrentMonth = "текущий месяц";
+        public const string ReportMonthFormat = "{0}.{1}";
+        public const string ColTime = "Когда";
+        public const string ColCategory = "Статья";
+        public const string ColAmount = "Сумма";
+        public const string ColRelated = "К чему относится";
+        public const string ColBalance = "Казна";
+        public const string LedgerShownFormat = "показано {0} из {1}";
+        public const string LedgerTavernFormat = "еда {0}, выпивка {1}";
+        public const string LedgerSalaryDebt = " (долг)";
+        public const string ReportsHistory = "Отчёты месяца";
+        public const string NoReports = "Отчётов ещё не было";
+
+        // Окна решений
+        public const string CandidateTitleFormat = "Кандидат: {0}";
+        public const string CandidateGone = "Кандидат уже ушёл";
+        public const string StaffCandidateTitleFormat = "Кандидат на должность «{0}»";
+        public const string StaffCandidateLevelFormat = "{0}, уровень возможностей {1}";
+        public const string StaffAskedFormat = "Просит {0} в месяц · ждёт ещё {1}";
+        public const string StaffOfferNote = "Меньше просимого — может отказаться и уйти.";
+        public const string DefeatTitle = "Гильдия закрыта";
+        public const string DefeatDaysFormat = "Гильдия продержалась {0} дн. Закрыта: {1}.";
+        public const string DefeatMoneyFormat = "Казна при закрытии: {0}";
+        public const string DefeatPeopleFormat = "Погибли: {0} · ушли: {1} · в гильдии оставались: {2}";
+        public const string DefeatOrdersFormat = "Заказов выполнено: {0}, провалено: {1}";
+        public const string DefeatBest = "Лучшие люди";
+        public const string DefeatSeedFormat = "Зерно этой игры: {0}";
+        public const string StartOver = "Начать заново";
 
         // Окна
         public const string AutopauseTitle = "Пауза";

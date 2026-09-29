@@ -40,7 +40,8 @@ description: Экономика гильдии GuildMaster — казна Treasu
 Казна в минусе `bankruptcyStartDays` суток подряд → `BankruptcyStarted` [В] с автопаузой, срок `bankruptcyMonths` месяцев.
 Казна ≥ 0 (или минус начался заново) → `BankruptcyLifted` [З]. Срок истёк в минусе → `GuildClosed` [В] (участники — лучшие
 люди; данные `days`, `died`, `left`, `money`), `IsClosed = true` → `Simulation.IsFinished`: такты и команды больше ничего не делают,
-прогон без интерфейса кончается раньше (`Result.GuildClosed`).
+прогон без интерфейса кончается раньше (`Result.GuildClosed`). Подбор лучших людей — публичный `EconomySystem.BestPeople` (только
+чтение): им же итоги поражения показывает интерфейс.
 
 ## Отчёт месяца
 

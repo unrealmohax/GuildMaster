@@ -95,9 +95,9 @@ namespace GuildMaster.Core
 
         /// <summary>
         /// Лучшие люди за игру (в гильдии и в архиве, кроме погибших): больше выполненных заданий, затем выше ранг гильдии
-        /// и оценка лучшей роли.
+        /// и оценка лучшей роли. Только чтение — этим же правилом итоги закрытия показывает интерфейс.
         /// </summary>
-        private static List<int> BestPeople(AdventurerRoster roster, int count)
+        public static List<int> BestPeople(AdventurerRoster roster, int count)
         {
             var people = new List<Adventurer>(roster.Active);
             foreach (Adventurer adventurer in roster.Archive)

@@ -281,6 +281,49 @@ namespace GuildMaster.UI
             return bar;
         }
 
+        // ---------- Ползунок ----------
+
+        /// <summary>Ползунок целых значений: дорожка, заполнение акцентом, ручка. Отпустили — <see cref="SliderReleaseHandler.Released"/>.</summary>
+        public Slider Slider(Transform parent, float width, float min, float max, Action<float> onRelease)
+        {
+            RectTransform root = Node(parent, "Slider");
+            Size(root, width, Theme.RowHeight);
+
+            Image track = Panel(root, "Track", Theme.BarBack);
+            RectTransform trackRect = track.rectTransform;
+            trackRect.anchorMin = new Vector2(0, 0.5f);
+            trackRect.anchorMax = new Vector2(1, 0.5f);
+            trackRect.sizeDelta = new Vector2(-16, 8);
+
+            RectTransform fillArea = Node(root, "Fill Area");
+            fillArea.anchorMin = new Vector2(0, 0.5f);
+            fillArea.anchorMax = new Vector2(1, 0.5f);
+            fillArea.sizeDelta = new Vector2(-16, 8);
+            Image fill = Panel(fillArea, "Fill", Theme.Accent);
+            fill.rectTransform.sizeDelta = Vector2.zero;
+
+            RectTransform handleArea = Stretch(Node(root, "Handle Area"), 8, 0, 8, 0);
+            Image handle = Panel(handleArea, "Handle", Theme.Text, blocksClicks: true);
+            handle.rectTransform.sizeDelta = new Vector2(14, 0);
+
+            var slider = root.gameObject.AddComponent<Slider>();
+            slider.fillRect = fill.rectTransform;
+            slider.handleRect = handle.rectTransform;
+            slider.targetGraphic = handle;
+            slider.direction = UnityEngine.UI.Slider.Direction.LeftToRight;
+            slider.minValue = min;
+            slider.maxValue = max;
+            slider.wholeNumbers = true;
+            slider.navigation = new Navigation { mode = Navigation.Mode.None };
+            ColorBlock colors = slider.colors;
+            colors.fadeDuration = 0f;
+            slider.colors = colors;
+
+            var release = root.gameObject.AddComponent<SliderReleaseHandler>();
+            release.Released = onRelease;
+            return slider;
+        }
+
         // ---------- Поля ----------
 
         public TMP_InputField Input(Transform parent, string placeholder, float width = -1, TMP_InputField.ContentType type = TMP_InputField.ContentType.Standard)

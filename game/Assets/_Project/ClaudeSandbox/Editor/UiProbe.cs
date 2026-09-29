@@ -86,6 +86,19 @@ namespace GuildMaster.Sandbox
             meter.Label = runner.Clock.Paused ? "paused" : $"x{runner.Clock.Multiplier}";
         }
 
+        [MenuItem("GuildMaster/Sandbox/UI/Advance 45 Days")]
+        private static void Advance45Days()
+        {
+            UiRoot ui = Object.FindAnyObjectByType<UiRoot>();
+            if (!EditorApplication.isPlaying || ui == null || ui.Context?.Session == null)
+            {
+                Debug.LogWarning("[UiProbe] Play Mode with bound UiRoot required");
+                return;
+            }
+            ui.Context.Session.Advance(24 * 45);
+            ui.RefreshNow();
+        }
+
         [MenuItem("GuildMaster/Sandbox/UI/Log Screen State")]
         public static void LogState()
         {
@@ -115,6 +128,10 @@ namespace GuildMaster.Sandbox
             UiNavigator nav = ui.Navigator;
             WorldState world = ui.Client.World;
 
+            // Окна решений, которые ждут очереди, открылись бы поверх снимков — открыть и закрыть их заранее.
+            CloseAll(nav);
+            while (ui.ShowPendingPopup()) CloseAll(nav);
+
             Steps.Clear();
             Steps.Enqueue(($"{prefix}_1_guild_people", () => { CloseAll(nav); nav.Go(Destination.ToGuild(GuildTab.People)); }));
             Steps.Enqueue(($"{prefix}_2_guild_buildings", () => nav.Go(Destination.ToGuild(GuildTab.Buildings))));
@@ -139,6 +156,23 @@ namespace GuildMaster.Sandbox
             Steps.Enqueue(($"{prefix}_8_time", () => { CloseAll(nav); ui.ToggleTime(); }));
             Steps.Enqueue(($"{prefix}_9_notifications", () => { CloseAll(nav); ui.ToggleNotifications(); }));
             Steps.Enqueue(($"{prefix}_10_debug", () => { CloseAll(nav); ui.ToggleDebug(); }));
+            Steps.Enqueue(($"{prefix}_11_treasury", () => { CloseAll(nav); nav.Go(Destination.ToScreen(ScreenId.Treasury)); }));
+            Steps.Enqueue(($"{prefix}_12_candidate", () =>
+            {
+                CloseAll(nav);
+                if (world.Adventurers.Candidates.Count > 0) ui.OpenPopup(new Popup(PopupKind.AdventurerCandidate, world.Adventurers.Candidates[0].Adventurer.Id));
+            }));
+            Steps.Enqueue(($"{prefix}_13_staff_candidate", () =>
+            {
+                CloseAll(nav);
+                if (world.Staff.Candidates.Count > 0) ui.OpenPopup(new Popup(PopupKind.StaffCandidate, world.Staff.Candidates[0].Id));
+            }));
+            Steps.Enqueue(($"{prefix}_14_report", () =>
+            {
+                CloseAll(nav);
+                if (world.Reports.Reports.Count > 0) ui.OpenPopup(new Popup(PopupKind.Report, world.Reports.Reports.Count - 1));
+            }));
+            Steps.Enqueue(($"{prefix}_15_defeat_preview", () => { CloseAll(nav); ui.OpenPopup(new Popup(PopupKind.Defeat)); }));
             Steps.Enqueue(($"{prefix}_end", () => { CloseAll(nav); nav.ShowScreen(ScreenId.Guild); }));
 
             waitFrames = FramesPerStep;

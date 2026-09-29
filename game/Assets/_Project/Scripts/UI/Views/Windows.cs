@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using GuildMaster.Core;
+using GuildMaster.Data;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -115,21 +116,7 @@ namespace GuildMaster.UI
             rankLine.text = $"{model.RankLine} · {model.Power}";
             rankBar.Set(model.RankProgress, UiFormat.Percent(model.RankProgress));
 
-            var l = new StringBuilder();
-            l.Append($"<color={accent}>{UiStrings.RoleProfile}</color>\n{model.RoleProfile}\n\n");
-            l.Append($"<color={accent}>{UiStrings.Characteristics}</color>\n");
-            AppendValues(l, model.Characteristics, dim);
-            l.Append($"\n<color={accent}>{UiStrings.Skills}</color>\n");
-            AppendValues(l, model.Skills, dim);
-            l.Append($"\n<color={accent}>{UiStrings.Character}</color>\n");
-            foreach ((string axis, string value) in model.Axes)
-            {
-                string color = value == UiStrings.Unknown ? dim : text;
-                l.Append($"<color={dim}>{axis}</color><pos=45%><color={color}>{value}</color>\n");
-            }
-            l.Append($"\n<color={accent}>{UiStrings.Traits}</color>\n");
-            l.Append(model.Traits.Count == 0 ? $"<color={dim}>{UiStrings.NoTraits}</color>" : string.Join(", ", model.Traits));
-            left.text = l.ToString();
+            left.text = StatsText(model, Theme, withTraits: true);
 
             fatigue.Set(model.Fatigue / 100f, UiFormat.Number(model.Fatigue), model.Fatigue > 80 ? Theme.Danger : Theme.Accent);
             stress.Set(model.Stress / 100f, UiFormat.Number(model.Stress), model.Stress > 80 ? Theme.Danger : Theme.Accent);
@@ -159,6 +146,32 @@ namespace GuildMaster.UI
                 }
             }
             right.text = r.ToString().TrimEnd('\n');
+        }
+
+        /// <summary>Профиль ролей, характеристики, навыки, характер и (если нужно) раскрытые черты — текстом.</summary>
+        public static string StatsText(CardModel model, UiTheme theme, bool withTraits)
+        {
+            string accent = UiTheme.ToHex(theme.Accent);
+            string dim = UiTheme.ToHex(theme.TextDim);
+            string text = UiTheme.ToHex(theme.Text);
+            var l = new StringBuilder();
+            l.Append($"<color={accent}>{UiStrings.RoleProfile}</color>\n{model.RoleProfile}\n\n");
+            l.Append($"<color={accent}>{UiStrings.Characteristics}</color>\n");
+            AppendValues(l, model.Characteristics, dim);
+            l.Append($"\n<color={accent}>{UiStrings.Skills}</color>\n");
+            AppendValues(l, model.Skills, dim);
+            l.Append($"\n<color={accent}>{UiStrings.Character}</color>\n");
+            foreach ((string axis, string value) in model.Axes)
+            {
+                string color = value == UiStrings.Unknown ? dim : text;
+                l.Append($"<color={dim}>{axis}</color><pos=45%><color={color}>{value}</color>\n");
+            }
+            if (withTraits)
+            {
+                l.Append($"\n<color={accent}>{UiStrings.Traits}</color>\n");
+                l.Append(model.Traits.Count == 0 ? $"<color={dim}>{UiStrings.NoTraits}</color>" : string.Join(", ", model.Traits));
+            }
+            return l.ToString().TrimEnd('\n');
         }
 
         private static void AppendValues(StringBuilder builder, List<NamedValue> values, string dim)
@@ -304,19 +317,16 @@ namespace GuildMaster.UI
         }
     }
 
-    /// <summary>Список уведомлений под колокольчиком: клик — к объекту уведомления.</summary>
+    /// <summary>Список уведомлений под колокольчиком: клик — окно решения или экран объекта уведомления.</summary>
     public sealed class NotificationsWindow : WindowView
     {
         private readonly NotificationsModel model;
         private readonly RectTransform list;
         private readonly List<Button> buttons = new List<Button>();
-        private readonly System.Action<int> openReport;
-
-        public NotificationsWindow(UiContext context, RectTransform parent, NotificationsModel model, System.Action<int> openReport)
+        public NotificationsWindow(UiContext context, RectTransform parent, NotificationsModel model)
             : base(context)
         {
             this.model = model;
-            this.openReport = openReport;
             Image overlay = Factory.Panel(parent, "Notifications", Color.clear, blocksClicks: true);
             Root = UiFactory.Stretch(overlay.rectTransform);
             overlay.gameObject.AddComponent<Button>().onClick.AddListener(() => Context.Navigator.Close(this));
@@ -360,12 +370,12 @@ namespace GuildMaster.UI
             if (index >= model.Items.Count) return;
             Notification item = model.Items[index];
             Context.Navigator.Close(this);
-            if (item.ReportIndex >= 0) openReport(item.ReportIndex);
+            if (item.Popup.IsValid) Context.OpenPopup(item.Popup);
             else Context.Navigator.Go(item.Destination);
         }
     }
 
-    /// <summary>Отчёт месяца — текстом по разделам (просмотр).</summary>
+    /// <summary>Отчёт месяца — все разделы текстом; «Закрыть». Тот же текст — в истории отчётов на экране «Казна».</summary>
     public sealed class ReportWindow : ModalWindow
     {
         private readonly TextMeshProUGUI text;
@@ -385,14 +395,214 @@ namespace GuildMaster.UI
             IReadOnlyList<MonthReport> reports = Client.World.Reports.Reports;
             if (ReportIndex < 0 || ReportIndex >= reports.Count) return;
             MonthReport report = reports[ReportIndex];
-            TitleLabel.text = $"{UiStrings.MonthReport}: {report.Month}.{report.Year}";
+            TitleLabel.text = $"{UiStrings.MonthReport}: {TreasuryModel.ReportName(report)}";
+            text.text = Render(report, Client, Theme);
+        }
+
+        /// <summary>Отчёт текстом: заголовки разделов акцентом, строки «подпись: значение».</summary>
+        public static string Render(MonthReport report, ISimulationClient client, UiTheme theme)
+        {
             var builder = new StringBuilder();
-            foreach (string line in MonthReportText.Lines(report, Client.World, Client.Data))
+            foreach (string line in MonthReportText.Lines(report, client.World, client.Data))
             {
                 bool heading = !line.Contains(":");
-                builder.Append(heading ? $"\n<color={UiTheme.ToHex(Theme.Accent)}>{LinkCodec.Escape(line)}</color>\n" : LinkCodec.Escape(line) + "\n");
+                builder.Append(heading ? $"\n<color={UiTheme.ToHex(theme.Accent)}>{LinkCodec.Escape(line)}</color>\n" : LinkCodec.Escape(line) + "\n");
             }
-            text.text = builder.ToString().Trim('\n');
+            return builder.ToString().Trim('\n');
+        }
+    }
+
+    /// <summary>
+    /// Кандидат в авантюристы: карточка без особых черт (профиль, характеристики, навыки, характер), сколько ещё ждёт;
+    /// «Принять» и «Отказать» — командами. Кандидат ушёл — кнопки неактивны.
+    /// </summary>
+    public sealed class CandidateWindow : ModalWindow
+    {
+        private readonly TextMeshProUGUI subtitle;
+        private readonly TextMeshProUGUI stats;
+        private readonly Button accept;
+        private readonly Button reject;
+
+        public CandidateWindow(UiContext context, RectTransform parent) : base(context, parent, "Candidate", 1000, 900)
+        {
+            Factory.Vertical(Body, 8);
+            subtitle = Factory.Label(Body, string.Empty, Theme.FontSizeLarge, Theme.TextDim, wrap: true);
+            RectTransform content = Factory.Scroll(Body, "Stats", out ScrollRect scroll, 4);
+            UiFactory.Size(scroll, flexHeight: 1);
+            stats = Factory.Label(content, string.Empty, wrap: true);
+
+            RectTransform buttons = UiFactory.Node(Body, "Buttons");
+            Factory.Horizontal(buttons, 12);
+            UiFactory.Size(buttons, height: Theme.RowHeight + 10);
+            accept = Factory.Button(buttons, UiStrings.Accept, () => Answer(true), 240, Theme.RowHeight + 10, Theme.FontSizeLarge);
+            Factory.SetButtonColors(accept, true);
+            reject = Factory.Button(buttons, UiStrings.Reject, () => Answer(false), 240, Theme.RowHeight + 10, Theme.FontSizeLarge);
+        }
+
+        public int CandidateId { get; set; }
+
+        /// <summary>Кандидат ещё ждёт ответа.</summary>
+        public bool IsWaiting { get; private set; }
+
+        public override void Refresh()
+        {
+            WorldState world = Client.World;
+            IsWaiting = world.Adventurers.TryGetCandidate(CandidateId, out Candidate candidate);
+            CardModel model = CardModel.Build(Client, CandidateId);
+            TitleLabel.text = string.Format(UiStrings.CandidateTitleFormat, model.Found ? model.Name : UiStrings.Unknown);
+            accept.interactable = IsWaiting;
+            reject.interactable = IsWaiting;
+            if (!IsWaiting)
+            {
+                subtitle.text = UiStrings.CandidateGone;
+                stats.text = string.Empty;
+                return;
+            }
+
+            string waits = string.Format(UiStrings.CandidateUntilFormat, UiFormat.Duration(candidate.ExpiresAtHours - world.Time.TotalHours, Client.Calendar));
+            subtitle.text = $"{model.Subtitle} · {model.Power}\n{waits}";
+            stats.text = CardWindow.StatsText(model, Theme, withTraits: false);
+        }
+
+        private void Answer(bool accepted)
+        {
+            if (!IsWaiting) return;
+            PeopleActions.AnswerCandidate(Client, CandidateId, accepted);
+            Context.Navigator.Close(this);
+        }
+    }
+
+    /// <summary>
+    /// Кандидат в персонал: должность, уровень, просимая зарплата, поле предложения (сначала — просимая), «Предложить»
+    /// (командой) и «Отказать» (только в интерфейсе — кандидат ждёт до своего срока и уходит сам).
+    /// </summary>
+    public sealed class StaffCandidateWindow : ModalWindow
+    {
+        private readonly TextMeshProUGUI info;
+        private readonly TMP_InputField offer;
+        private readonly Button offerButton;
+        private readonly Button reject;
+        private int filledFor;
+
+        public StaffCandidateWindow(UiContext context, RectTransform parent) : base(context, parent, "StaffCandidate", 900, 480)
+        {
+            Factory.Vertical(Body, 10);
+            info = Factory.Label(Body, string.Empty, Theme.FontSize, wrap: true, align: TextAlignmentOptions.TopLeft);
+            UiFactory.Size(info, flexHeight: 1);
+
+            RectTransform row = UiFactory.Node(Body, "Offer");
+            Factory.Horizontal(row, 12);
+            UiFactory.Size(row, height: Theme.RowHeight + 10);
+            offer = Factory.Input(row, UiStrings.SalaryHint, 200, TMP_InputField.ContentType.IntegerNumber);
+            offerButton = Factory.Button(row, UiStrings.Offer, Offer, 220, Theme.RowHeight + 10, Theme.FontSizeLarge);
+            Factory.SetButtonColors(offerButton, true);
+            reject = Factory.Button(row, UiStrings.Reject, Reject, 200, Theme.RowHeight + 10, Theme.FontSizeLarge);
+        }
+
+        public int CandidateId { get; set; }
+
+        public bool IsWaiting { get; private set; }
+
+        /// <summary>Поле предложения (для проверки).</summary>
+        public TMP_InputField OfferField => offer;
+
+        public override void Refresh()
+        {
+            WorldState world = Client.World;
+            IsWaiting = world.Staff.TryGetCandidate(CandidateId, out StaffCandidate candidate);
+            offerButton.interactable = IsWaiting;
+            reject.interactable = IsWaiting;
+            offer.interactable = IsWaiting;
+            if (!IsWaiting)
+            {
+                TitleLabel.text = UiStrings.CandidateGone;
+                info.text = string.Empty;
+                return;
+            }
+
+            string role = StaffModel.RoleName(Client.Data, candidate.RoleId);
+            TitleLabel.text = string.Format(UiStrings.StaffCandidateTitleFormat, role);
+            string effect = Client.Data.TryGet(candidate.RoleId, out StaffRoleDefinition definition) ? definition.LevelEffectDescription : string.Empty;
+            string dim = UiTheme.ToHex(Theme.TextDim);
+            info.text = string.Format(UiStrings.StaffCandidateLevelFormat, candidate.Name, candidate.Level) + "\n"
+                        + string.Format(UiStrings.StaffAskedFormat, UiFormat.Money(candidate.AskedSalary),
+                            UiFormat.Duration(candidate.ExpiresAtHours - world.Time.TotalHours, Client.Calendar))
+                        + (string.IsNullOrEmpty(effect) ? string.Empty : $"\n<color={dim}>{LinkCodec.Escape(effect)}</color>")
+                        + $"\n<color={dim}>{UiStrings.StaffOfferNote}</color>";
+            if (filledFor != CandidateId && !offer.isFocused)
+            {
+                offer.text = candidate.AskedSalary.ToString(CultureInfo.InvariantCulture);
+                filledFor = CandidateId;
+            }
+        }
+
+        public override void OnClosed() => filledFor = 0;
+
+        private void Offer()
+        {
+            if (!IsWaiting || !UiFormat.TryParseAmount(offer.text, out int amount)) return;
+            StaffModel.Offer(Client, CandidateId, amount);
+            Context.Navigator.Close(this);
+        }
+
+        private void Reject()
+        {
+            if (!IsWaiting) return;
+            Context.Notifications?.RejectStaffCandidate(CandidateId);
+            Context.Navigator.Close(this);
+        }
+    }
+
+    /// <summary>
+    /// Поражение: гильдия закрыта — итоги (сколько продержалась, казна, люди, заказы, лучшие люди со ссылками) и «Начать
+    /// заново» с новым случайным зерном. Окно можно закрыть и осмотреть мир; вернуть — уведомлением или с верхней панели.
+    /// </summary>
+    public sealed class DefeatWindow : ModalWindow
+    {
+        private readonly TextMeshProUGUI summary;
+        private readonly Button restart;
+
+        public DefeatWindow(UiContext context, RectTransform parent) : base(context, parent, "Defeat", 1000, 720)
+        {
+            TitleLabel.text = UiStrings.DefeatTitle;
+            TitleLabel.color = Theme.Danger;
+            Factory.Vertical(Body, 12);
+            summary = Factory.LinkLabel(Body, Context.OnLink);
+            summary.alignment = TextAlignmentOptions.TopLeft;
+            UiFactory.Size(summary, flexHeight: 1);
+            restart = Factory.Button(Body, UiStrings.StartOver, StartOver, height: Theme.RowHeight + 14, fontSize: Theme.FontSizeLarge);
+            Factory.SetButtonColors(restart, true);
+        }
+
+        public DefeatModel Model { get; private set; }
+
+        public override void Refresh()
+        {
+            Model = DefeatModel.Build(Client);
+            string accent = UiTheme.ToHex(Theme.Accent);
+            string dim = UiTheme.ToHex(Theme.TextDim);
+            string text = UiTheme.ToHex(Theme.Text);
+            var builder = new StringBuilder();
+            builder.Append(Model.Days).Append("\n\n");
+            builder.Append(Model.Money).Append('\n');
+            builder.Append(Model.People).Append('\n');
+            builder.Append(Model.Orders).Append("\n\n");
+            builder.Append($"<color={accent}>{UiStrings.DefeatBest}</color>\n");
+            for (int i = 0; i < Model.Best.Count; i++)
+            {
+                if (i > 0) builder.Append(", ");
+                builder.Append(LinkCodec.Wrap(Model.Best[i].Name, new TextLink(TextLinkKind.Adventurer, Model.Best[i].Id), text));
+            }
+            if (Context.Session != null)
+                builder.Append($"\n\n<color={dim}>{string.Format(UiStrings.DefeatSeedFormat, Context.Session.Seed)}</color>");
+            summary.text = builder.ToString();
+            restart.interactable = Context.Session != null;
+        }
+
+        private void StartOver()
+        {
+            IGameSession session = Context.Session;
+            session?.Restart(DefeatModel.NewSeed(session.Seed));
         }
     }
 }

@@ -6,8 +6,9 @@ using UnityEngine.UI;
 namespace GuildMaster.UI
 {
     /// <summary>
-    /// Верхняя панель (видна всегда): дата и фаза дня (клик — окно «Время»), скорость ⏸ ×1 ×2 ×4, казна (красным при минусе),
-    /// репутация, люди, таймер банкротства, уведомления со счётчиком.
+    /// Верхняя панель (видна всегда): дата и фаза дня (клик — окно «Время»), скорость ⏸ ×1 ×2 ×4, казна (красным при минусе;
+    /// клик — экран «Казна»), репутация, люди, таймер банкротства (клик — «Казна»; гильдия закрыта — окно итогов), уведомления
+    /// со счётчиком.
     /// </summary>
     public sealed class TopBarView : UiView
     {
@@ -52,14 +53,34 @@ namespace GuildMaster.UI
                 }
             }
 
-            money = Stat(bar.transform, 230);
+            money = ClickableStat(bar.transform, "Treasury", 230, () => Context.Navigator.ShowScreen(ScreenId.Treasury));
             reputation = Stat(bar.transform, 190);
             headcount = Stat(bar.transform, 150);
-            bankruptcy = Factory.Label(bar.transform, string.Empty, Theme.FontSize, Theme.Danger);
-            UiFactory.Size(bankruptcy, flexWidth: 1);
+            bankruptcy = ClickableStat(bar.transform, "Bankruptcy", -1, OnBankruptcy);
+            bankruptcy.color = Theme.Danger;
 
             notificationsButton = Factory.Button(bar.transform, UiStrings.Notifications, () => openNotifications(), 240);
             notificationsLabel = notificationsButton.GetComponentInChildren<TextMeshProUGUI>();
+        }
+
+        /// <summary>Надпись-кнопка без фона; ширина −1 — занять остаток панели.</summary>
+        private TextMeshProUGUI ClickableStat(Transform parent, string name, float width, System.Action onClick)
+        {
+            Button button = Factory.RowButton(parent, name, () => onClick());
+            ColorBlock colors = button.colors;
+            colors.normalColor = Theme.Panel;
+            button.colors = colors;
+            TextMeshProUGUI label = Factory.Label(button.transform, string.Empty, Theme.FontSize);
+            UiFactory.Stretch(label.rectTransform, 4, 0, 4, 0);
+            if (width >= 0) UiFactory.Size(button, width, Theme.TopBarHeight - 16);
+            else UiFactory.Size(button, 60, Theme.TopBarHeight - 16, flexWidth: 1);
+            return label;
+        }
+
+        private void OnBankruptcy()
+        {
+            if (Client.IsFinished) Context.OpenPopup(new Popup(PopupKind.Defeat));
+            else Context.Navigator.ShowScreen(ScreenId.Treasury);
         }
 
         private TextMeshProUGUI Stat(Transform parent, float width)

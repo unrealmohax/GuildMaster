@@ -8,6 +8,7 @@ namespace GuildMaster.UI
         Guild,
         Board,
         Quests,
+        Treasury,
     }
 
     /// <summary>Вкладки экрана «Гильдия».</summary>

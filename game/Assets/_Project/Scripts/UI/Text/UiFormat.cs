@@ -58,6 +58,15 @@ namespace GuildMaster.UI
 
         public static string Rank(GuildRank rank) => rank.ToString();
 
+        /// <summary>Сумма из поля ввода: цифры, пробелы между тысячами допустимы; пусто — 0. Не число или меньше нуля — false.</summary>
+        public static bool TryParseAmount(string text, out int amount)
+        {
+            amount = 0;
+            if (string.IsNullOrWhiteSpace(text)) return true;
+            string digits = text.Replace(" ", string.Empty).Replace(" ", string.Empty);
+            return int.TryParse(digits, NumberStyles.None, CultureInfo.InvariantCulture, out amount);
+        }
+
         public static string Percent(float fraction) => (fraction * 100f).ToString("0", CultureInfo.InvariantCulture) + "%";
     }
 }
