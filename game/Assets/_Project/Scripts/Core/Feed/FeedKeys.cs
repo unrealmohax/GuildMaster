@@ -70,6 +70,12 @@ namespace GuildMaster.Core
         public const string StaffDismissed = "guild.staff.fired";
         public const string StaffQuit = "guild.staff.quit";
         public const string SalaryUnpaid = "guild.staff.unpaid";
+        public const string DecreeEnabled = "guild.decree.enabled";
+        public const string DecreeProhibition = "guild.decree.prohibition";
+        public const string DecreeProhibitionQuiet = "guild.decree.prohibition.quiet";
+        public const string DecreeRevoked = "guild.decree.revoked";
+        public const string DecreeBenefitCancelled = "guild.decree.benefitCancelled";
+        public const string DecreeExpired = "guild.decree.expired";
 
         public const string QuestDeparted = "quest.departed";
         public const string QuestTravel = "quest.travel";
@@ -110,6 +116,7 @@ namespace GuildMaster.Core
             PermanentPartyFormed, PermanentPartyFormedPair, PermanentPartyDisbanded, PartyMemberLeftQuarrel, PartyMemberLeftLoner, PartyMemberJoined,
             BuildingQueued, BuildingStarted, BuildingReady,
             StaffCandidateArrived, StaffCandidateLeft, StaffCandidateRefused, StaffHired, StaffDismissed, StaffQuit, SalaryUnpaid,
+            DecreeEnabled, DecreeProhibition, DecreeProhibitionQuiet, DecreeRevoked, DecreeBenefitCancelled, DecreeExpired,
             QuestDeparted, QuestTravel, QuestCamp, QuestCeiling, QuestDeath, QuestLost, QuestOnlyFugitive, QuestMedicSaved,
             QuestReturnTrip, QuestReturnTripHard, QuestRetreat, QuestFlee, QuestLootHandedIn, QuestLootSkimmed,
         }.Concat(Prefixed("quest.loss.", QuestLossKinds)).Concat(Prefixed("quest.wound.", QuestWoundKinds))
@@ -205,7 +212,18 @@ namespace GuildMaster.Core
                 { SimEventType.StaffDismissed, (e, w, d) => StaffDismissed },
                 { SimEventType.StaffQuit, (e, w, d) => StaffQuit },
                 { SimEventType.SalaryUnpaid, (e, w, d) => SalaryUnpaid },
+                { SimEventType.DecreeEnabled, (e, w, d) => DecreeEnabledKey(e, d) },
+                { SimEventType.DecreeRevoked, (e, w, d) => e.TryGet("benefit", out bool benefit) && benefit ? DecreeBenefitCancelled : DecreeRevoked },
+                { SimEventType.DecreeExpired, (e, w, d) => DecreeExpired },
             };
+
+        /// <summary>Объявлено распоряжение; у Сухого закона — своя строка (с Пьяницей-участником или без).</summary>
+        private static string DecreeEnabledKey(SimEvent simEvent, DataRegistry data)
+        {
+            if (!simEvent.TryGet("decreeId", out string id) || !data.TryGet(id, out DecreeDefinition decree) || decree.Effect != DecreeEffect.Prohibition)
+                return DecreeEnabled;
+            return simEvent.Participants.Count > 0 ? DecreeProhibition : DecreeProhibitionQuiet;
+        }
 
         /// <summary>Кандидат в персонал ушёл: не дождался или отказался; место заняли — без строки.</summary>
         private static string StaffCandidateLeftKey(SimEvent simEvent)

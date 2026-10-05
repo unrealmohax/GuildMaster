@@ -85,3 +85,5 @@ description: Авантюристы GuildMaster — модель Adventurer и A
 - Черта у кандидата с партнёром — партнёр выбирается из гильдии; при отказе кандидату связь не создаётся.
 - `RelationBook` хеширует ключ пары своим `PairKeyComparer` — стандартный хеш `long` вырождался при сотнях людей.
 - Лог генерации — `Debug` (`start` / `candidate`: тип, уровень, параметры, оси, скрытые черты).
+- `RecruitSystem.CandidateChance(data, world)` — с множителем распоряжений; `(data, репутация[, множитель])` — без мира.
+  `AdventurerGenerator.Generate(…, workAxisShift)` — сдвиг Труда до обрезки, бросков не меняет («халявщики», скилл `gm-decrees`).

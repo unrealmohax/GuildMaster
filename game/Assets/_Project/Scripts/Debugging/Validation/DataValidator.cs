@@ -437,9 +437,12 @@ namespace GuildMaster.Debugging
             private void CheckDecrees()
             {
                 var numbers = new HashSet<int>();
+                var effects = new HashSet<DecreeEffect>();
                 foreach (DecreeDefinition decree in Live(config.Decrees))
                 {
                     if (!numbers.Add(decree.LawNumber)) report.Error(decree, "lawNumber", $"номер закона {decree.LawNumber} повторяется");
+                    if (decree.Effect == DecreeEffect.None) report.Error(decree, "effect", "не задано правило распоряжения");
+                    else if (!effects.Add(decree.Effect)) report.Error(decree, "effect", $"правило {decree.Effect} уже у другого распоряжения");
                     CheckNoun(decree, "nameForms", decree.NameForms);
                     RequireText(decree, "description", decree.Description);
                     if (decree.AllowedDurations.Count == 0) report.Error(decree, "allowedDurations", "нет допустимых сроков");

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using GuildMaster.Core;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -138,6 +139,11 @@ namespace GuildMaster.UI
             screen.Hide();
             Button button = context.Factory.Button(navBar, screen.Title, () => ShowScreen(screen.Id), height: context.Theme.RowHeight + 12,
                 fontSize: context.Theme.FontSizeLarge);
+            // Длинное название пункта уменьшается до ширины навигации, а не обрезается.
+            TextMeshProUGUI label = button.GetComponentInChildren<TextMeshProUGUI>();
+            label.enableAutoSizing = true;
+            label.fontSizeMin = context.Theme.FontSize;
+            label.fontSizeMax = context.Theme.FontSizeLarge;
             navButtons[screen.Id] = button;
         }
 

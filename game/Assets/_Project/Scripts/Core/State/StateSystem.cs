@@ -8,8 +8,9 @@ namespace GuildMaster.Core
     /// <list type="bullet">
     /// <item>Каждый час — усталость и стресс по занятию × эффекты черт.</item>
     /// <item>Раз в сутки (00:00), по каждому в гильдии: расходы на жизнь за прошедшие сутки (еда, жильё; еда в таверне, за которую
-    /// заплачено хоть что-то, — порция в доход таверны); довольство — к цели (комиссия — текущая комиссия гильдии)
-    /// на 1; лояльность — к довольству на 0,1 (ось «Верность»); учёт суток сбрасывается; срыв при стрессе выше 80
+    /// заплачено хоть что-то, — порция в доход таверны; еду и жильё новичка может платить гильдия по распоряжению); довольство —
+    /// к цели (комиссия — текущая комиссия гильдии, распоряжения) на 1; лояльность — к довольству на 0,1 (ось «Верность»)
+    /// и сдвиг от распоряжений; учёт суток сбрасывается; срыв при стрессе выше 80
     /// (шанс 10%, вид — по чертам); конец спада «Потерявшего товарища».</item>
     /// <item>В начале месяца — проверка ухода: лояльность ниже 25 — шанс 20% (Семейный × 1,5). Уход — [В], автопауза, с причинами
     /// из мотивов и состояния.</item>
@@ -34,10 +35,20 @@ namespace GuildMaster.Core
             float commission = ctx.World.Treasury.Commission;
             foreach (Adventurer adventurer in new List<Adventurer>(active))
             {
-                if (WalletService.PayDaily(ctx, adventurer) > 0 && adventurer.State.AteInTavernToday) TreasuryService.CountTavernFood(ctx);
-                float target = StateRules.ContentmentTarget(adventurer, commission, ctx.Data);
+                if (DecreeRules.GuildPaysLiving(adventurer, ctx.World, ctx.Data))
+                {
+                    DecreeService.PayLiving(ctx, adventurer);
+                    if (adventurer.State.AteInTavernToday) TreasuryService.CountTavernFood(ctx);
+                }
+                else if (WalletService.PayDaily(ctx, adventurer) > 0 && adventurer.State.AteInTavernToday)
+                {
+                    TreasuryService.CountTavernFood(ctx);
+                }
+                float target = StateRules.ContentmentTarget(adventurer, commission, ctx.Data, ctx.World);
                 StateService.MoveContentment(ctx, adventurer, target);
                 StateService.MoveLoyalty(ctx, adventurer);
+                float loyalty = DecreeRules.DailyLoyalty(ctx.World, ctx.Data);
+                if (loyalty != 0f) StateService.ChangeLoyalty(ctx, adventurer, loyalty);
                 AdventurerLog.WriteDaily(ctx, adventurer, target);
                 ResetDay(adventurer.State);
                 TryBreakdown(ctx, adventurer);

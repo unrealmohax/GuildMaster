@@ -125,6 +125,7 @@ namespace GuildMaster.Core
     /// усталости выше 90, срыве; если выйти в следующем часу уже поздно; чужой экзамен; экзамен — только одному; заказ уже взят
     /// (кроме приглашения: заказ уже у той группы, которая зовёт). Тренировка: двор полон (мест — вместимость двора, считаются
     /// и те, кто выбрал двор в этом часу); уже тренировался сегодня; есть рана; усталость выше 90; в кошельке меньше платы.
+    /// Распоряжение «только группой»: заказ ранга из его области нельзя взять одному (экзамен — можно).
     /// </summary>
     public static class DecisionBans
     {
@@ -150,6 +151,9 @@ namespace GuildMaster.Core
                 (ctx, a, action) => action.Kind == DecisionActionKind.Train && StateRules.IsTooTiredForQuests(a.State, ctx.Data.Balance.State)),
             new DecisionBan("cannot pay for training",
                 (ctx, a, action) => action.Kind == DecisionActionKind.Train && a.State.Wallet < WalletService.Coins(ctx.Data.Balance.Expenses.Training)),
+            new DecisionBan("solo forbidden by decree",
+                (ctx, a, action) => action.Kind == DecisionActionKind.TakeOrder && OrderOf(ctx, action, out Order o)
+                    && DecreeRules.IsSoloBanned(ctx.World, ctx.Data, o)),
         };
 
         private static bool IsYardFull(SimContext ctx, Adventurer adventurer, DecisionAction action)

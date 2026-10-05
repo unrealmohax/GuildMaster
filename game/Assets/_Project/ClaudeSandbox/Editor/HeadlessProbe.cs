@@ -23,7 +23,29 @@ namespace GuildMaster.ClaudeSandbox
         [MenuItem(Menu + "Year Seeds 1-10 Info")]
         private static void TenYears() => Run(1u, 360, SimLogLevel.Info, 10);
 
-        private static void Run(uint seed, int days, SimLogLevel level, int runs)
+        /// <summary>Год «Простого» бота, который в первый такт включает все четыре распоряжения (Сухой закон — на 7 дней).</summary>
+        [MenuItem(Menu + "Year Seeds 1-10 Info With Decrees")]
+        private static void TenYearsWithDecrees() => Run(1u, 360, SimLogLevel.Info, 10, WithDecrees);
+
+        private static PlayerBot WithDecrees()
+        {
+            var rules = new System.Collections.Generic.List<IBotRule>(PlayerBots.Simple().Rules) { new AllDecreesRule() };
+            return new PlayerBot("Простой + распоряжения", rules.ToArray());
+        }
+
+        private sealed class AllDecreesRule : IBotRule
+        {
+            public void Act(BotTurn turn)
+            {
+                if (turn.Tick != 0) return;
+                turn.Send(new ToggleDecreeCommand("FreeLodgingForNewcomers", true));
+                turn.Send(new ToggleDecreeCommand("GroupOnlyFromRank", true, new[] { GuildRank.C }));
+                turn.Send(new ToggleDecreeCommand("InjuryCompensation", true));
+                turn.Send(new ToggleDecreeCommand("Prohibition", true, null, DecreeDuration.Week));
+            }
+        }
+
+        private static void Run(uint seed, int days, SimLogLevel level, int runs, System.Func<PlayerBot> bot = null)
         {
             GameConfig config = EditorAssets.FindGameConfig();
             if (config == null)
@@ -32,7 +54,7 @@ namespace GuildMaster.ClaudeSandbox
                 return;
             }
 
-            var options = new HeadlessRun.Options { Seed = seed, Days = days, LogLevel = level, Runs = runs, Bot = PlayerBots.Simple };
+            var options = new HeadlessRun.Options { Seed = seed, Days = days, LogLevel = level, Runs = runs, Bot = bot ?? PlayerBots.Simple };
             HeadlessRun.Batch batch = HeadlessRun.RunToFiles(config, options);
             double seconds = 0;
             foreach (HeadlessRun.Result result in batch.Results) seconds += result.ElapsedSeconds;

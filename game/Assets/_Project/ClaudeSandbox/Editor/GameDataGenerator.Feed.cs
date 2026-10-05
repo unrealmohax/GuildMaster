@@ -366,6 +366,11 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("report.staff.quit", O, None, "Ушли, не дождавшись жалованья"));
             t.Add(Guild("report.staff.dismissed", O, None, "Уволены"));
             t.Add(Guild("report.staff.unpaid", O, None, "Ждут жалованья"));
+            // Новое (GM-16): раздел отчёта «Распоряжения».
+            t.Add(Guild("report.decrees", O, None, "Распоряжения"));
+            t.Add(Guild("report.decrees.acted", O, None, "Действовали"));
+            t.Add(Guild("report.decrees.cost", O, None, "Расходы на распоряжения"));
+            t.Add(Guild("report.decrees.item", O, None, "{распоряжение} — {число} дн."));
             // Названия статей журнала казны.
             t.Add(Guild("ledger.tavern", O, None, "Таверна"));
             t.Add(Guild("ledger.commission", O, None, "Комиссия"));
@@ -380,6 +385,8 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("ledger.construction", O, None, "Стройка"));
             t.Add(Guild("ledger.upkeep", O, None, "Содержание"));
             t.Add(Guild("ledger.salaries", O, None, "Зарплаты"));
+            // Новое (GM-16): расходы по распоряжениям.
+            t.Add(Guild("ledger.decrees", O, None, "Распоряжения"));
             // Новое (GM-14): деньги, добавленные и снятые отладочной панелью.
             t.Add(Guild("ledger.debugIncome", O, None, "Отладка: пополнение"));
             t.Add(Guild("ledger.debugExpense", O, None, "Отладка: изъятие"));
@@ -411,6 +418,9 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("guild.decree.enabled", O, None, "Объявлено: {распоряжение}"));
             t.Add(Guild("guild.decree.benefitCancelled", Z, None, "Новость об отмене {распоряжение:р} встретили молча"));
             t.Add(Guild("guild.decree.prohibition", Z, None, "Трактирщик убрал бочки в погреб. {имя} смотрел[|а] на это долго"));
+            // Новое (GM-16, ❔): Сухой закон без известного Пьяницы; отмена распоряжения-не-льготы.
+            t.Add(Guild("guild.decree.prohibition.quiet", Z, None, "Трактирщик убрал бочки в погреб"));
+            t.Add(Guild("guild.decree.revoked", O, None, "Отменено: {распоряжение}"));
 
             t.Add(Guild("guild.building.started", O, None, "Начали строить {постройка:в}"));
             // Правка: род постройки из данных — «Общежитие готово».

@@ -94,6 +94,12 @@ namespace GuildMaster.Core
         /// <summary>Зарплата сотруднику — только если денег хватает, иначе долг по зарплате; связанный объект — сотрудник.</summary>
         public static readonly LedgerCategory Salaries = new LedgerCategory("salaries", LedgerFlow.Expense, ExpenseKind.IfAffordable);
 
+        /// <summary>
+        /// Расходы по распоряжениям — даже в минус: еда и жильё новичков, компенсация за ранение. Комментарий — id распоряжения,
+        /// связанный объект — человек.
+        /// </summary>
+        public static readonly LedgerCategory Decrees = new LedgerCategory("decrees", LedgerFlow.Expense, ExpenseKind.Mandatory);
+
         /// <summary>Деньги, добавленные отладочной панелью.</summary>
         public static readonly LedgerCategory DebugIncome = new LedgerCategory("debugIncome", LedgerFlow.Income);
 
@@ -103,7 +109,7 @@ namespace GuildMaster.Core
         public static IReadOnlyList<LedgerCategory> All { get; } = new[]
         {
             Tavern, Commission, DebtRepayment, Dormitory, Infirmary, TrainingYard,
-            Surcharges, EventQuests, Discoveries, Construction, Upkeep, Salaries, DebugIncome, DebugExpense,
+            Surcharges, EventQuests, Discoveries, Construction, Upkeep, Salaries, Decrees, DebugIncome, DebugExpense,
         };
     }
 }

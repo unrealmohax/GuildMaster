@@ -53,7 +53,7 @@ namespace GuildMaster.Core
         internal static void CountTavernDrink(SimContext ctx) => ctx.World.Treasury.TavernDrinks++;
 
         /// <summary>
-        /// Доход таверны за прошедшие сутки: порции × доля гильдии с порции. Зачисляются целые монеты одной записью,
+        /// Доход таверны за прошедшие сутки: порции × доля гильдии с порции (× Сухой закон). Зачисляются целые монеты одной записью,
         /// дробный остаток переносится на следующие сутки.
         /// </summary>
         internal static void SettleTavern(SimContext ctx)
@@ -63,7 +63,8 @@ namespace GuildMaster.Core
             int drinks = treasury.TavernDrinks;
             if (food == 0 && drinks == 0) return;
 
-            double total = treasury.TavernRemainder + (food + drinks) * (double)ctx.Data.Balance.Economy.TavernIncomePerServing;
+            double perServing = ctx.Data.Balance.Economy.TavernIncomePerServing * (double)DecreeRules.TavernIncomeMultiplier(ctx.World, ctx.Data);
+            double total = treasury.TavernRemainder + (food + drinks) * perServing;
             int coins = (int)Math.Floor(total + 1e-9);
             treasury.TavernRemainder = Math.Max(0, total - coins);
             treasury.TavernFood = 0;

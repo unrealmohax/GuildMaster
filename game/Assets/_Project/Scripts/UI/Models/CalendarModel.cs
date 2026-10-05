@@ -20,7 +20,8 @@ namespace GuildMaster.UI
 
     /// <summary>
     /// Окно «Время»: текущая дата, сколько до начала месяца и ближайшие события по порядку — конец стройки, сроки ответа
-    /// на важные заказы, возвращение групп (только тех, кто уже на обратном пути: срок на месте заранее не известен).
+    /// на важные заказы, возвращение групп (только тех, кто уже на обратном пути: срок на месте заранее не известен), окончание
+    /// срока распоряжений.
     /// </summary>
     public sealed class CalendarModel
     {
@@ -29,6 +30,7 @@ namespace GuildMaster.UI
             new ConstructionEnds(),
             new OrderAnswersDue(),
             new PartiesReturn(),
+            new DecreesEnd(),
         };
 
         public string Today { get; private set; } = string.Empty;
@@ -83,6 +85,26 @@ namespace GuildMaster.UI
                         AtHours = order.AnswerDueAtHours,
                         Text = string.Format(UiStrings.CalendarAnswerFormat, BoardModel.TypeName(client.Data, order.TypeId), order.Client?.Nominative),
                         Destination = Destination.ToScreen(ScreenId.Board, order.Id),
+                    });
+                }
+            }
+        }
+
+        private sealed class DecreesEnd : ICalendarSource
+        {
+            public void Collect(ISimulationClient client, List<CalendarItem> items)
+            {
+                foreach (ActiveDecree active in client.World.Decrees.Active)
+                {
+                    if (active.IsPermanent) continue;
+                    string name = client.Data.TryGet(active.DecreeId, out GuildMaster.Data.DecreeDefinition definition)
+                        ? definition.DisplayName
+                        : active.DecreeId;
+                    items.Add(new CalendarItem
+                    {
+                        AtHours = active.EndsAtHours,
+                        Text = string.Format(UiStrings.CalendarDecreeFormat, name),
+                        Destination = Destination.ToScreen(ScreenId.Decrees),
                     });
                 }
             }

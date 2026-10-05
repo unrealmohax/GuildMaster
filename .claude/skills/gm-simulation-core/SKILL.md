@@ -33,8 +33,8 @@ description: Ядро симуляции GuildMaster — такт Simulation.Tic
 
 Порядок сейчас (`CreateDefault`): `CommandSystem` → `TimeSystem` → `OrderSystem` → `QuestSystem` → `ActivitySystem` →
 `StateSystem` → `HealthSystem` → `DecisionSystem` → `EconomySystem` → `AdventurerSystem` → `RecruitSystem` →
-`MonthReportSystem` → `FeedSystem` → `AutopauseSystem`. Места 9 (`PartySystem`), 10 (`DilemmaSystem`), 12 (`BuildingSystem`,
-`StaffSystem`), 14 (`DecreeSystem`) пусты — см. комментарий в `SimulationSystems`. Группы живут внутри `DecisionSystem`
+`DecreeSystem` → `MonthReportSystem` → `FeedSystem` → `AutopauseSystem`. Места 9 (`PartySystem`) и 10 (`DilemmaSystem`)
+пусты; 12 — `StaffSystem`, `BuildingSystem`, `SalarySystem`; 14 — `DecreeSystem` (скилл `gm-decrees`) — см. комментарий в `SimulationSystems`. Группы живут внутри `DecisionSystem`
 и `QuestSystem`, отдельной системы у них нет.
 
 Стартовое состояние — в конструкторе `Simulation`, до первого такта, **без событий**: казна и комиссия, репутация, затем

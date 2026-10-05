@@ -3,7 +3,7 @@ namespace GuildMaster.Core
     /// <summary>
     /// Всё текущее состояние мира. Снаружи Core — только чтение: сеттеры internal, менять мир можно
     /// только системами и командами.
-    /// Распоряжения и обращения добавляются по тому же правилу.
+    /// Обращения добавляются по тому же правилу.
     /// </summary>
     public sealed class WorldState
     {
@@ -46,5 +46,8 @@ namespace GuildMaster.Core
 
         /// <summary>Персонал: сотрудники, бывшие сотрудники, кандидаты на вакансии.</summary>
         public StaffRoster Staff { get; } = new StaffRoster();
+
+        /// <summary>Распоряжения: включённые, их область и срок.</summary>
+        public DecreeBook Decrees { get; } = new DecreeBook();
     }
 }

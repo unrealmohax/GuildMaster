@@ -16,7 +16,8 @@ namespace GuildMaster.Core
     /// <item>Выбран — заказ снят с доски, инициатор зовёт по одному лучшего по оценке напарника, пока новый человек повышает его
     /// ценность и в группе меньше <c>maxPartySize</c>; отказал — следующего. Собрал не меньше приемлемого минимума
     /// (<see cref="PresumedParty.MinimumAbove"/> лучшего другого варианта) — группа идёт. Нет — идёт один, если это лучше отдыха,
-    /// иначе заказ снова на доске, а Командный, отвергший одиночку, раскрывается.</item>
+    /// иначе заказ снова на доске, а Командный, отвергший одиночку, раскрывается. Распоряжение «только группой» на ранг заказа:
+    /// минимум — двое, одному идти нельзя (отказ без раскрытия).</item>
     /// <item><b>Приглашение</b>: зовут любого свободного, кто может брать задания, не взял заказ и не в собираемой группе (решение
     /// этого часа пересматривается). Он сравнивает «этот заказ с этой группой» (<see cref="DecisionActionKind.JoinParty"/>)
     /// со своими вариантами точки — обычный выбор с броском. Отказ — событие с причиной (<see cref="PartyReasons"/>); взял
@@ -102,7 +103,7 @@ namespace GuildMaster.Core
                 List<Adventurer> candidates = pool.FindAll(c => GuildRanks.CanTakeOrder(c, order.Rank));
                 if (candidates.Count == 0) continue;
 
-                var lens = new PartyLens(adventurer, order, false, commission, relations, data, scope.Profiles);
+                var lens = new PartyLens(adventurer, order, false, commission, relations, data, scope.Profiles, scope.SafetyMultiplier);
                 PresumedParty party = PartyMath.Presume(lens, candidates);
                 if (party.Members.Count < 2) continue;
                 presumed[order.Id] = party;
@@ -132,14 +133,17 @@ namespace GuildMaster.Core
                 if (option.Action.Kind == DecisionActionKind.TakeOrder && option.Action.OrderId == order.Id) solo = option.Value;
                 if (option.Action.Kind == DecisionActionKind.Rest) rest = option.Value;
             }
+            bool soloBanned = DecreeRules.IsSoloBanned(ctx.World, data, order);
             int minimum = plan.MinimumAbove(bestOther);
+            if (soloBanned) minimum = Math.Max(minimum, 2);
 
             OrderChoice.Reserve(ctx, order, initiator);
             Party party = PartyService.StartGathering(ctx, initiator, order);
             if (ctx.Log.IsOn(SimLogLevel.Info)) WriteSeek(ctx.Log, party, initiator, order, plan, minimum, bestOther);
 
             var group = new List<Adventurer> { initiator };
-            var lens = new PartyLens(initiator, order, false, ctx.World.Treasury.Commission, ctx.World.Relations, data, scope.Profiles);
+            var lens = new PartyLens(initiator, order, false, ctx.World.Treasury.Commission, ctx.World.Relations, data, scope.Profiles,
+                scope.SafetyMultiplier);
             InviteWhileValueGrows(scope, lens, party, group, false, point, null, lens.Value);
 
             if (group.Count >= minimum)
@@ -155,7 +159,7 @@ namespace GuildMaster.Core
             initiator.PartyId = 0;
             ctx.World.Parties.Remove(party);
 
-            bool goesAlone = solo > rest;
+            bool goesAlone = !soloBanned && solo > rest;
             ctx.Log.Write(SimLogLevel.Info, "party #{0} not gathered: {1} of {2}, {3}", party.Id, group.Count, minimum, goesAlone ? "goes alone" : "gives up");
             if (goesAlone)
             {
@@ -164,10 +168,11 @@ namespace GuildMaster.Core
             else
             {
                 OrderChoice.Release(ctx, order);
-                RevealService.TryRevealAxis(ctx, initiator, AxisId.People, RevealTrigger.TeamRefusedSolo);
+                if (!soloBanned) RevealService.TryRevealAxis(ctx, initiator, AxisId.People, RevealTrigger.TeamRefusedSolo);
             }
-            ctx.Events.Publish(SimEventType.PartyNotGathered, EventImportance.Normal, initiator.Id)
+            SimEvent notGathered = ctx.Events.Publish(SimEventType.PartyNotGathered, EventImportance.Normal, initiator.Id)
                 .With("order", order.Id).With("solo", goesAlone);
+            if (soloBanned) notGathered.With("soloBanned", true);
         }
 
         /// <summary>
@@ -224,7 +229,7 @@ namespace GuildMaster.Core
             var snapshot = new List<Adventurer>(group);
             float commission = ctx.World.Treasury.Commission;
             RelationBook relations = ctx.World.Relations;
-            var lens = new PartyLens(invitee, order, permanent, commission, relations, data, scope.Profiles);
+            var lens = new PartyLens(invitee, order, permanent, commission, relations, data, scope.Profiles, scope.SafetyMultiplier);
             var join = new DecisionAction(DecisionActionKind.JoinParty, Activity.Resting, false,
                 (sc, a, scores) => lens.Scores(snapshot, scores), order.Id);
 
@@ -342,7 +347,8 @@ namespace GuildMaster.Core
                     if (member.Id != leader.Id && FindBan(ctx, member, probe) == null) group.Add(member);
                 }
                 if (group.Count < 2) continue;
-                choices.Add(new PartyOption(order, group, PartyMath.MeanGroupValue(order, group, true, commission, relations, data, scope.Profiles),
+                choices.Add(new PartyOption(order, group, PartyMath.MeanGroupValue(order, group, true, commission, relations, data, scope.Profiles,
+                    scope.SafetyMultiplier),
                     choices.Count));
             }
             if (choices.Count == 1) return;
@@ -367,9 +373,10 @@ namespace GuildMaster.Core
             {
                 if (member.Id != leader.Id && Invite(scope, member, leader, party, target, chosen.Group, true, point)) going.Add(member);
             }
-            var leaderLens = new PartyLens(leader, target, true, commission, relations, data, scope.Profiles);
+            var leaderLens = new PartyLens(leader, target, true, commission, relations, data, scope.Profiles, scope.SafetyMultiplier);
             InviteWhileValueGrows(scope, leaderLens, party, going, true, point, outside,
-                members => PartyMath.MeanGroupValue(target, members, true, commission, relations, data, scope.Profiles));
+                members => PartyMath.MeanGroupValue(target, members, true, commission, relations, data, scope.Profiles,
+                    scope.SafetyMultiplier));
 
             if (going.Count < 2)
             {

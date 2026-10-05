@@ -11,6 +11,9 @@ namespace GuildMaster.Core
 
         /// <summary>Доля добычи: Семейный отсылает часть домой.</summary>
         Loot,
+
+        /// <summary>Компенсация гильдии за рану: Семейный отсылает часть домой.</summary>
+        Compensation,
     }
 
     /// <summary>

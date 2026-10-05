@@ -14,6 +14,7 @@ namespace GuildMaster.UI
         public const string Board = "Доска";
         public const string Quests = "Задания";
         public const string TreasuryScreen = "Казна";
+        public const string DecreesScreen = "Распоряжения";
         public const string People = "Люди";
         public const string Parties = "Группы";
         public const string Buildings = "Постройки";
@@ -47,6 +48,24 @@ namespace GuildMaster.UI
         public const string CalendarConstructionFormat = "Готова постройка: {0}";
         public const string CalendarAnswerFormat = "Срок ответа на заказ: {0}, {1}";
         public const string CalendarReturnFormat = "Возвращение: {0}";
+        public const string CalendarDecreeFormat = "Кончается срок распоряжения: {0}";
+
+        // Распоряжения
+        public const string DecreeEnable = "Включить";
+        public const string DecreeDisable = "Выключить";
+        public const string DecreeOnState = "Действует";
+        public const string DecreeOffState = "Не действует";
+        public const string DecreeOff = "выключено";
+        public const string DecreePermanent = "бессрочно";
+        public const string DecreeRemainingFormat = "осталось {0}";
+        public const string DecreePlusFormat = "Плюс: {0}";
+        public const string DecreePriceFormat = "Цена: {0}";
+        public const string DecreeMonthCostFormat = "Расходы в этом месяце: {0}";
+        public const string DecreeBenefitHint = "Льгота: если отменить её до срока, люди будут недовольны";
+        public const string DecreeScope = "Ранги заказов:";
+        public const string DecreeTerm = "Срок:";
+        public const string DecreeDurationPermanent = "Бессрочно";
+        public const string DecreeDurationDaysFormat = "{0} дн.";
         public const string Close = "Закрыть";
 
         /// <summary>Переключатели автопаузы по видам. Нет строки — показывается имя вида.</summary>

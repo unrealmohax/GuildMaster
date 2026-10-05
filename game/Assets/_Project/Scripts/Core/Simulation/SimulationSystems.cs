@@ -9,7 +9,8 @@ namespace GuildMaster.Core
     ///  9. PartySystem    10. DilemmaSystem  11. EconomySystem  12. BuildingSystem, StaffSystem
     /// 13. AdventurerSystem, RecruitSystem   14. DecreeSystem   15. FeedSystem     16. AutopauseSystem
     /// Шаг 12: StaffSystem (кандидаты, долги и уход персонала), BuildingSystem (стройка, Общежитие, тренировки, содержание),
-    /// SalarySystem (зарплаты в начале месяца — после содержания). Шаг 13 дополнен AdventurerSystem. Перед FeedSystem —
+    /// SalarySystem (зарплаты в начале месяца — после содержания). Шаг 13 дополнен AdventurerSystem. Шаг 14: DecreeSystem — снятие
+    /// распоряжений по сроку; сами эффекты считают системы, которых они касаются. Перед FeedSystem —
     /// MonthReportSystem: отчёт месяца собирается после всех систем, которые меняют мир.
     /// </summary>
     public static class SimulationSystems
@@ -30,6 +31,7 @@ namespace GuildMaster.Core
             new SalarySystem(),
             new AdventurerSystem(),
             new RecruitSystem(),
+            new DecreeSystem(),
             new MonthReportSystem(), // после всех систем, которые меняют мир
             new FeedSystem(), // после всех систем, которые публикуют события
             new AutopauseSystem(), // всегда последняя: видит события всех систем такта

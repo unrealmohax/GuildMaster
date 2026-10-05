@@ -84,3 +84,5 @@ description: Группы GuildMaster — Party и PartyBook (группы по�
 - Кто ответил на приглашение, в этом часу второй раз не решает (`decidedThisHour`).
 - Экзамен — только одному (запрет в `DecisionBans`).
 - Песочница: `Groups 10 Years` (≈40 с) сравнивает с прогоном без групп; `Chronicle Year Seed 1` — летопись постоянных групп в `Logs/`.
+- `PartyLens(…, safetyMultiplier)` и `MeanGroupValue(…, safetyMultiplier)` — множитель «Безопасности» от распоряжений: передавать
+  `scope.SafetyMultiplier`, иначе ценность группы и вариантов «одному» считаются в разных весах. «Только группой» — скилл `gm-decrees`.

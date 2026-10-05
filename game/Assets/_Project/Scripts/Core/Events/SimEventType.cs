@@ -334,5 +334,22 @@ namespace GuildMaster.Core
 
         /// <summary>Мир изменён командой отладочной панели: <c>what</c> — что сделано, остальное — по действию. Без строки.</summary>
         DebugAction,
+
+        // Распоряжения. Участников нет (кроме компенсации); <c>decree</c> — название (падежи и род), <c>decreeId</c> — id.
+
+        /// <summary>Игрок включил распоряжение: <c>ranks</c> — область, <c>duration</c>, <c>endsAt</c> (0 — бессрочно). [О]; Сухой закон — [З].</summary>
+        DecreeEnabled,
+
+        /// <summary>Игрок сменил область или срок включённого распоряжения: <c>ranks</c>, <c>duration</c>, <c>endsAt</c>. Без строки.</summary>
+        DecreeChanged,
+
+        /// <summary>Игрок выключил распоряжение: <c>benefit</c>, <c>affected</c> — скольких задела отмена льготы. [О]; льгота — [З].</summary>
+        DecreeRevoked,
+
+        /// <summary>Срок распоряжения вышел, оно выключилось само. [О].</summary>
+        DecreeExpired,
+
+        /// <summary>Гильдия заплатила раненому по распоряжению: <c>amount</c>, <c>kind</c>, <c>maimed</c>. Участник — раненый. Без строки.</summary>
+        InjuryCompensated,
     }
 }

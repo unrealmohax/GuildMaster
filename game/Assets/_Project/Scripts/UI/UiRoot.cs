@@ -142,6 +142,7 @@ namespace GuildMaster.UI
             navigator.Register(new BoardScreen(context, work));
             navigator.Register(new QuestsScreen(context, work));
             navigator.Register(new TreasuryScreen(context, work));
+            navigator.Register(new DecreesScreen(context, work));
             navigator.Changed += MarkDirty;
 
             notifications = new NotificationsModel();

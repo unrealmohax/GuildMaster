@@ -83,3 +83,10 @@ description: Состояние и здоровье авантюристов Gui
 
 GuildMaster → Sandbox → State: `Light Wound First`, `Heavy Wound First`, `Stress +50 First` (Play Mode), `Preview 90 Days`
 (без Play Mode). Вывод — `read_console` с `types: ["all"]`.
+
+## Распоряжения
+
+Скилл `gm-decrees`. Здесь они действуют так: в 00:00 еду и жильё новичка может платить гильдия (`DecreeRules.GuildPaysLiving` —
+человек не платит, `DecreeService.PayLiving`); цель довольства — `StateRules.ContentmentTarget(…, world)` + `DecreeRules.ContentmentTerm`
+(без мира — без распоряжений); после сдвига лояльности — `DecreeRules.DailyLoyalty`; снятие стресса в таверне × Сухой закон
+(`StateService.ApplyHour`), шанс Пьяницы пропустить день — `DecreeRules.DrunkardSkipChance`; компенсация за рану — в `HealthService.Wound`.

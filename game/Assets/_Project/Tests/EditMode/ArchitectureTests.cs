@@ -98,6 +98,7 @@ namespace GuildMaster.Tests
                 typeof(PartyBook), typeof(Party),
                 typeof(BuildingBook), typeof(Building),
                 typeof(StaffRoster), typeof(StaffMember), typeof(StaffCandidate),
+                typeof(DecreeBook), typeof(ActiveDecree), typeof(DecreeSpan),
             };
             foreach (Type type in stateTypes)
             {

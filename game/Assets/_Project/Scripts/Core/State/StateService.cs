@@ -138,7 +138,8 @@ namespace GuildMaster.Core
 
         /// <summary>
         /// Час занятия: усталость и стресс по таблице занятий × множители черт. Снятие стресса в таверне × эффект Трактирщика
-        /// (<see cref="StaffRules.EffectMultiplier"/>; нет Трактирщика — как уровень 0).
+        /// (<see cref="StaffRules.EffectMultiplier"/>; нет Трактирщика — как уровень 0) × Сухой закон
+        /// (<see cref="DecreeRules.TavernStressReliefMultiplier"/>).
         /// </summary>
         internal static void ApplyHour(SimContext ctx, Adventurer adventurer, PartyContext party)
         {
@@ -146,7 +147,11 @@ namespace GuildMaster.Core
             Activity activity = adventurer.State.Activity;
             AddFatigue(ctx, adventurer, StateRules.FatiguePerHour(activity, balance), party);
             float stress = StateRules.StressPerHour(activity, balance);
-            if (activity == Activity.Tavern && stress < 0f) stress *= StaffRules.EffectMultiplier(ctx.World, ctx.Data, StaffLevelEffect.TavernStressRelief);
+            if (activity == Activity.Tavern && stress < 0f)
+            {
+                stress *= StaffRules.EffectMultiplier(ctx.World, ctx.Data, StaffLevelEffect.TavernStressRelief);
+                stress *= DecreeRules.TavernStressReliefMultiplier(adventurer, ctx.World, ctx.Data);
+            }
             AddStress(ctx, adventurer, stress, party);
         }
 

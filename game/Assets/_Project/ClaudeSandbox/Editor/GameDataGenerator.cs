@@ -481,30 +481,38 @@ namespace GuildMaster.ClaudeSandbox
 
         private static void FillDecrees(Dictionary<string, DecreeDefinition> d)
         {
-            Decree(d["FreeLodgingForNewcomers"], 2, "Еда и жильё для новичков", P,
+            Decree(d["FreeLodgingForNewcomers"], 2, DecreeEffect.FreeLodgingForNewcomers,
+                Forms("Еда и жильё для новичков", "Еды и жилья для новичков", "Еде и жилью для новичков", "Еду и жильё для новичков",
+                    "Едой и жильём для новичков", "Еде и жилье для новичков", P),
                 "Гильдия платит за еду и жильё тех, кто в гильдии недавно.",
                 "Приток людей из других поселений", "Постоянные расходы, халявщики",
                 DecreeScopeKind.None, isBenefit: true);
-            Decree(d["GroupOnlyFromRank"], 5, "Задания от ранга C — только группой", P,
+            Decree(d["GroupOnlyFromRank"], 5, DecreeEffect.GroupOnlyFromRank,
+                Forms("Задания от ранга C — только группой", "Заданий от ранга C — только группой", "Заданиям от ранга C — только группой",
+                    "Задания от ранга C — только группой", "Заданиями от ранга C — только группой", "Заданиях от ранга C — только группой", P),
                 "Заказы выбранных рангов нельзя брать в одиночку.",
                 "Меньше смертей", "Одиночки недовольны, выполняется меньше заданий",
                 DecreeScopeKind.Ranks, isBenefit: false, GuildRank.C);
-            Decree(d["InjuryCompensation"], 11, "Компенсация за ранение", F,
+            Decree(d["InjuryCompensation"], 11, DecreeEffect.InjuryCompensation,
+                Forms("Компенсация за ранение", "Компенсации за ранение", "Компенсации за ранение", "Компенсацию за ранение",
+                    "Компенсацией за ранение", "Компенсации за ранение", F),
                 "За каждую рану гильдия платит раненому: за лёгкую, тяжёлую и увечье — по-разному.",
                 "Лояльность, охотнее рискуют", "Расходы",
                 DecreeScopeKind.None, isBenefit: true);
-            Decree(d["Prohibition"], 14, "Сухой закон", M,
+            Decree(d["Prohibition"], 14, DecreeEffect.Prohibition,
+                Forms("Сухой закон", "Сухого закона", "Сухому закону", "Сухой закон", "Сухим законом", "Сухом законе", M),
                 "В таверне гильдии не подают выпивку.",
                 "Пьяницы не срывают задания", "Пьяницы уходят, таверна приносит меньше",
                 DecreeScopeKind.None, isBenefit: false);
         }
 
-        private static void Decree(DecreeDefinition asset, int law, string name, GrammaticalGender gender, string description, string plus, string minus,
+        private static void Decree(DecreeDefinition asset, int law, DecreeEffect effect, NounForms forms, string description, string plus, string minus,
             DecreeScopeKind scope, bool isBenefit, params GuildRank[] ranks)
         {
-            Def(asset, asset.name, name);
+            Def(asset, asset.name, forms.Nominative);
             Set(asset, "lawNumber", law);
-            Set(asset, "nameForms", new NounForms(name, gender));
+            Set(asset, "effect", effect);
+            Set(asset, "nameForms", forms);
             Set(asset, "description", description);
             Set(asset, "plusText", plus);
             Set(asset, "minusText", minus);

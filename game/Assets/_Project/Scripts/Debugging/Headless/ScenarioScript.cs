@@ -106,7 +106,31 @@ namespace GuildMaster.Debugging
             new ScenarioCommandFormat("dismiss", typeof(DismissStaffCommand),
                 args => new DismissStaffCommand(ParseInt(args, 0)),
                 command => Int(((DismissStaffCommand)command).StaffId)),
+            // decree IdРаспоряжения on Срок [Ранги через запятую] | decree IdРаспоряжения off
+            new ScenarioCommandFormat("decree", typeof(ToggleDecreeCommand),
+                args => ParseOnOff(args, 1)
+                    ? new ToggleDecreeCommand(Arg(args, 0), true, args.Length > 3 ? ParseRanks(args, 3) : null,
+                        args.Length > 2 ? ParseEnum<GuildMaster.Data.DecreeDuration>(args, 2) : GuildMaster.Data.DecreeDuration.Permanent)
+                    : new ToggleDecreeCommand(Arg(args, 0), false),
+                command =>
+                {
+                    var decree = (ToggleDecreeCommand)command;
+                    if (!decree.Enabled) return decree.DecreeId + " off";
+                    string text = decree.DecreeId + " on " + decree.Duration;
+                    if (decree.Ranks.Count == 0) return text;
+                    var ranks = new string[decree.Ranks.Count];
+                    for (int i = 0; i < ranks.Length; i++) ranks[i] = decree.Ranks[i].ToString();
+                    return text + " " + string.Join(",", ranks);
+                }),
         };
+
+        private static List<GuildMaster.Data.GuildRank> ParseRanks(string[] args, int index)
+        {
+            var ranks = new List<GuildMaster.Data.GuildRank>();
+            foreach (string part in Arg(args, index).Split(','))
+                ranks.Add(ParseEnum<GuildMaster.Data.GuildRank>(new[] { part.Trim() }, 0));
+            return ranks;
+        }
 
         private static int[] ParseIds(string[] args, int index)
         {

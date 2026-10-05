@@ -84,3 +84,5 @@ description: Модель решений GuildMaster — DecisionSystem (шаг 
   те, у кого Слава ↑ (Амбициозные, Безрассудные).
 - Тесты, которые проверяют расписание вечера, ставят `decisions.bestChoiceChance = 1`.
 - `DecisionScope` живёт один час: друзья и профили кешируются на час (отношения и параметры за час не меняются).
+- Распоряжения (скилл `gm-decrees`): запрет `"solo forbidden by decree"` — последний в `DecisionBans.Default`; «Безопасность» ×
+  `DecisionScope.SafetyMultiplier` в вариантах с заказом (`Evaluate`) и в `PartyLens`; в `Gather` при запрете соло минимум — 2.

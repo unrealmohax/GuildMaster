@@ -95,7 +95,7 @@ namespace GuildMaster.Core
         public static bool IsFreeTime(Activity activity) =>
             activity == Activity.Resting || activity == Activity.Tavern || activity == Activity.Training;
 
-        /// <summary>Пьяница утром: шанс провести день в таверне. Раскрывает черту («Пропущенный день»).</summary>
+        /// <summary>Пьяница утром: шанс провести день в таверне (при Сухом законе — свой). Раскрывает черту («Пропущенный день»).</summary>
         private static void TrySkipDay(SimContext ctx, Adventurer adventurer)
         {
             AdventurerState state = adventurer.State;
@@ -104,6 +104,7 @@ namespace GuildMaster.Core
 
             TraitsBalance traits = ctx.Data.Balance.Traits;
             float chance = state.Stress > traits.DrunkardStressThreshold ? traits.DrunkardSkipChanceStressed : traits.DrunkardSkipChance;
+            chance = DecreeRules.DrunkardSkipChance(ctx.World, ctx.Data, chance);
             if (!ctx.RollChance(chance, "drunkard-skip-day", adventurer, "stress", state.Stress)) return;
 
             GameTime time = ctx.World.Time;

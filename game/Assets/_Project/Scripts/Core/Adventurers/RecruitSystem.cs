@@ -22,19 +22,22 @@ namespace GuildMaster.Core
 
             if (ctx.World.Time.Hour != ctx.Data.Balance.Time.MorningHour) return;
             if (ctx.World.Adventurers.HeadCount >= ctx.Data.Balance.Guild.MaxAdventurers) return;
-            if (!ctx.RollChance(CandidateChance(ctx.Data, ctx.World.Guild.Reputation), "candidate")) return;
+            if (!ctx.RollChance(CandidateChance(ctx.Data, ctx.World), "candidate")) return;
 
             AddCandidate(ctx);
         }
 
         /// <summary>
-        /// Шанс кандидата в сутки: <c>influxBaseChance + репутация × influxChancePerReputation</c> × распоряжение.
-        /// Репутация — текущая репутация гильдии, множитель распоряжений — 1.
+        /// Шанс кандидата в сутки: <c>influxBaseChance + репутация × influxChancePerReputation</c> × множитель распоряжений
+        /// (<see cref="DecreeRules.CandidateChanceMultiplier"/>).
         /// </summary>
-        public static float CandidateChance(DataRegistry data, float reputation)
+        public static float CandidateChance(DataRegistry data, WorldState world) =>
+            CandidateChance(data, world.Guild.Reputation, DecreeRules.CandidateChanceMultiplier(world, data));
+
+        /// <summary>Шанс кандидата в сутки при репутации <paramref name="reputation"/> и множителе распоряжений.</summary>
+        public static float CandidateChance(DataRegistry data, float reputation, float decreeMultiplier = 1f)
         {
             GuildBalance guild = data.Balance.Guild;
-            const float decreeMultiplier = 1f;          // распоряжений пока нет
             return (guild.InfluxBaseChance + reputation * guild.InfluxChancePerReputation) * decreeMultiplier;
         }
 
@@ -44,7 +47,8 @@ namespace GuildMaster.Core
             foreach (Adventurer adventurer in ctx.World.Adventurers.Active) names.Add(adventurer.Name);
             foreach (Candidate waiting in ctx.World.Adventurers.Candidates) names.Add(waiting.Adventurer.Name);
 
-            GeneratedAdventurer generated = AdventurerGenerator.Generate(ctx.Rng, ctx.Data, ctx.World, ctx.World.Ids.Next(), atStart: false, names);
+            GeneratedAdventurer generated = AdventurerGenerator.Generate(ctx.Rng, ctx.Data, ctx.World, ctx.World.Ids.Next(), atStart: false, names,
+                workAxisShift: DecreeRules.CandidateWorkShift(ctx.World, ctx.Data));
             Adventurer candidate = generated.Adventurer;
 
             long now = ctx.World.Time.TotalHours;

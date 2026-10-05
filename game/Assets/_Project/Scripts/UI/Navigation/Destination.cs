@@ -9,6 +9,7 @@ namespace GuildMaster.UI
         Board,
         Quests,
         Treasury,
+        Decrees,
     }
 
     /// <summary>Вкладки экрана «Гильдия».</summary>

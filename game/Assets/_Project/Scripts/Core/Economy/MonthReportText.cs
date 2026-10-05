@@ -9,7 +9,7 @@ namespace GuildMaster.Core
     /// Отчёт месяца строками: заголовок раздела, затем «подпись: значение». Подписи — шаблоны из набора шаблонов ленты
     /// (первый вариант); реестр только из чисел — вместо подписи ключ. Люди — по именам, раскрытия — «Имя — Трус»,
     /// нейтральная ось — «Имя — Риск: уравновешенность»; постройки — названием, сотрудники — «Имя — должность»
-    /// (с долгом по зарплате — и суммой долга).
+    /// (с долгом по зарплате — и суммой долга); распоряжения — «название — N дн.» и расходы по нему.
     /// </summary>
     public static class MonthReportText
     {
@@ -59,6 +59,11 @@ namespace GuildMaster.Core
 
         private static void AppendItem(StringBuilder text, ReportItem item, WorldState world, DataRegistry data, List<string> errors)
         {
+            if (IsDecree(item))
+            {
+                text.Append(DecreeItem(item, data, errors));
+                return;
+            }
             if (item.Detail == MonthReportSections.BuildingDetail)
             {
                 bool known = world.Buildings.TryGetById(item.PersonId, out Building building);
@@ -87,6 +92,31 @@ namespace GuildMaster.Core
             text.Append(" — ").Append(DetailName(item.Detail, adventurer, data, errors));
         }
 
+        private const string DecreePrefix = "decree:";
+
+        /// <summary>Строка отчёта — распоряжение (<see cref="MonthReportSections.DecreeDetail"/>).</summary>
+        public static bool IsDecree(ReportItem item) => item.Detail.StartsWith(DecreePrefix, System.StringComparison.Ordinal);
+
+        /// <summary>Распоряжение в отчёте: «Сухой закон — 7 дн.», с расходами — и суммой («… -120»).</summary>
+        public static string DecreeItem(ReportItem item, DataRegistry data, List<string> errors = null)
+        {
+            string id = item.Detail.Substring(DecreePrefix.Length);
+            if (!data.HasDefinitions || !data.TryGet(id, out DecreeDefinition decree)) return id;
+
+            IReadOnlyList<FeedTemplate> templates = data.FeedTemplates(MonthReportSections.DecreeItem);
+            string text;
+            if (templates.Count == 0 || templates[0].Variants.Count == 0)
+            {
+                errors?.Add("no template " + MonthReportSections.DecreeItem);
+                text = decree.DisplayName;
+            }
+            else
+            {
+                text = TextRenderer.Render(templates[0].Variants[0], new DecreeSource(decree, item.Days), errors);
+            }
+            return item.Amount != 0 ? text + " " + Amount(item.Amount, signed: true) : text;
+        }
+
         /// <summary>Название раскрытого: черта, полюс оси в роде человека или «ось: уравновешенность».</summary>
         private static string DetailName(string detail, Adventurer adventurer, DataRegistry data, List<string> errors)
         {
@@ -106,6 +136,24 @@ namespace GuildMaster.Core
                 return definition.DisplayName + ": " + Label(data, MonthReportSections.AxisBalanced, errors);
             }
             return detail;
+        }
+
+        private sealed class DecreeSource : ITextSource
+        {
+            private readonly DecreeDefinition decree;
+            private readonly int days;
+
+            public DecreeSource(DecreeDefinition decree, int days)
+            {
+                this.decree = decree;
+                this.days = days;
+            }
+
+            public bool TryGet(string label, out TextValue value)
+            {
+                value = label == "распоряжение" ? TextValue.Noun(decree.NameForms) : label == "число" ? TextValue.Number(days) : null;
+                return value != null;
+            }
         }
 
         private sealed class EmptySource : ITextSource

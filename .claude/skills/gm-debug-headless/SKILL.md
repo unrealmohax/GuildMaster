@@ -38,7 +38,7 @@ description: Отладка и прогоны GuildMaster без интерфе�
 - Сценарий — текст, строка на команду: `такт слово аргументы`, `#` — комментарий, `# seed=N` — зерно. Слова (`ScenarioCommands.Formats`):
   `accept`, `reject`, `autopause Вид on|off`, `commission 0.2`, `registrar …`, `answer id accept Доплата|decline`,
   `eventquest id Ранг|decline`, `surcharge id сумма`, `build IdОпределения`, `buildqueue 1,2`, `unbuild IdПостройки`,
-  `offer IdКандидата сумма`, `dismiss IdСотрудника`. `ScenarioRecorder` пишет команды бота; незнакомая — комментарием.
+  `offer IdКандидата сумма`, `dismiss IdСотрудника`, `decree IdРаспоряжения on Срок [G,F…]` / `decree Id off`. `ScenarioRecorder` пишет команды бота; незнакомая — комментарием.
 - **Новая команда игрока в прогонах** — строка в `ScenarioCommands.Formats`. **Новое поведение бота** — `IBotRule` в списке
   «Простого». **Новый бот** — строка в `Presets`.
 
@@ -47,7 +47,7 @@ description: Отладка и прогоны GuildMaster без интерфе�
 Строка — календарный месяц; столбцы: `MonthColumn` (имя, функция от `MonthRecord` — мир на конец месяца и события месяца,
 свёртка `Sum`/`Last`/`Mean`, формат) и `PersonColumn` (от `PersonRecord`). **Новый показатель — строка в `SummaryColumns.Monthly`
 или `People`**; статьи журнала — сами (`MonthlyFor(data)`). Постройки и персонал — «Построек готово», «В Общежитии», «В Лазарете, %»,
-«Легли в Лазарет», «Вылечено в Лазарете», «На дворе, %», «Тренировок», «Персонал», «Нанято», «Невыплат жалованья», «Долг по зарплате».
+«Легли в Лазарет», «Вылечено в Лазарете», «На дворе, %», «Тренировок», «Персонал», «Нанято», «Невыплат жалованья», «Долг по зарплате»; распоряжения — «Дней: {название}» по каждому (в `MonthlyFor`).
 Серия — `SummaryAggregate` (среднее, σ выборки, мин, макс). CSV —
 запятая, точка, UTF-8 с BOM.
 
@@ -58,7 +58,7 @@ description: Отладка и прогоны GuildMaster без интерфе�
 | Time → Log State / Toggle Pause / Speed 1-3 / Debug Speed / Toggle Run In Background | время в Play Mode | Play Mode |
 | Adventurers → Log Roster / Accept/Reject First Candidate / Preview Start Lineups | люди, кандидаты, стартовые шестёрки | Play Mode / без |
 | State → Light/Heavy Wound First / Stress +50 First / Preview 90 Days | раны, стресс, 90 дней | Play Mode / без |
-| Headless → Year Seed 1 Debug / Trace / Year Seeds 1-10 Info | год в файлы | без |
+| Headless → Year Seed 1 Debug / Trace / Year Seeds 1-10 Info / Year Seeds 1-10 Info With Decrees | год в файлы (последний — «Простой» + все четыре распоряжения с первого такта) | без |
 | Feed → Dump Templates / Year Feed Seed 1 | вычитка текстов | без |
 | Quests → Order Preferences 10 Years | кто какие заказы берёт (~10 с) | без |
 | Parties → Groups 10 Years / Chronicle Year Seed 1 / Trace Counts / Cost Benchmark / Year Time With And Without Parties | группы | без |

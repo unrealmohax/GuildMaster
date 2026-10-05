@@ -29,8 +29,9 @@ namespace GuildMaster.Core
         /// <param name="atStart">Стартовый человек: только слабый и средний уровень, черты раздаёт сценарий старта.</param>
         /// <param name="namesInUse">Имена, которые уже заняты: по возможности не повторять.</param>
         /// <param name="fixedType">Тип задан заранее — без броска типа; <c>null</c> — по весам.</param>
+        /// <param name="workAxisShift">Сдвиг оси Труд после броска, до обрезки (распоряжения); бросков не меняет.</param>
         public static GeneratedAdventurer Generate(Rng rng, DataRegistry data, WorldState world, int id, bool atStart,
-            ICollection<string> namesInUse, ArchetypeDefinition fixedType = null)
+            ICollection<string> namesInUse, ArchetypeDefinition fixedType = null, float workAxisShift = 0f)
         {
             AdventurersBalance balance = data.Balance.Adventurers;
             var adventurer = new Adventurer(id);
@@ -50,10 +51,12 @@ namespace GuildMaster.Core
             // 4. Параметры.
             GenerateStats(rng, balance, type, level, adventurer);
 
-            // 5. Оси: нормальное распределение, обрезка до ±100.
+            // 5. Оси: нормальное распределение (Труд — со сдвигом распоряжений), обрезка до ±100.
             for (int i = 0; i < Vocabulary.AxisCount; i++)
             {
-                adventurer.SetAxis((AxisId)i, AxisMath.Clamp(rng.Normal(balance.AxisMean, balance.AxisStdDev)));
+                float value = rng.Normal(balance.AxisMean, balance.AxisStdDev);
+                if ((AxisId)i == AxisId.Work) value += workAxisShift;
+                adventurer.SetAxis((AxisId)i, AxisMath.Clamp(value));
             }
 
             // 6. Особые черты «от рождения»: у стартовых их раздаёт StartScenario.

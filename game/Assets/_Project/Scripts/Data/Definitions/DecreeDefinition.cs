@@ -17,6 +17,9 @@ namespace GuildMaster.Data
         [SerializeField, TextArea] private string plusText;
         [SerializeField, TextArea] private string minusText;
 
+        [Tooltip("Какой эффект реализует симуляция")]
+        [SerializeField] private DecreeEffect effect;
+
         [SerializeField] private DecreeScopeKind scopeKind;
 
         [Tooltip("Область по умолчанию (для Ranks)")]
@@ -32,6 +35,7 @@ namespace GuildMaster.Data
         public string Description => description;
         public string PlusText => plusText;
         public string MinusText => minusText;
+        public DecreeEffect Effect => effect;
         public DecreeScopeKind ScopeKind => scopeKind;
         public IReadOnlyList<GuildRank> DefaultRanks => defaultRanks;
         public IReadOnlyList<DecreeDuration> AllowedDurations => allowedDurations;

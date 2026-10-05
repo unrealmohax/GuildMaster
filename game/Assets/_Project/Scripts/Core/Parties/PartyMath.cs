@@ -87,12 +87,12 @@ namespace GuildMaster.Core
 
         /// <summary>Средняя по группе ценность варианта «всей группой» (постоянная группа решает так).</summary>
         public static float MeanGroupValue(Order order, IReadOnlyList<Adventurer> members, bool permanent, float commission,
-            RelationBook relations, DataRegistry data, ProfileCache profiles = null)
+            RelationBook relations, DataRegistry data, ProfileCache profiles = null, float safetyMultiplier = 1f)
         {
             if (members.Count == 0) return 0f;
             float sum = 0f;
             foreach (Adventurer member in members)
-                sum += new PartyLens(member, order, permanent, commission, relations, data, profiles).Value(members);
+                sum += new PartyLens(member, order, permanent, commission, relations, data, profiles, safetyMultiplier).Value(members);
             return sum / members.Count;
         }
 
@@ -179,8 +179,9 @@ namespace GuildMaster.Core
         private readonly bool permanent;
         private readonly float commission;
 
+        /// <param name="safetyMultiplier">Множитель мотива «Безопасность» в оценке заказа (распоряжения).</param>
         public PartyLens(Adventurer viewer, Order order, bool permanent, float commission, RelationBook relations, DataRegistry data,
-            ProfileCache profiles = null)
+            ProfileCache profiles = null, float safetyMultiplier = 1f)
         {
             Viewer = viewer;
             Order = order;
@@ -191,6 +192,7 @@ namespace GuildMaster.Core
             this.profiles = profiles ?? new ProfileCache(data);
             requirements = QuestMath.PerceivedRequirements(order.Profile, order.DescriptionAccuracy, viewer, data);
             weights = Motives.Weigh(viewer, data, false);
+            if (safetyMultiplier != 1f) weights.Multiply(Motive.Safety, safetyMultiplier);
         }
 
         public Adventurer Viewer { get; }

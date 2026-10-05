@@ -23,7 +23,8 @@ namespace GuildMaster.Core
         /// <summary>
         /// Ранить: своя рана — стресс +10 (лёгкая) / +20 (тяжёлая) × черты. Несколько лёгких ран не складываются —
         /// остаётся самая длинная. Вторая тяжёлая при уже тяжёлой становится увечьем (черта «Калека», если её можно дать).
-        /// Событие: лёгкая — [З], тяжёлая — [В]. Возвращает рану, которая теперь у человека.
+        /// Событие: лёгкая — [З], тяжёлая — [В]. Включена компенсация за ранение — гильдия платит раненому
+        /// (<see cref="DecreeService.CompensateWound"/>). Возвращает рану, которая теперь у человека.
         /// </summary>
         public static Condition Wound(SimContext ctx, Adventurer adventurer, ConditionKind kind, PartyContext party = PartyContext.None)
         {
@@ -66,6 +67,7 @@ namespace GuildMaster.Core
                 .With("kind", kind)
                 .With("days", days);
             if (maimed) wounded.With("maimed", true);
+            DecreeService.CompensateWound(ctx, adventurer, kind, maimed);
             return condition;
         }
 

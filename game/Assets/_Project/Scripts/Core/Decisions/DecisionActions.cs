@@ -79,9 +79,13 @@ namespace GuildMaster.Core
         public DecisionScope(SimContext ctx)
         {
             Ctx = ctx;
+            SafetyMultiplier = DecreeRules.OrderSafetyMultiplier(ctx.World, ctx.Data);
         }
 
         public SimContext Ctx { get; }
+
+        /// <summary>Множитель мотива «Безопасность» в вариантах с заказом в этом часу (распоряжения).</summary>
+        public float SafetyMultiplier { get; }
 
         /// <summary>Профили людей для оценки групп в этом часу (параметры за час не меняются).</summary>
         public ProfileCache Profiles => profiles ?? (profiles = new ProfileCache(Ctx.Data));

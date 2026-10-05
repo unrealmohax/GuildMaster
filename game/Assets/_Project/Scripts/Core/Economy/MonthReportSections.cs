@@ -85,6 +85,7 @@ namespace GuildMaster.Core
     /// <item>«Задания»: сколько заказов взято, выполнено, не выполнено — из счётчиков (уровни результата игроку не видны).</item>
     /// <item>«Постройки»: что построено за месяц, что строится, что в очереди.</item>
     /// <item>«Персонал»: кто нанят, кто ушёл сам и кто уволен за месяц, кому гильдия должна жалованье.</item>
+    /// <item>«Распоряжения»: какие действовали за месяц (сколько дней и сколько стоили) и расходы на них всего.</item>
     /// <item>«Репутация»: было → стало.</item>
     /// </list>
     /// </summary>
@@ -128,6 +129,13 @@ namespace GuildMaster.Core
         public const string StaffDismissed = "report.staff.dismissed";
         public const string StaffUnpaid = "report.staff.unpaid";
 
+        public const string DecreesTitle = "report.decrees";
+        public const string DecreesActed = "report.decrees.acted";
+        public const string DecreesCost = "report.decrees.cost";
+
+        /// <summary>Распоряжение в строке «Действовали»: метки <c>{распоряжение}</c> и <c>{число}</c> (дни).</summary>
+        public const string DecreeItem = "report.decrees.item";
+
         /// <summary>Подробность строки-постройки: id в строке — id постройки.</summary>
         public const string BuildingDetail = "building";
 
@@ -150,11 +158,15 @@ namespace GuildMaster.Core
             new MonthReportSection(QuestsTitle, new[] { QuestsTaken, QuestsDone, QuestsFailed }, BuildQuests),
             new MonthReportSection(BuildingsTitle, new[] { BuildingsReady, BuildingsUnderConstruction, BuildingsQueued }, BuildBuildings),
             new MonthReportSection(StaffTitle, new[] { StaffHired, StaffQuit, StaffDismissed, StaffUnpaid }, BuildStaff),
+            new MonthReportSection(DecreesTitle, new[] { DecreesActed, DecreesCost, DecreeItem }, BuildDecrees),
             new MonthReportSection(ReputationTitle, new[] { ReputationChange }, BuildReputation),
         };
 
         /// <summary>Все ключи текстов отчёта: заголовки, подписи строк, названия статей журнала.</summary>
         public static IReadOnlyList<string> TextKeys { get; } = BuildTextKeys();
+
+        /// <summary>Подробность распоряжения: <c>decree:{id}</c>.</summary>
+        public static string DecreeDetail(string decreeId) => "decree:" + decreeId;
 
         /// <summary>Подробность раскрытой черты: <c>trait:{id}</c>.</summary>
         public static string TraitDetail(string traitId) => "trait:" + traitId;
@@ -302,6 +314,43 @@ namespace GuildMaster.Core
         private static void AddLeft(List<ReportLine> lines, ReportPeriod period, string key, LeaveReason reason) =>
             AddPeople(lines, key, Pick(period, key, period.World.Adventurers.Archive,
                 a => a.LeaveReason == reason && period.Contains(a.LeftAtHours), a => a.LeftAtHours));
+
+        /// <summary>
+        /// Распоряжения, действовавшие за период: дни (неполный день — как день) и расходы по статье «Распоряжения» с его id
+        /// в комментарии; затем расходы на распоряжения всего. Ничего не действовало и не стоило — раздел пуст.
+        /// </summary>
+        private static List<ReportLine> BuildDecrees(ReportPeriod period)
+        {
+            var lines = new List<ReportLine>();
+            if (!period.Data.HasDefinitions) return lines;
+
+            IReadOnlyList<LedgerEntry> ledger = period.World.Treasury.Ledger;
+            int total = 0;
+            var costs = new Dictionary<string, int>(StringComparer.Ordinal);
+            for (int i = period.LedgerFrom; i < period.LedgerTo; i++)
+            {
+                LedgerEntry entry = ledger[i];
+                if (entry.Category != LedgerCategories.Decrees) continue;
+                total += entry.Amount;
+                string id = entry.Comment ?? string.Empty;
+                costs[id] = (costs.TryGetValue(id, out int sum) ? sum : 0) + entry.Amount;
+            }
+
+            int hoursPerDay = period.Calendar.HoursPerDay;
+            var items = new List<ReportItem>();
+            foreach (DecreeDefinition decree in period.Data.All<DecreeDefinition>())
+            {
+                long hours = period.World.Decrees.GetActiveHours(decree.Id, period.FromHours, period.ToHours);
+                costs.TryGetValue(decree.Id, out int cost);
+                if (hours <= 0 && cost == 0) continue;
+                int days = (int)((hours + hoursPerDay - 1) / hoursPerDay);
+                items.Add(new ReportItem(0, DecreeDetail(decree.Id), days, cost));
+            }
+
+            AddPeople(lines, DecreesActed, items);
+            if (items.Count > 0 || total != 0) lines.Add(ReportLine.Money(DecreesCost, total, signed: true));
+            return lines;
+        }
 
         private static void AddPeople(List<ReportLine> lines, string key, List<ReportItem> items)
         {

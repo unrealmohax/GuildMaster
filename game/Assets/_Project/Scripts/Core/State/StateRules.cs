@@ -68,9 +68,10 @@ namespace GuildMaster.Core
         /// <summary>
         /// Цель довольства: <c>contentmentBase</c> + условия, 0..100.
         /// Жильё, еда в таверне за прошедшие сутки, пустой кошелёк, комиссия гильдии (× чувствительность черт),
-        /// стресс выше 70. Распоряжения не учитываются.
+        /// стресс выше 70; включённые распоряжения мира <paramref name="world"/> (<see cref="DecreeRules.ContentmentTerm"/>),
+        /// без мира — без распоряжений.
         /// </summary>
-        public static float ContentmentTarget(Adventurer adventurer, float commission, DataRegistry data)
+        public static float ContentmentTarget(Adventurer adventurer, float commission, DataRegistry data, WorldState world = null)
         {
             StateBalance balance = data.Balance.State;
             AdventurerState state = adventurer.State;
@@ -81,6 +82,7 @@ namespace GuildMaster.Core
             if (state.IsWalletEmpty) target += balance.EmptyWalletContentment;
             target += CommissionContentment(commission, balance) * StateRates.PayContentmentSensitivity(adventurer, data);
             if (state.Stress > balance.HighStressThreshold) target += balance.HighStressContentment;
+            target += DecreeRules.ContentmentTerm(adventurer, world, data);
             return Clamp(target);
         }
 

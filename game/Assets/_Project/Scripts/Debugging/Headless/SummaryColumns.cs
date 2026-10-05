@@ -147,7 +147,7 @@ namespace GuildMaster.Debugging
 
         /// <summary>
         /// Столбцы месяцев с доходами и расходами по каждой статье журнала: «Доход: Таверна», «Расход: …» (названия статей —
-        /// из шаблонов данных; без данных — код статьи).
+        /// из шаблонов данных; без данных — код статьи), затем дни действия каждого распоряжения: «Дней: Сухой закон».
         /// </summary>
         public static IReadOnlyList<MonthColumn> MonthlyFor(DataRegistry data)
         {
@@ -160,7 +160,21 @@ namespace GuildMaster.Debugging
                 else
                     columns.Add(new MonthColumn("Расход: " + name, m => -m.Ledger(LedgerFlow.Expense, category), SummaryTotal.Sum, "0"));
             }
+            if (data.HasDefinitions)
+            {
+                foreach (DecreeDefinition decree in data.All<DecreeDefinition>())
+                    columns.Add(new MonthColumn("Дней: " + decree.DisplayName, m => DecreeDays(m, decree.Id), SummaryTotal.Sum, "0.#"));
+            }
             return columns;
+        }
+
+        /// <summary>Сколько дней месяца распоряжение действовало (часы / часов в сутках).</summary>
+        private static double DecreeDays(MonthRecord month, string decreeId)
+        {
+            Calendar calendar = month.Game.Calendar;
+            long from = calendar.ToTotalHours(month.Year, month.Month, 1, 0);
+            long to = Math.Min(from + calendar.HoursPerMonth, month.World.Time.TotalHours);
+            return month.World.Decrees.GetActiveHours(decreeId, from, to) / (double)calendar.HoursPerDay;
         }
 
         /// <summary>По людям: архетип, ранг, раны, задания выполнено / нет, жив ли, в гильдии ли на конец, какие черты раскрылись и когда.</summary>

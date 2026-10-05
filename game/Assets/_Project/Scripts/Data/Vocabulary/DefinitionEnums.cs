@@ -133,6 +133,20 @@ namespace GuildMaster.Data
         Ranks = 1,
     }
 
+    /// <summary>Кодовое правило распоряжения: какой эффект реализует симуляция. Распоряжения находятся по нему, а не по id.</summary>
+    public enum DecreeEffect
+    {
+        None = 0,
+        /// <summary>Гильдия платит еду и жильё новичков; приток кандидатов выше, кандидаты ленивее.</summary>
+        FreeLodgingForNewcomers = 1,
+        /// <summary>Заказы рангов из области — только группой.</summary>
+        GroupOnlyFromRank = 2,
+        /// <summary>Гильдия платит раненому за каждую рану.</summary>
+        InjuryCompensation = 3,
+        /// <summary>Сухой закон в таверне.</summary>
+        Prohibition = 4,
+    }
+
     /// <summary>Срок распоряжения. Число дней — <see cref="DecreesBalance"/>.</summary>
     public enum DecreeDuration
     {

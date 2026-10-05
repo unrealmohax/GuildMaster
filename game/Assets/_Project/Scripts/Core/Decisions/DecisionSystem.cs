@@ -142,13 +142,17 @@ namespace GuildMaster.Core
             if (adventurer.State.Conditions.Count > 0 && HealthSystem.FreeBeds(ctx, infirmary) > 0) actions.Add(DecisionActions.Heal);
         }
 
-        /// <summary>Оценить варианты: ценность каждого для человека; по убыванию ценности, при равенстве — по порядку.</summary>
+        /// <summary>
+        /// Оценить варианты: ценность каждого для человека (в вариантах с заказом «Безопасность» × множитель распоряжений);
+        /// по убыванию ценности, при равенстве — по порядку.
+        /// </summary>
         private static void Evaluate(DecisionScope scope, Adventurer adventurer, List<DecisionAction> actions, List<Option> result)
         {
             result.Clear();
             foreach (DecisionAction action in actions)
             {
                 MotiveWeights weights = Motives.Weigh(adventurer, scope.Ctx.Data, action.InTavern);
+                if (action.IsOrder && scope.SafetyMultiplier != 1f) weights.Multiply(Motive.Safety, scope.SafetyMultiplier);
                 float[] scores = DecisionActions.Scores(scope, adventurer, action);
                 float value = 0f;
                 for (int m = 0; m < scores.Length; m++) value += weights[(Motive)m] * scores[m];

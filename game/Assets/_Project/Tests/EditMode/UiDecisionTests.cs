@@ -421,5 +421,68 @@ namespace GuildMaster.Tests
 
             Assert.AreEqual(Run(), Run());
         }
+
+        // ---------- Распоряжения ----------
+
+        [Test]
+        public void Decrees_Screen_ToggleScopeAndTerm_VisibleAtOnceOnPause()
+        {
+            Build();
+            var screen = Show<DecreesScreen>(ScreenId.Decrees);
+            Assert.AreEqual(4, screen.Model.Cards.Count, "четыре распоряжения");
+            DecreeCard groupOnly = screen.Model.Find("GroupOnlyFromRank");
+            Assert.IsFalse(groupOnly.IsOn);
+            CollectionAssert.AreEqual(new[] { GuildRank.C }, groupOnly.Ranks, "область по умолчанию — C");
+
+            screen.Model.ToggleRank(simulation, "GroupOnlyFromRank", GuildRank.D);
+            screen.Model.SetDuration(simulation, "GroupOnlyFromRank", DecreeDuration.Week);
+            Assert.IsFalse(simulation.World.Decrees.IsActive("GroupOnlyFromRank"), "у выключенного выбор команд не шлёт");
+            screen.Model.Toggle(simulation, "GroupOnlyFromRank");
+            ApplyOnPause();
+
+            Assert.IsTrue(simulation.World.Decrees.TryGetActive("GroupOnlyFromRank", out ActiveDecree active), "включено командой");
+            CollectionAssert.AreEqual(new[] { GuildRank.D, GuildRank.C }, active.Ranks);
+            Assert.AreEqual(DecreeDuration.Week, active.Duration);
+            groupOnly = screen.Model.Find("GroupOnlyFromRank");
+            Assert.IsTrue(groupOnly.IsOn);
+            StringAssert.StartsWith("осталось 7 дн.", groupOnly.Remaining);
+
+            screen.Model.ToggleRank(simulation, "GroupOnlyFromRank", GuildRank.E);
+            ApplyOnPause();
+            Assert.AreEqual(3, active.Ranks.Count, "у включённого ранг — сразу командой");
+            screen.Model.ToggleRank(simulation, "GroupOnlyFromRank", GuildRank.D);
+            screen.Model.ToggleRank(simulation, "GroupOnlyFromRank", GuildRank.E);
+            screen.Model.ToggleRank(simulation, "GroupOnlyFromRank", GuildRank.C);
+            ApplyOnPause();
+            CollectionAssert.AreEqual(new[] { GuildRank.C }, active.Ranks, "последний ранг не убрать");
+
+            var calendar = new CalendarModel();
+            calendar.Refresh(simulation);
+            CalendarItem end = calendar.Items.Single(i => i.Text.Contains("распоряжения"));
+            Assert.AreEqual(active.EndsAtHours, end.AtHours, "в календаре — окончание срока");
+            Assert.AreEqual(ScreenId.Decrees, end.Destination.Screen);
+
+            screen.Model.Toggle(simulation, "GroupOnlyFromRank");
+            ApplyOnPause();
+            Assert.IsFalse(simulation.World.Decrees.IsActive("GroupOnlyFromRank"), "выключено командой");
+            Assert.IsFalse(screen.Model.Find("GroupOnlyFromRank").IsOn);
+            LogAssert.NoUnexpectedReceived();
+        }
+
+        [Test]
+        public void Decrees_BenefitCancelledFromScreen_LowersContentment()
+        {
+            Build();
+            var screen = Show<DecreesScreen>(ScreenId.Decrees);
+            screen.Model.Toggle(simulation, "InjuryCompensation");
+            ApplyOnPause();
+            Assert.AreEqual("бессрочно", screen.Model.Find("InjuryCompensation").Remaining);
+            Dictionary<int, float> before = simulation.World.Adventurers.Active.ToDictionary(a => a.Id, a => a.State.Contentment);
+
+            screen.Model.Toggle(simulation, "InjuryCompensation");
+            ApplyOnPause();
+            foreach (Adventurer adventurer in simulation.World.Adventurers.Active)
+                Assert.AreEqual(System.Math.Max(0f, before[adventurer.Id] - 5f), adventurer.State.Contentment, 1e-4f, "отмена льготы — довольство −5");
+        }
     }
 }

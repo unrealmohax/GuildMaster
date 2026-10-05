@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using GuildMaster.Bootstrap;
 using GuildMaster.Core;
+using GuildMaster.Data;
 using GuildMaster.UI;
 using UnityEditor;
 using UnityEngine;
@@ -99,6 +100,25 @@ namespace GuildMaster.Sandbox
             ui.RefreshNow();
         }
 
+        /// <summary>
+        /// Включить «Только группой» (D, C, бессрочно), «Компенсацию за ранение» и Сухой закон на 7 дней — для снимков экрана
+        /// распоряжений и отчёта.
+        /// </summary>
+        [MenuItem("GuildMaster/Sandbox/UI/Enable Sample Decrees")]
+        public static void EnableSampleDecrees()
+        {
+            UiRoot ui = Object.FindAnyObjectByType<UiRoot>();
+            if (!EditorApplication.isPlaying || ui == null || ui.Client == null)
+            {
+                Debug.LogWarning("[UiProbe] Play Mode with bound UiRoot required");
+                return;
+            }
+            ui.Client.Send(new ToggleDecreeCommand("GroupOnlyFromRank", true, new[] { GuildRank.D, GuildRank.C }));
+            ui.Client.Send(new ToggleDecreeCommand("InjuryCompensation", true));
+            ui.Client.Send(new ToggleDecreeCommand("Prohibition", true, null, DecreeDuration.Week));
+            Debug.Log("[UiProbe] sample decrees sent");
+        }
+
         [MenuItem("GuildMaster/Sandbox/UI/Log Screen State")]
         public static void LogState()
         {
@@ -173,6 +193,7 @@ namespace GuildMaster.Sandbox
                 if (world.Reports.Reports.Count > 0) ui.OpenPopup(new Popup(PopupKind.Report, world.Reports.Reports.Count - 1));
             }));
             Steps.Enqueue(($"{prefix}_15_defeat_preview", () => { CloseAll(nav); ui.OpenPopup(new Popup(PopupKind.Defeat)); }));
+            Steps.Enqueue(($"{prefix}_16_decrees", () => { CloseAll(nav); nav.ShowScreen(ScreenId.Decrees); }));
             Steps.Enqueue(($"{prefix}_end", () => { CloseAll(nav); nav.ShowScreen(ScreenId.Guild); }));
 
             waitFrames = FramesPerStep;

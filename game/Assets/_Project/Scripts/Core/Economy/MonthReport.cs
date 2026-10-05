@@ -165,18 +165,24 @@ namespace GuildMaster.Core
 
     /// <summary>
     /// Человек в строке отчёта и подробность: у раскрытий — что раскрылось (<see cref="MonthReportSections.TraitDetail"/>,
-    /// <see cref="MonthReportSections.AxisDetail"/>); без подробности — пустая строка.
+    /// <see cref="MonthReportSections.AxisDetail"/>); без подробности — пустая строка. У распоряжения
+    /// (<see cref="MonthReportSections.DecreeDetail"/>) id не используется, а <see cref="Days"/> и <see cref="Amount"/> — дни
+    /// действия за месяц и расходы по нему.
     /// </summary>
     public sealed class ReportItem
     {
-        public ReportItem(int personId, string detail = "")
+        public ReportItem(int personId, string detail = "", int days = 0, int amount = 0)
         {
             PersonId = personId;
             Detail = detail ?? string.Empty;
+            Days = days;
+            Amount = amount;
         }
 
         public int PersonId { get; }
         public string Detail { get; }
+        public int Days { get; }
+        public int Amount { get; }
     }
 
     /// <summary>История отчётов месяца (часть мира), от старых к новым.</summary>
