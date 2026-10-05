@@ -351,5 +351,20 @@ namespace GuildMaster.Core
 
         /// <summary>Гильдия заплатила раненому по распоряжению: <c>amount</c>, <c>kind</c>, <c>maimed</c>. Участник — раненый. Без строки.</summary>
         InjuryCompensated,
+
+        // Обращения. Участники — кто обратился и второй участник (у обращения персонала участников нет: <c>staff</c>, <c>staffId</c>);
+        // <c>dilemma</c> — id обращения, <c>definition</c> — id дилеммы, <c>trigger</c>.
+
+        /// <summary>Пришло обращение. [З], автопауза <see cref="AutopauseKind.DilemmaReceived"/>.</summary>
+        DilemmaArrived,
+
+        /// <summary>
+        /// Обращение закрыто ответом или по сроку: <c>option</c> — индекс варианта, <c>timedOut</c>, <c>feedKey</c> — строка
+        /// ответа, <c>amount</c> — деньги варианта. Строка — по варианту.
+        /// </summary>
+        DilemmaAnswered,
+
+        /// <summary>Обращение снято без последствий: тот, кого оно касалось, ушёл из гильдии. Без строки.</summary>
+        DilemmaWithdrawn,
     }
 }

@@ -81,6 +81,9 @@ namespace GuildMaster.Core
         /// <summary>Показатели состояния, раны, занятие.</summary>
         public AdventurerState State { get; } = new AdventurerState();
 
+        /// <summary>Флаги памяти для цепочек: брал в долг, сбежал, прощён, наказан…</summary>
+        public AdventurerMemory Memory { get; } = new AdventurerMemory();
+
         public Housing Housing { get; internal set; }
 
         /// <summary>Когда вступил в гильдию; у кандидата — когда пришёл.</summary>

@@ -36,6 +36,7 @@ namespace GuildMaster.UI
         private readonly CycleSelector questType;
         private readonly CycleSelector rank;
         private readonly TextMeshProUGUI selectedQuest;
+        private readonly CycleSelector dilemma;
 
         public DebugPanel(UiContext context, RectTransform parent) : base(context)
         {
@@ -109,6 +110,10 @@ namespace GuildMaster.UI
                 () => WithPerson(id => new DebugSetStateCommand(id, ParseEnum<StateStat>(state.Value), Float(stateInput))));
             Factory.Button(content, UiStrings.Breakdown, () => WithPerson(id => new DebugEventCommand(DebugEventKind.Breakdown, id)),
                 fontSize: Theme.FontSizeSmall);
+            RectTransform dilemmaRow = Row(UiStrings.DebugDilemma);
+            dilemma = new CycleSelector(Factory, dilemmaRow, 250);
+            dilemma.SetValues(Ids<DilemmaDefinition>(), id => Client.Data.TryGet(id, out DilemmaDefinition d) ? d.Title : id);
+            Factory.Button(dilemmaRow, UiStrings.Create, SpawnDilemma, 100, fontSize: Theme.FontSizeSmall);
 
             // Заказ
             Factory.Heading(content, UiStrings.Order);
@@ -185,6 +190,14 @@ namespace GuildMaster.UI
                 if (id.Length > 0) traits.Add(id);
             }
             Client.Send(new DebugSpawnAdventurerCommand(archetype.Value, traits));
+        }
+
+        /// <summary>Дилемма для выбранного человека (праздник Трактирщика — без человека) в обход условий триггера.</summary>
+        private void SpawnDilemma()
+        {
+            if (!Client.Data.TryGet(dilemma.Value, out DilemmaDefinition definition)) return;
+            if (definition.Trigger == DilemmaTrigger.TavernFeast) Client.Send(new DebugDilemmaCommand(definition.Trigger, 0));
+            else WithPerson(id => new DebugDilemmaCommand(definition.Trigger, id));
         }
 
         private void WithPerson(System.Func<int, ICommand> command)

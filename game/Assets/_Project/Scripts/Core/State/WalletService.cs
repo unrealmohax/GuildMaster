@@ -76,6 +76,23 @@ namespace GuildMaster.Core
             if (state.Wallet > 0) state.IsWalletEmpty = false;
         }
 
+        /// <summary>Гильдия дала денег без долга (оплатила расходы): всё в кошелёк, домой не отсылается.</summary>
+        internal static void Give(Adventurer adventurer, int amount)
+        {
+            if (amount < 0) throw new ArgumentOutOfRangeException(nameof(amount));
+            adventurer.State.Wallet += amount;
+            if (adventurer.State.Wallet > 0) adventurer.State.IsWalletEmpty = false;
+        }
+
+        /// <summary>Забрать из кошелька до <paramref name="amount"/> (штраф, возврат утаенного); возвращает, сколько забрано.</summary>
+        internal static int Take(Adventurer adventurer, int amount)
+        {
+            if (amount < 0) throw new ArgumentOutOfRangeException(nameof(amount));
+            int taken = Math.Min(adventurer.State.Wallet, amount);
+            adventurer.State.Wallet -= taken;
+            return taken;
+        }
+
         /// <summary>Доля монет, округление вниз.</summary>
         public static int Share(int amount, float share) => (int)Math.Floor(amount * (double)share + 1e-6);
 

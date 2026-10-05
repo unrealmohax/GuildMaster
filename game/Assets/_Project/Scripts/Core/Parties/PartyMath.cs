@@ -98,7 +98,8 @@ namespace GuildMaster.Core
 
         /// <summary>
         /// Оценка напарника инициатором: прирост воспринимаемого перекрытия × <c>partnerOverlapGainWeight</c> + отношения /
-        /// <c>partnerRelationDivisor</c> + <c>partnerFriendBonus</c>, если друзья, − |разница рангов| × <c>partnerRankDifferencePenalty</c>.
+        /// <c>partnerRelationDivisor</c> + <c>partnerFriendBonus</c>, если друзья, − |разница рангов| × <c>partnerRankDifferencePenalty</c>
+        /// + прибавка, если гильдия разрешила этим двоим ходить вместе.
         /// </summary>
         public static float PartnerScore(Adventurer initiator, Adventurer candidate, float overlapGain, RelationBook relations, DataRegistry data)
         {
@@ -107,7 +108,8 @@ namespace GuildMaster.Core
             bool friends = RelationService.AreFriends(relations, initiator.Id, candidate.Id, data.Balance.Adventurers);
             int rankGap = Math.Abs(QuestMath.RankNumber(initiator.GuildRank) - QuestMath.RankNumber(candidate.GuildRank));
             return overlapGain * decisions.PartnerOverlapGainWeight + relation / decisions.PartnerRelationDivisor
-                + (friends ? decisions.PartnerFriendBonus : 0f) - rankGap * decisions.PartnerRankDifferencePenalty;
+                + (friends ? decisions.PartnerFriendBonus : 0f) - rankGap * decisions.PartnerRankDifferencePenalty
+                + DilemmaRules.PartnerBonus(initiator, candidate);
         }
 
         /// <summary>

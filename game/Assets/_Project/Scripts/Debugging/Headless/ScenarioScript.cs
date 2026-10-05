@@ -106,6 +106,14 @@ namespace GuildMaster.Debugging
             new ScenarioCommandFormat("dismiss", typeof(DismissStaffCommand),
                 args => new DismissStaffCommand(ParseInt(args, 0)),
                 command => Int(((DismissStaffCommand)command).StaffId)),
+            // dilemma IdОбращения НомерВарианта (с нуля)
+            new ScenarioCommandFormat("dilemma", typeof(AnswerDilemmaCommand),
+                args => new AnswerDilemmaCommand(ParseInt(args, 0), ParseInt(args, 1)),
+                command =>
+                {
+                    var answer = (AnswerDilemmaCommand)command;
+                    return Int(answer.DilemmaId) + " " + Int(answer.OptionIndex);
+                }),
             // decree IdРаспоряжения on Срок [Ранги через запятую] | decree IdРаспоряжения off
             new ScenarioCommandFormat("decree", typeof(ToggleDecreeCommand),
                 args => ParseOnOff(args, 1)

@@ -57,7 +57,10 @@ namespace GuildMaster.Core
                 && state.PlannedOrderId == 0 && person.PartyId == 0;
         }
 
-        /// <summary>Кого можно позвать на этот заказ: свободные нужного ранга, кроме уже позванных и тех, кто в группе.</summary>
+        /// <summary>
+        /// Кого можно позвать на этот заказ: свободные нужного ранга, кроме уже позванных, тех, кто в группе, и тех, кому гильдия
+        /// запретила ходить в одной группе с инициатором или с кем-то из группы.
+        /// </summary>
         private static List<Adventurer> Invitable(SimContext ctx, Adventurer initiator, Order order, ICollection<int> exclude,
             IReadOnlyList<Adventurer> group)
         {
@@ -67,9 +70,22 @@ namespace GuildMaster.Core
             {
                 if (person.Id == initiator.Id || (exclude != null && exclude.Contains(person.Id)) || Contains(group, person)) continue;
                 if (!CanInvite(ctx, person, now) || !GuildRanks.CanTakeOrder(person, order.Rank)) continue;
+                if (IsSeparated(person, initiator, group)) continue;
                 pool.Add(person);
             }
             return pool;
+        }
+
+        private static bool IsSeparated(Adventurer person, Adventurer initiator, IReadOnlyList<Adventurer> group)
+        {
+            if (person.Memory.Entries.Count == 0 && initiator.Memory.Entries.Count == 0 && (group == null || group.Count == 0)) return false;
+            if (DilemmaRules.AreSeparated(person, initiator)) return true;
+            if (group == null) return false;
+            foreach (Adventurer member in group)
+            {
+                if (DilemmaRules.AreSeparated(person, member)) return true;
+            }
+            return false;
         }
 
         private static bool Contains(IReadOnlyList<Adventurer> group, Adventurer person)

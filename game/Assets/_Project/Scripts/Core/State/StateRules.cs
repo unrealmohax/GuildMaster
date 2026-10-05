@@ -59,11 +59,11 @@ namespace GuildMaster.Core
             state.Fatigue > balance.FatigueQuestBanThreshold;
 
         /// <summary>
-        /// Запреты на задания: нельзя брать задания при тяжёлой ране, усталости выше 90
+        /// Запреты на задания: нельзя брать задания при тяжёлой ране (если гильдия не разрешила ходить с ней), усталости выше 90
         /// и во время срыва (запой, отказ труса, «сел и не смог подняться»).
         /// </summary>
         public static bool CanTakeQuests(AdventurerState state, StateBalance balance) =>
-            !state.HasHeavyWound() && !IsTooTiredForQuests(state, balance) && state.Breakdown == BreakdownKind.None;
+            !state.IsLaidUpByWound() && !IsTooTiredForQuests(state, balance) && state.Breakdown == BreakdownKind.None;
 
         /// <summary>
         /// Цель довольства: <c>contentmentBase</c> + условия, 0..100.

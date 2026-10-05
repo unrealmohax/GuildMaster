@@ -87,3 +87,5 @@ description: Авантюристы GuildMaster — модель Adventurer и A
 - Лог генерации — `Debug` (`start` / `candidate`: тип, уровень, параметры, оси, скрытые черты).
 - `RecruitSystem.CandidateChance(data, world)` — с множителем распоряжений; `(data, репутация[, множитель])` — без мира.
   `AdventurerGenerator.Generate(…, workAxisShift)` — сдвиг Труда до обрезки, бросков не меняет («халявщики», скилл `gm-decrees`).
+- Память человека — `Adventurer.Memory` (`AdventurerMemory`, флаги `MemoryFlag` для цепочек обращений, скилл `gm-dilemmas`).
+  Раскрытие самой дилеммой — `RevealService.TryRevealAxisByDilemma`/`TryRevealTraitByDilemma` (в обход триггера из данных).

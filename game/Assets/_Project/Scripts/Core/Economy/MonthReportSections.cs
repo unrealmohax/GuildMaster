@@ -133,6 +133,12 @@ namespace GuildMaster.Core
         public const string DecreesActed = "report.decrees.acted";
         public const string DecreesCost = "report.decrees.cost";
 
+        public const string DilemmasTitle = "report.dilemmas";
+        public const string DilemmasArrived = "report.dilemmas.arrived";
+        public const string DilemmasAnswered = "report.dilemmas.answered";
+        public const string DilemmasTimedOut = "report.dilemmas.timedOut";
+        public const string DilemmasWithdrawn = "report.dilemmas.withdrawn";
+
         /// <summary>Распоряжение в строке «Действовали»: метки <c>{распоряжение}</c> и <c>{число}</c> (дни).</summary>
         public const string DecreeItem = "report.decrees.item";
 
@@ -159,6 +165,7 @@ namespace GuildMaster.Core
             new MonthReportSection(BuildingsTitle, new[] { BuildingsReady, BuildingsUnderConstruction, BuildingsQueued }, BuildBuildings),
             new MonthReportSection(StaffTitle, new[] { StaffHired, StaffQuit, StaffDismissed, StaffUnpaid }, BuildStaff),
             new MonthReportSection(DecreesTitle, new[] { DecreesActed, DecreesCost, DecreeItem }, BuildDecrees),
+            new MonthReportSection(DilemmasTitle, new[] { DilemmasArrived, DilemmasAnswered, DilemmasTimedOut, DilemmasWithdrawn }, BuildDilemmas),
             new MonthReportSection(ReputationTitle, new[] { ReputationChange }, BuildReputation),
         };
 
@@ -349,6 +356,41 @@ namespace GuildMaster.Core
 
             AddPeople(lines, DecreesActed, items);
             if (items.Count > 0 || total != 0) lines.Add(ReportLine.Money(DecreesCost, total, signed: true));
+            return lines;
+        }
+
+        /// <summary>
+        /// Обращения за период: сколько пришло, на сколько ответил игрок, сколько решилось по сроку (вариант по умолчанию), сколько снято.
+        /// Деньги ответов — в разделе «Деньги» (статьи «Займы авантюристам», «Обращения», «Штрафы»). Ничего не было — раздел пуст.
+        /// </summary>
+        private static List<ReportLine> BuildDilemmas(ReportPeriod period)
+        {
+            DilemmaBook book = period.World.Dilemmas;
+            int arrived = 0;
+            int answered = 0;
+            int timedOut = 0;
+            int withdrawn = 0;
+            foreach (Dilemma dilemma in book.Open)
+            {
+                if (period.Contains(dilemma.ArrivedAtHours)) arrived++;
+            }
+            for (int i = book.Closed.Count - 1; i >= 0; i--)
+            {
+                Dilemma dilemma = book.Closed[i];
+                if (dilemma.ClosedAtHours < period.FromHours) break; // закрыты по порядку: раньше — только старые
+                if (period.Contains(dilemma.ArrivedAtHours)) arrived++;
+                if (!period.Contains(dilemma.ClosedAtHours)) continue;
+                if (dilemma.Status == DilemmaStatus.Answered) answered++;
+                else if (dilemma.Status == DilemmaStatus.TimedOut) timedOut++;
+                else if (dilemma.Status == DilemmaStatus.Withdrawn) withdrawn++;
+            }
+
+            var lines = new List<ReportLine>();
+            if (arrived + answered + timedOut + withdrawn == 0) return lines;
+            lines.Add(ReportLine.Number(DilemmasArrived, arrived));
+            lines.Add(ReportLine.Number(DilemmasAnswered, answered));
+            lines.Add(ReportLine.Number(DilemmasTimedOut, timedOut));
+            if (withdrawn > 0) lines.Add(ReportLine.Number(DilemmasWithdrawn, withdrawn));
             return lines;
         }
 

@@ -32,9 +32,10 @@ description: Ядро симуляции GuildMaster — такт Simulation.Tic
 в лог новые события (уровень — `EventLogLevels`). Потом `TicksDone++` → `TickCompleted(события)` → `Events.Clear()` → `StateChanged`.
 
 Порядок сейчас (`CreateDefault`): `CommandSystem` → `TimeSystem` → `OrderSystem` → `QuestSystem` → `ActivitySystem` →
-`StateSystem` → `HealthSystem` → `DecisionSystem` → `EconomySystem` → `AdventurerSystem` → `RecruitSystem` →
-`DecreeSystem` → `MonthReportSystem` → `FeedSystem` → `AutopauseSystem`. Места 9 (`PartySystem`) и 10 (`DilemmaSystem`)
-пусты; 12 — `StaffSystem`, `BuildingSystem`, `SalarySystem`; 14 — `DecreeSystem` (скилл `gm-decrees`) — см. комментарий в `SimulationSystems`. Группы живут внутри `DecisionSystem`
+`StateSystem` → `HealthSystem` → `DecisionSystem` → `DilemmaSystem` → `EconomySystem` → `StaffSystem` → `BuildingSystem` →
+`SalarySystem` → `AdventurerSystem` → `RecruitSystem` → `DecreeSystem` → `MonthReportSystem` → `FeedSystem` → `AutopauseSystem`.
+Место 9 (`PartySystem`) пусто; 10 — `DilemmaSystem` (скилл `gm-dilemmas`); 12 — `StaffSystem`, `BuildingSystem`, `SalarySystem`;
+14 — `DecreeSystem` (скилл `gm-decrees`) — см. комментарий в `SimulationSystems`. Группы живут внутри `DecisionSystem`
 и `QuestSystem`, отдельной системы у них нет.
 
 Стартовое состояние — в конструкторе `Simulation`, до первого такта, **без событий**: казна и комиссия, репутация, затем

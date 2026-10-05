@@ -15,9 +15,9 @@ namespace GuildMaster.Tests
     /// </summary>
     internal sealed class QuestWorld : IDisposable
     {
-        public QuestWorld(uint seed = 7u, SimLogger log = null)
+        public QuestWorld(uint seed = 7u, SimLogger log = null, bool dilemmas = false)
         {
-            World = new StateWorld(seed, log: log);
+            World = new StateWorld(seed, log: log, dilemmas: dilemmas);
         }
 
         public StateWorld World { get; }

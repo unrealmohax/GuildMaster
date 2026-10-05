@@ -371,6 +371,12 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("report.decrees.acted", O, None, "Действовали"));
             t.Add(Guild("report.decrees.cost", O, None, "Расходы на распоряжения"));
             t.Add(Guild("report.decrees.item", O, None, "{распоряжение} — {число} дн."));
+            // Новое (GM-17, 💡): раздел отчёта «Обращения».
+            t.Add(Guild("report.dilemmas", O, None, "Обращения"));
+            t.Add(Guild("report.dilemmas.arrived", O, None, "Пришло"));
+            t.Add(Guild("report.dilemmas.answered", O, None, "Вы ответили"));
+            t.Add(Guild("report.dilemmas.timedOut", O, None, "Без ответа (по умолчанию)"));
+            t.Add(Guild("report.dilemmas.withdrawn", O, None, "Сняты"));
             // Названия статей журнала казны.
             t.Add(Guild("ledger.tavern", O, None, "Таверна"));
             t.Add(Guild("ledger.commission", O, None, "Комиссия"));
@@ -387,6 +393,10 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("ledger.salaries", O, None, "Зарплаты"));
             // Новое (GM-16): расходы по распоряжениям.
             t.Add(Guild("ledger.decrees", O, None, "Распоряжения"));
+            // Новое (GM-17, 💡): статьи обращений.
+            t.Add(Guild("ledger.loans", O, None, "Займы авантюристам"));
+            t.Add(Guild("ledger.dilemmas", O, None, "Обращения"));
+            t.Add(Guild("ledger.fines", O, None, "Штрафы"));
             // Новое (GM-14): деньги, добавленные и снятые отладочной панелью.
             t.Add(Guild("ledger.debugIncome", O, None, "Отладка: пополнение"));
             t.Add(Guild("ledger.debugExpense", O, None, "Отладка: изъятие"));
@@ -464,6 +474,8 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("guild.party.memberLeft.quarrel", O, None, "{имя} уш[ёл|ла] из {группа:р} после ссоры с {напарник:т}"));
             t.Add(Guild("guild.party.memberLeft.loner", O, None, "{имя} уш[ёл|ла] из {группа:р}. [Ему|Ей]@имя одн[ому|ой]@имя привычнее"));
             t.Add(Guild("guild.party.memberJoined", O, None, "{имя} теперь ходит с {группа:т}"));
+            // Новое (GM-17, 💡): гильдия запретила Влюблённым ходить вместе, а они в одной постоянной группе.
+            t.Add(Guild("guild.party.memberLeft.separated", O, None, "{имя} уш[ёл|ла] из {группа:р}: гильдия не велела [ему|ей]@имя ходить с {напарник:т}"));
             t.Add(Guild("guild.decree.expired", O, None, "Срок вышел: {распоряжение} больше не действует"));
             t.Add(Guild("guild.bankruptcy.lifted", Z, None, "Казна снова в плюсе. Из долговой ямы выбрались"));
 

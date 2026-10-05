@@ -26,13 +26,41 @@ namespace GuildMaster.Core
             AxisPoleDefinition poleDefinition = ctx.Data.Axis(axis).Pole(pole);
             if (trigger == RevealTrigger.None || poleDefinition.RevealTrigger != trigger) return false;
 
+            RevealAxis(ctx, adventurer, axis, value, pole, poleDefinition);
+            return true;
+        }
+
+        /// <summary>
+        /// Обращение показало полюс оси (не важно, какой триггер у полюса в данных): раскрывает, если ось скрыта, не нейтральна
+        /// и человек склоняется именно к <paramref name="pole"/>.
+        /// </summary>
+        public static bool TryRevealAxisByDilemma(SimContext ctx, Adventurer adventurer, AxisId axis, AxisPole pole)
+        {
+            if (adventurer.IsAxisRevealed(axis)) return false;
+            float value = adventurer.GetAxis(axis);
+            if (AxisMath.IsNeutral(value, ctx.Data.Balance.Adventurers) || AxisMath.PoleOf(value) != pole) return false;
+
+            RevealAxis(ctx, adventurer, axis, value, pole, ctx.Data.Axis(axis).Pole(pole));
+            return true;
+        }
+
+        /// <summary>Обращение показало черту (не важно, какой у неё триггер в данных): раскрывает, если черта есть и скрыта.</summary>
+        public static bool TryRevealTraitByDilemma(SimContext ctx, Adventurer adventurer, string traitId)
+        {
+            if (!adventurer.TryGetTrait(traitId, out TraitInstance instance) || instance.Revealed) return false;
+            Reveal(ctx, adventurer, instance, ctx.Data.Get<SpecialTraitDefinition>(traitId));
+            return true;
+        }
+
+        private static void RevealAxis(SimContext ctx, Adventurer adventurer, AxisId axis, float value, AxisPole pole, AxisPoleDefinition poleDefinition)
+        {
+            AdventurersBalance balance = ctx.Data.Balance.Adventurers;
             adventurer.SetAxisRevealed(axis, ctx.World.Time.TotalHours);
             ctx.Events.Publish(SimEventType.AxisRevealed, EventImportance.Important, adventurer.Id)
                 .With("axis", axis)
                 .With("pole", pole)
                 .With("extreme", AxisMath.IsExtreme(value, balance))
                 .With("feedKey", poleDefinition.RevealFeedKey);
-            return true;
         }
 
         /// <summary>Черта проявилась. Раскрывает, если черта есть, скрыта и <paramref name="trigger"/> — её триггер из данных.</summary>

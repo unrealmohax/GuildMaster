@@ -11,18 +11,20 @@ namespace GuildMaster.Tests
     /// стартовая шестёрка сразу уходит в архив — в гильдии только люди, которых тест добавил сам. Системы заказов нет,
     /// стартовые заказы сняты с доски: заданий нет, тест видит только события своих людей. Стартовый персонал (Регистратор,
     /// Трактирщик) остаётся, но с уровнем <see cref="NeutralStaffLevel"/> — эффект должности × 1, снятие стресса в таверне
-    /// не зависит от зерна.
+    /// не зависит от зерна. Обращений по умолчанию нет (система обращений убрана): их ответы по сроку меняли бы довольство,
+    /// кошельки и состав гильдии; тесты обращений включают её — <c>dilemmas: true</c>.
     /// </summary>
     internal sealed class StateWorld : IDisposable
     {
         /// <summary>Уровень возможностей, при котором эффект должности — × 1.</summary>
         public const int NeutralStaffLevel = 50;
 
-        public StateWorld(uint seed = 7u, IInfirmary infirmary = null, ISimSystem beforeState = null, SimLogger log = null)
+        public StateWorld(uint seed = 7u, IInfirmary infirmary = null, ISimSystem beforeState = null, SimLogger log = null, bool dilemmas = false)
         {
             Data = new PeopleData();
             List<ISimSystem> systems = SimulationSystems.CreateDefault();
             systems.RemoveAll(s => s is OrderSystem);
+            if (!dilemmas) systems.RemoveAll(s => s is DilemmaSystem);
             if (infirmary != null)
             {
                 systems[systems.FindIndex(s => s is HealthSystem)] = new HealthSystem(infirmary);

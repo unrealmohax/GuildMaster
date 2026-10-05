@@ -107,6 +107,8 @@ namespace GuildMaster.Core
         private readonly List<int> panicked = new List<int>();
         private readonly List<int> rushing = new List<int>();
         private readonly List<int> overreached = new List<int>();
+        private readonly Dictionary<int, List<int>> abandoned = new Dictionary<int, List<int>>();
+        private readonly List<int> redeeming = new List<int>();
         private readonly List<FeedEntry> log = new List<FeedEntry>();
 
         internal QuestRun(int id, Order order, long departedAtHours)
@@ -236,6 +238,25 @@ namespace GuildMaster.Core
 
         /// <summary>Группа сейчас ночует: утром — строка «ночь прошла».</summary>
         internal bool Camping { get; set; }
+
+        /// <summary>Кто утаил часть трофеев при дележе; 0 — никто.</summary>
+        public int SkimmerId { get; internal set; }
+
+        /// <summary>Сколько утаено.</summary>
+        public int SkimmedAmount { get; internal set; }
+
+        /// <summary>Утаивание заметили.</summary>
+        public bool SkimCaught { get; internal set; }
+
+        /// <summary>Кого бросил беглец: кто остался в группе, когда он сбежал (по id беглеца).</summary>
+        public IReadOnlyList<int> GetAbandonedBy(int fugitiveId) =>
+            abandoned.TryGetValue(fugitiveId, out List<int> ids) ? ids : (IReadOnlyList<int>)System.Array.Empty<int>();
+
+        /// <summary>Прощённый беглец ищет искупления: до конца задания готов к геройству без порогов и с большим шансом.</summary>
+        public bool IsRedeeming(int id) => redeeming.Contains(id);
+
+        internal void SetAbandoned(int fugitiveId, IEnumerable<int> ids) => abandoned[fugitiveId] = new List<int>(ids);
+        internal void SetRedeeming(int id) { if (!redeeming.Contains(id)) redeeming.Add(id); }
 
         /// <summary>Кто взял заказ, переоценив шансы (для раскрытия Хвастуна).</summary>
         internal IReadOnlyList<int> Overreached => overreached;

@@ -3,7 +3,7 @@ using GuildMaster.Core;
 
 namespace GuildMaster.UI
 {
-    /// <summary>Окно решения: кандидат в авантюристы, кандидат в персонал, отчёт месяца, поражение.</summary>
+    /// <summary>Окно решения: кандидат в авантюристы, кандидат в персонал, отчёт месяца, поражение, обращение.</summary>
     public enum PopupKind
     {
         None,
@@ -11,6 +11,7 @@ namespace GuildMaster.UI
         StaffCandidate,
         Report,
         Defeat,
+        Dilemma,
     }
 
     /// <summary>Какое окно решения открыть: вид и id кандидата или номер отчёта в истории.</summary>
@@ -48,13 +49,14 @@ namespace GuildMaster.UI
     }
 
     /// <summary>
-    /// Колокольчик верхней панели: что ждёт внимания игрока, по состоянию мира — важные заказы и событийные задания без ответа,
+    /// Колокольчик верхней панели: что ждёт внимания игрока, по состоянию мира — обращения без ответа, важные заказы и событийные задания без ответа,
     /// кандидаты в авантюристы и на вакансии, непрочитанный отчёт месяца. Уведомление пропадает само, когда пропал его повод.
     /// </summary>
     public sealed class NotificationsModel
     {
         public static readonly List<INotificationSource> Sources = new List<INotificationSource>
         {
+            new Dilemmas(),
             new ImportantOrders(),
             new AdventurerCandidates(),
             new StaffCandidates(),
@@ -80,6 +82,22 @@ namespace GuildMaster.UI
         {
             Items.Clear();
             foreach (INotificationSource source in Sources) source.Collect(client, this, Items);
+        }
+
+        private sealed class Dilemmas : INotificationSource
+        {
+            public void Collect(ISimulationClient client, NotificationsModel model, List<Notification> items)
+            {
+                foreach (Dilemma dilemma in client.World.Dilemmas.Open)
+                {
+                    items.Add(new Notification
+                    {
+                        Text = string.Format(UiStrings.NotifyDilemmaFormat, DilemmasModel.Title(client.Data, dilemma), DilemmasModel.From(client, dilemma)),
+                        Destination = Destination.ToScreen(ScreenId.Dilemmas, dilemma.Id),
+                        Popup = new Popup(PopupKind.Dilemma, dilemma.Id),
+                    });
+                }
+            }
         }
 
         private sealed class ImportantOrders : INotificationSource
@@ -161,14 +179,15 @@ namespace GuildMaster.UI
 
     /// <summary>
     /// Очередь окон решений, которые открываются сами: закрытие гильдии — сразу, поверх всего; остальное — по одному, когда
-    /// поверх экрана нет других окон: каждый новый кандидат в авантюристы и в персонал (кроме тех, кому отказали) и каждый
-    /// непрочитанный отчёт месяца. Время окна не останавливают. Закрытое окно больше само не приходит — решение ждёт
+    /// поверх экрана нет других окон: каждое новое обращение, каждый новый кандидат в авантюристы и в персонал (кроме тех, кому
+    /// отказали) и каждый непрочитанный отчёт месяца. Время окна не останавливают. Закрытое окно больше само не приходит — решение ждёт
     /// в уведомлениях.
     /// </summary>
     public sealed class PopupQueue
     {
         private readonly HashSet<int> shownAdventurerCandidates = new HashSet<int>();
         private readonly HashSet<int> shownStaffCandidates = new HashSet<int>();
+        private readonly HashSet<int> shownDilemmas = new HashSet<int>();
 
         public bool DefeatShown { get; private set; }
 
@@ -184,6 +203,12 @@ namespace GuildMaster.UI
         {
             if (TryUrgent(client, out popup)) return true;
             WorldState world = client.World;
+            foreach (Dilemma dilemma in world.Dilemmas.Open)
+            {
+                if (shownDilemmas.Contains(dilemma.Id)) continue;
+                popup = new Popup(PopupKind.Dilemma, dilemma.Id);
+                return true;
+            }
             foreach (Candidate candidate in world.Adventurers.Candidates)
             {
                 if (shownAdventurerCandidates.Contains(candidate.Adventurer.Id)) continue;
@@ -214,6 +239,7 @@ namespace GuildMaster.UI
                 case PopupKind.StaffCandidate: shownStaffCandidates.Add(popup.Id); break;
                 case PopupKind.Report: notifications.ReportsSeen = System.Math.Max(notifications.ReportsSeen, popup.Id + 1); break;
                 case PopupKind.Defeat: DefeatShown = true; break;
+                case PopupKind.Dilemma: shownDilemmas.Add(popup.Id); break;
             }
         }
     }

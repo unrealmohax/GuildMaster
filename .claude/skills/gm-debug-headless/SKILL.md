@@ -85,3 +85,6 @@ description: Отладка и прогоны GuildMaster без интерфе�
 
 Год с ботом «Простой» без лога — порядка 1,5–2 с (основная цена — задания и оценка групп); `Info` — десятки тысяч строк в год;
 `Trace` в разы больше. Замеры цены отдельных расчётов — `Parties → Cost Benchmark`.
+- Обращения (скилл `gm-dilemmas`): бот «Простой» — `AnswerDilemmasRandomlyRule` (наугад или без ответа); сценарий `dilemma Id Вариант`;
+  столбцы «Обращений», «Без ответа, %», по видам и вариантам (`MonthlyFor`); лог `Info` — `decide … request: …`, `dilemma #N …: option K`,
+  `Debug` — броски `loan-request`, `loot-dispute`, `pardon-redemption`. Зонд: UI → `Spawn Sample Dilemmas`.

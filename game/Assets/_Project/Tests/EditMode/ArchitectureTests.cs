@@ -99,6 +99,7 @@ namespace GuildMaster.Tests
                 typeof(BuildingBook), typeof(Building),
                 typeof(StaffRoster), typeof(StaffMember), typeof(StaffCandidate),
                 typeof(DecreeBook), typeof(ActiveDecree), typeof(DecreeSpan),
+                typeof(DilemmaBook), typeof(Dilemma), typeof(AdventurerMemory), typeof(MemoryEntry),
             };
             foreach (Type type in stateTypes)
             {

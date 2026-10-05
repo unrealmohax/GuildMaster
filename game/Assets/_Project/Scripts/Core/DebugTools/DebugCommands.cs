@@ -276,4 +276,88 @@ namespace GuildMaster.Core
             }
         }
     }
+
+    /// <summary>
+    /// Вызвать дилемму для человека (<see cref="AdventurerId"/>) в обход условий триггера, перезарядки и лимита открытых. Второй
+    /// участник: у Влюблённых — партнёр по черте, иначе первый другой человек в гильдии; место ссоры из-за добычи — первое место
+    /// из текстов заказов; брошенных у беглеца нет. Праздник Трактирщика — от Трактирщика (нет его — ничего).
+    /// </summary>
+    public sealed class DebugDilemmaCommand : ICommand
+    {
+        public DebugDilemmaCommand(DilemmaTrigger trigger, int adventurerId)
+        {
+            Trigger = trigger;
+            AdventurerId = adventurerId;
+        }
+
+        public DilemmaTrigger Trigger { get; }
+        public int AdventurerId { get; }
+
+        public void Apply(SimContext ctx)
+        {
+            DilemmaDefinition definition = DilemmaRules.Find(ctx.Data, Trigger);
+            if (definition == null) return;
+
+            if (Trigger == DilemmaTrigger.TavernFeast)
+            {
+                if (!StaffRules.TryGetWithEffect(ctx.World, ctx.Data, StaffLevelEffect.TavernStressRelief, out StaffMember innkeeper)) return;
+                Dilemma feast = DilemmaService.Open(ctx, definition, d => d.StaffId = innkeeper.Id);
+                DebugAction.Publish(ctx, "dilemma").With("dilemma", feast.Id);
+                return;
+            }
+
+            if (!ctx.World.Adventurers.TryGetActive(AdventurerId, out Adventurer subject)) return;
+            Adventurer partner = null;
+            if (Trigger == DilemmaTrigger.LoversSameParty || Trigger == DilemmaTrigger.LootDispute)
+            {
+                TraitInstance lover = TraitRules.FindWithHook(subject, TraitHook.LoverPartner, ctx.Data);
+                if (Trigger == DilemmaTrigger.LoversSameParty && lover != null) ctx.World.Adventurers.TryGetActive(lover.PartnerId, out partner);
+                if (partner == null)
+                {
+                    foreach (Adventurer other in ctx.World.Adventurers.Active)
+                    {
+                        if (other.Id == subject.Id) continue;
+                        partner = other;
+                        break;
+                    }
+                }
+                if (partner == null) return;
+            }
+
+            Dilemma dilemma = DilemmaService.Open(ctx, definition, d =>
+            {
+                d.SubjectId = subject.Id;
+                if (partner != null) d.PartnerId = partner.Id;
+                if (Trigger == DilemmaTrigger.LoanRequest)
+                {
+                    d.Amount = DilemmaRules.LoanAmount(subject, ctx.Data.Balance);
+                    d.Reason = FirstReason(definition, subject);
+                }
+                if (Trigger == DilemmaTrigger.LootDispute) d.Place = FirstPlace(ctx.Data);
+            });
+            DebugAction.Publish(ctx, "dilemma", subject.Id).With("dilemma", dilemma.Id);
+        }
+
+        private static string FirstReason(DilemmaDefinition definition, Adventurer subject)
+        {
+            string neutral = string.Empty;
+            foreach (DilemmaReason reason in definition.Reasons)
+            {
+                if (reason == null) continue;
+                if (reason.RequiresTrait != null && subject.HasTrait(reason.RequiresTrait.Id)) return reason.Text;
+                if (reason.RequiresTrait == null && neutral.Length == 0) neutral = reason.Text;
+            }
+            return neutral;
+        }
+
+        private static NounForms FirstPlace(DataRegistry data)
+        {
+            if (data.OrderTexts == null) return null;
+            foreach (QuestTypeTexts texts in data.OrderTexts.QuestTypes)
+            {
+                if (texts != null && texts.Places.Count > 0) return texts.Places[0];
+            }
+            return null;
+        }
+    }
 }

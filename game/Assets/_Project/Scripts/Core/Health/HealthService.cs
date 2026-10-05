@@ -23,6 +23,7 @@ namespace GuildMaster.Core
         /// <summary>
         /// Ранить: своя рана — стресс +10 (лёгкая) / +20 (тяжёлая) × черты. Несколько лёгких ран не складываются —
         /// остаётся самая длинная. Вторая тяжёлая при уже тяжёлой становится увечьем (черта «Калека», если её можно дать).
+        /// У того, кому гильдия разрешила ходить на задания с тяжёлой раной, любая новая рана — сразу увечье, разрешение снимается.
         /// Событие: лёгкая — [З], тяжёлая — [В]. Включена компенсация за ранение — гильдия платит раненому
         /// (<see cref="DecreeService.CompensateWound"/>). Возвращает рану, которая теперь у человека.
         /// </summary>
@@ -58,6 +59,13 @@ namespace GuildMaster.Core
             {
                 condition = new Condition(kind, days, now);
                 adventurerState.AddCondition(condition);
+            }
+
+            if (adventurerState.HasWoundedQuestPermission)
+            {
+                // С разрешением ходить с тяжёлой раной любая новая рана сразу становится увечьем, разрешение снимается.
+                adventurerState.WoundedQuestProfile = 0f;
+                if (!maimed) maimed = Maim(ctx, adventurer);
             }
 
             StateService.AddStress(ctx, adventurer, kind == ConditionKind.LightWound ? state.OwnLightWoundStress : state.OwnHeavyWoundStress, party);

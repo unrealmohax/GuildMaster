@@ -166,6 +166,9 @@ namespace GuildMaster.Core
                 left -= skimmed;
                 WalletService.ReceiveIncome(ctx, skimmer, skimmed, IncomeKind.Loot);
                 bool caught = ctx.RollChance(people.SkimCaughtChance, "skim-caught", skimmer);
+                run.SkimmerId = skimmer.Id;
+                run.SkimmedAmount = skimmed;
+                run.SkimCaught = caught;
                 QuestParty.Publish(ctx, SimEventType.LootSkimmed, run, EventImportance.Normal, skimmer.Id)
                     .With("amount", skimmed).With("caught", caught);
                 if (caught) RevealService.TryRevealAxis(ctx, skimmer, AxisId.Principles, RevealTrigger.UnprincipledCaughtSkimming);

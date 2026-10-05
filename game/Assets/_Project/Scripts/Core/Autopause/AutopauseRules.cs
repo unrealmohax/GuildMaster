@@ -24,6 +24,7 @@ namespace GuildMaster.Core
                 { SimEventType.PartyRetreated, AutopauseKind.PartyRetreated },
                 { SimEventType.AdventurerDisappeared, AutopauseKind.MemberLeftGuild },
                 { SimEventType.StaffQuit, AutopauseKind.MemberLeftGuild },
+                { SimEventType.DilemmaArrived, AutopauseKind.DilemmaReceived },
             };
     }
 }

@@ -38,6 +38,7 @@ namespace GuildMaster.UI
         private CandidateWindow candidate;
         private StaffCandidateWindow staffCandidate;
         private DefeatWindow defeat;
+        private DilemmaWindow dilemma;
         private DebugPanel debug;
         private NotificationsModel notifications;
         private PopupQueue popups;
@@ -143,6 +144,8 @@ namespace GuildMaster.UI
             navigator.Register(new QuestsScreen(context, work));
             navigator.Register(new TreasuryScreen(context, work));
             navigator.Register(new DecreesScreen(context, work));
+            var dilemmas = new DilemmasModel();
+            navigator.Register(new DilemmasScreen(context, work, dilemmas));
             navigator.Changed += MarkDirty;
 
             notifications = new NotificationsModel();
@@ -156,6 +159,7 @@ namespace GuildMaster.UI
             candidate = new CandidateWindow(context, windowLayer);
             staffCandidate = new StaffCandidateWindow(context, windowLayer);
             defeat = new DefeatWindow(context, windowLayer);
+            dilemma = new DilemmaWindow(context, windowLayer, dilemmas);
             notificationsWindow = new NotificationsWindow(context, windowLayer, notifications);
 
             // Ссылка на кандидата в авантюристы ведёт в окно решения по нему, на остальных людей — в карточку.
@@ -210,7 +214,7 @@ namespace GuildMaster.UI
             return layer;
         }
 
-        /// <summary>Открыть окно решения: кандидат, кандидат в персонал, отчёт месяца, поражение.</summary>
+        /// <summary>Открыть окно решения: кандидат, кандидат в персонал, отчёт месяца, поражение, обращение.</summary>
         public void OpenPopup(Popup popup)
         {
             if (navigator == null || !popup.IsValid) return;
@@ -231,6 +235,10 @@ namespace GuildMaster.UI
                     break;
                 case PopupKind.Defeat:
                     navigator.Open(defeat);
+                    break;
+                case PopupKind.Dilemma:
+                    dilemma.DilemmaId = popup.Id;
+                    navigator.Open(dilemma);
                     break;
             }
         }

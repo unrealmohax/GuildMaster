@@ -100,6 +100,18 @@ namespace GuildMaster.Core
         /// </summary>
         public static readonly LedgerCategory Decrees = new LedgerCategory("decrees", LedgerFlow.Expense, ExpenseKind.Mandatory);
 
+        /// <summary>Займы людям по их просьбе — только если в казне хватает денег. Связанный объект — человек.</summary>
+        public static readonly LedgerCategory Loans = new LedgerCategory("loans", LedgerFlow.Expense, ExpenseKind.IfAffordable);
+
+        /// <summary>
+        /// Расходы по ответам на обращения (праздник, доплата за добычу, лечение) — только если хватает денег. Комментарий — id
+        /// дилеммы, связанный объект — человек (у обращения персонала — 0).
+        /// </summary>
+        public static readonly LedgerCategory Dilemmas = new LedgerCategory("dilemmas", LedgerFlow.Expense, ExpenseKind.IfAffordable);
+
+        /// <summary>Штрафы с людей по ответам на обращения. Связанный объект — человек.</summary>
+        public static readonly LedgerCategory Fines = new LedgerCategory("fines", LedgerFlow.Income);
+
         /// <summary>Деньги, добавленные отладочной панелью.</summary>
         public static readonly LedgerCategory DebugIncome = new LedgerCategory("debugIncome", LedgerFlow.Income);
 
@@ -109,7 +121,8 @@ namespace GuildMaster.Core
         public static IReadOnlyList<LedgerCategory> All { get; } = new[]
         {
             Tavern, Commission, DebtRepayment, Dormitory, Infirmary, TrainingYard,
-            Surcharges, EventQuests, Discoveries, Construction, Upkeep, Salaries, Decrees, DebugIncome, DebugExpense,
+            Surcharges, EventQuests, Discoveries, Construction, Upkeep, Salaries, Decrees,
+            Loans, Dilemmas, Fines, DebugIncome, DebugExpense,
         };
     }
 }

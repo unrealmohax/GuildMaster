@@ -21,7 +21,7 @@ namespace GuildMaster.UI
     /// <summary>
     /// Окно «Время»: текущая дата, сколько до начала месяца и ближайшие события по порядку — конец стройки, сроки ответа
     /// на важные заказы, возвращение групп (только тех, кто уже на обратном пути: срок на месте заранее не известен), окончание
-    /// срока распоряжений.
+    /// срока распоряжений, сроки ответа на обращения.
     /// </summary>
     public sealed class CalendarModel
     {
@@ -31,6 +31,7 @@ namespace GuildMaster.UI
             new OrderAnswersDue(),
             new PartiesReturn(),
             new DecreesEnd(),
+            new DilemmaAnswersDue(),
         };
 
         public string Today { get; private set; } = string.Empty;
@@ -105,6 +106,22 @@ namespace GuildMaster.UI
                         AtHours = active.EndsAtHours,
                         Text = string.Format(UiStrings.CalendarDecreeFormat, name),
                         Destination = Destination.ToScreen(ScreenId.Decrees),
+                    });
+                }
+            }
+        }
+
+        private sealed class DilemmaAnswersDue : ICalendarSource
+        {
+            public void Collect(ISimulationClient client, List<CalendarItem> items)
+            {
+                foreach (Dilemma dilemma in client.World.Dilemmas.Open)
+                {
+                    items.Add(new CalendarItem
+                    {
+                        AtHours = dilemma.DeadlineAtHours,
+                        Text = string.Format(UiStrings.CalendarDilemmaFormat, DilemmasModel.Title(client.Data, dilemma), DilemmasModel.From(client, dilemma)),
+                        Destination = Destination.ToScreen(ScreenId.Dilemmas, dilemma.Id),
                     });
                 }
             }

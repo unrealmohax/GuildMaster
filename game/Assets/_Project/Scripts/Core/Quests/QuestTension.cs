@@ -41,7 +41,7 @@ namespace GuildMaster.Core
                     continue;
                 }
 
-                float flee = Math.Min(1f, TraitChance(member, TensionKind.Flee, data));
+                float flee = Math.Min(1f, FleeChance(ctx, run, member));
                 if (flee > 0f && ctx.RollChance(flee, "flee", member, "stress", member.State.Stress))
                 {
                     Flee(ctx, run, member);
@@ -76,6 +76,41 @@ namespace GuildMaster.Core
                 QuestParty.Publish(ctx, SimEventType.TensionMoment, run, EventImportance.Normal, member.Id).With("kind", "hold");
                 RevealService.TryRevealTrait(ctx, member, ironNerves.TraitId, RevealTrigger.IronNervesHeld);
             }
+        }
+
+        /// <summary>
+        /// Шанс бегства — из эффектов черт. Прощённый беглец в первом моменте напряжения после прощения (флаг памяти снимается):
+        /// с шансом <c>pardonRedemptionChance</c> ищет искупления — до конца задания готов к геройству (<see cref="TryHero"/>),
+        /// иначе шанс бегства × <c>pardonFleeMultiplier</c> (своего шанса нет — берётся шанс черты беглеца).
+        /// </summary>
+        private static float FleeChance(SimContext ctx, QuestRun run, Adventurer member)
+        {
+            DataRegistry data = ctx.Data;
+            float flee = TraitChance(member, TensionKind.Flee, data);
+            if (!member.Memory.HasFlag(MemoryFlag.Pardoned)) return flee;
+
+            member.Memory.Remove(MemoryFlag.Pardoned);
+            DilemmasBalance dilemmas = data.Balance.Dilemmas;
+            if (ctx.RollChance(dilemmas.PardonRedemptionChance, "pardon-redemption", member))
+            {
+                run.SetRedeeming(member.Id);
+                return flee;
+            }
+            if (flee <= 0f) flee = DeserterTraitFleeChance(data);
+            return flee * dilemmas.PardonFleeMultiplier;
+        }
+
+        /// <summary>Шанс бегства черты беглеца (особая черта с эффектом бегства); нет такой черты — 0.</summary>
+        private static float DeserterTraitFleeChance(DataRegistry data)
+        {
+            foreach (SpecialTraitDefinition trait in data.All<SpecialTraitDefinition>())
+            {
+                foreach (TraitEffect effect in trait.Effects)
+                {
+                    if (effect.Kind == EffectKind.TensionModifier && effect.Tension == TensionKind.Flee) return effect.Value;
+                }
+            }
+            return 0f;
         }
 
         /// <summary>Шанс паники: max(0, (стресс − Хладнокровие + сдвиг) / делитель) + эффекты черт паники, в пределах 0..1.</summary>
@@ -133,6 +168,7 @@ namespace GuildMaster.Core
         /// <summary>
         /// Товарищ должен получить тяжёлую рану: кто из остальных с Хладнокровием от <c>heroMinComposure</c> и осью «Люди» от
         /// <c>heroMinPeopleAxis</c> (по порядку выхода, бросок <c>heroChance</c> каждому до первого успеха) принимает её на себя;
+        /// прощённый беглец, ищущий искупления, — без порогов, шанс × <c>pardonHeroMultiplier</c>;
         /// отношения с товарищем + <c>heroRelation</c>. Возвращает, кто получит рану.
         /// </summary>
         public static Adventurer TryHero(SimContext ctx, QuestRun run, List<Adventurer> present, Adventurer target)
@@ -141,9 +177,11 @@ namespace GuildMaster.Core
             foreach (Adventurer member in present)
             {
                 if (member.Id == target.Id) continue;
-                if (AdventurerStats.Effective(member, StatId.Composure, ctx.Data) < tension.HeroMinComposure) continue;
-                if (member.GetAxis(AxisId.People) < tension.HeroMinPeopleAxis) continue;
-                if (!ctx.RollChance(tension.HeroChance, "hero", member)) continue;
+                bool redeeming = run.IsRedeeming(member.Id);
+                if (!redeeming && AdventurerStats.Effective(member, StatId.Composure, ctx.Data) < tension.HeroMinComposure) continue;
+                if (!redeeming && member.GetAxis(AxisId.People) < tension.HeroMinPeopleAxis) continue;
+                float chance = redeeming ? Math.Min(1f, tension.HeroChance * ctx.Data.Balance.Dilemmas.PardonHeroMultiplier) : tension.HeroChance;
+                if (!ctx.RollChance(chance, "hero", member)) continue;
 
                 RelationService.Change(ctx, member.Id, target.Id, tension.HeroRelation);
                 QuestParty.Publish(ctx, SimEventType.TensionMoment, run, EventImportance.Important, member.Id, target.Id).With("kind", "hero");
@@ -165,6 +203,8 @@ namespace GuildMaster.Core
             run.AddFled(fugitive.Id);
 
             List<Adventurer> abandoned = QuestParty.Present(ctx.World, run);
+            run.SetAbandoned(fugitive.Id, QuestSystem.Ids(abandoned));
+            fugitive.Memory.Set(MemoryFlag.Fled, ctx.World.Time.TotalHours);
             PartyContext context = QuestParty.ContextOf(abandoned.Count);
             foreach (Adventurer member in abandoned)
             {

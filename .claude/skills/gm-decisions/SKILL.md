@@ -86,3 +86,7 @@ description: Модель решений GuildMaster — DecisionSystem (шаг 
 - `DecisionScope` живёт один час: друзья и профили кешируются на час (отношения и параметры за час не меняются).
 - Распоряжения (скилл `gm-decrees`): запрет `"solo forbidden by decree"` — последний в `DecisionBans.Default`; «Безопасность» ×
   `DecisionScope.SafetyMultiplier` в вариантах с заказом (`Evaluate`) и в `PartyLens`; в `Gather` при запрете соло минимум — 2.
+- Обращения (скилл `gm-dilemmas`): запрет `"deserter awaits the guild's answer"` (беглец ждёт ответа — заказов не берёт) — перед запретом
+  распоряжения; `CanDecide` смотрит `IsLaidUpByWound()` (тяжёлая рана без разрешения гильдии); в конце `TavernEvening.Settle` —
+  `DilemmaService.ApplyFeast` (праздник Трактирщика тем, кто был в таверне). Действия `FileRequest` нет: обращение подаёт триггер,
+  в лог — `decide #3 Имя request: …`.

@@ -9,10 +9,11 @@ namespace GuildMaster.Core
     /// <list type="bullet">
     /// <item>Койка держится до выздоровления. Лечит только Лазарет с Лекарем (<see cref="IInfirmary"/>): Лекаря нет или
     /// коек стало меньше — лишние больные выходят (остаются тяжёлые, при равенстве — кто раньше ранен).</item>
-    /// <item>Тяжело раненого (он сам не решает) кладут на свободную койку в тот же час: тяжёлые в очереди — кто раньше ранен,
+    /// <item>Тяжело раненого (он сам не решает; кроме того, кому гильдия разрешила ходить с раной на задания) кладут на свободную койку в тот же час: тяжёлые в очереди — кто раньше ранен,
     /// затем по Id. Легко раненый ложится сам — решением (<see cref="HealthService.Admit"/>). Тяжёлый не вытесняет лёгкого,
     /// а ждёт свободную койку. Люди на задании коек не занимают.</item>
     /// <item>У каждой раны срок уменьшается на 1 × множитель: в Лазарете — 1 / 0,7 × скорость Лекаря, без него — 1 / 1,5.</item>
+    /// <item>Зажила тяжёлая рана — разрешение ходить с ней на задания снимается.</item>
     /// <item>Тяжёлая рана без Лазарета — один бросок на осложнение (в первые сутки лечения): +7 дней, стресс +10.</item>
     /// </list>
     /// </summary>
@@ -62,6 +63,7 @@ namespace GuildMaster.Core
                     if (condition.RemainingDays > HealedEpsilon) continue;
 
                     state.RemoveCondition(condition);
+                    if (condition.Kind == ConditionKind.HeavyWound) state.WoundedQuestProfile = 0f;
                     ctx.Events.Publish(SimEventType.WoundHealed, EventImportance.Normal, adventurer.Id)
                         .With("kind", condition.Kind)
                         .With("infirmary", state.InInfirmary);
@@ -89,7 +91,7 @@ namespace GuildMaster.Core
             {
                 AdventurerState state = adventurer.State;
                 if (state.InInfirmary) patients.Add(adventurer);
-                else if (beds > 0 && state.HasHeavyWound() && !state.IsOnQuest()) waiting.Add(adventurer);
+                else if (beds > 0 && state.IsLaidUpByWound() && !state.IsOnQuest()) waiting.Add(adventurer);
             }
 
             int occupied = patients.Count;

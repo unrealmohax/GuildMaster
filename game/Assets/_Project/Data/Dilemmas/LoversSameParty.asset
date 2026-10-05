@@ -41,13 +41,6 @@ MonoBehaviour:
       axis: 0
       pole: 0
       trait: {fileID: 0}
-    - kind: 11
-      target: 2
-      value: 0
-      flag: 5
-      axis: 0
-      pole: 0
-      trait: {fileID: 0}
     isRefusal: 0
     playerSelectable: 1
     answerFeedKey: dilemma.lovers.allow
@@ -72,13 +65,6 @@ MonoBehaviour:
       target: 2
       value: -5
       flag: 0
-      axis: 0
-      pole: 0
-      trait: {fileID: 0}
-    - kind: 11
-      target: 2
-      value: 0
-      flag: 6
       axis: 0
       pole: 0
       trait: {fileID: 0}

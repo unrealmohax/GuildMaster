@@ -147,7 +147,8 @@ namespace GuildMaster.Debugging
 
         /// <summary>
         /// Столбцы месяцев с доходами и расходами по каждой статье журнала: «Доход: Таверна», «Расход: …» (названия статей —
-        /// из шаблонов данных; без данных — код статьи), затем дни действия каждого распоряжения: «Дней: Сухой закон».
+        /// из шаблонов данных; без данных — код статьи), затем дни действия каждого распоряжения: «Дней: Сухой закон»; обращения —
+        /// всего, доля без ответа, по каждой дилемме и по каждому её варианту.
         /// </summary>
         public static IReadOnlyList<MonthColumn> MonthlyFor(DataRegistry data)
         {
@@ -164,8 +165,34 @@ namespace GuildMaster.Debugging
             {
                 foreach (DecreeDefinition decree in data.All<DecreeDefinition>())
                     columns.Add(new MonthColumn("Дней: " + decree.DisplayName, m => DecreeDays(m, decree.Id), SummaryTotal.Sum, "0.#"));
+                columns.Add(new MonthColumn("Обращений", m => m.Count(SimEventType.DilemmaArrived), SummaryTotal.Sum, "0"));
+                columns.Add(new MonthColumn("Без ответа, %", NoAnswerShare, SummaryTotal.Mean, "0.#"));
+                foreach (DilemmaDefinition dilemma in data.All<DilemmaDefinition>())
+                {
+                    columns.Add(new MonthColumn("Обращений: " + dilemma.Title, m => m.Count(SimEventType.DilemmaArrived, e => IsDilemma(e, dilemma.Id)),
+                        SummaryTotal.Sum, "0"));
+                    for (int i = 0; i < dilemma.Options.Count; i++)
+                    {
+                        int option = i;
+                        string text = dilemma.Options[i].PlayerSelectable ? dilemma.Options[i].Text : "без ответа";
+                        columns.Add(new MonthColumn("Ответ: " + dilemma.Title + " — " + text,
+                            m => m.Count(SimEventType.DilemmaAnswered, e => IsDilemma(e, dilemma.Id) && e.TryGet("option", out int o) && o == option),
+                            SummaryTotal.Sum, "0"));
+                    }
+                }
             }
             return columns;
+        }
+
+        private static bool IsDilemma(SimEvent simEvent, string definitionId) =>
+            simEvent.TryGet("definition", out string id) && id == definitionId;
+
+        /// <summary>Доля обращений месяца, закрытых по сроку (вариант по умолчанию), среди закрытых ответом или по сроку; не было — 0.</summary>
+        private static double NoAnswerShare(MonthRecord month)
+        {
+            int closed = month.Count(SimEventType.DilemmaAnswered);
+            if (closed == 0) return 0;
+            return 100.0 * month.Count(SimEventType.DilemmaAnswered, e => e.TryGet("timedOut", out bool timedOut) && timedOut) / closed;
         }
 
         /// <summary>Сколько дней месяца распоряжение действовало (часы / часов в сутках).</summary>

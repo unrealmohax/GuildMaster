@@ -59,6 +59,8 @@ namespace GuildMaster.Core
         public const string PermanentPartyDisbanded = "guild.party.permanentDisbanded";
         public const string PartyMemberLeftQuarrel = "guild.party.memberLeft.quarrel";
         public const string PartyMemberLeftLoner = "guild.party.memberLeft.loner";
+        public const string PartyMemberLeftSeparated = "guild.party.memberLeft.separated";
+        public const string DilemmaArrived = "guild.dilemma.arrived";
         public const string PartyMemberJoined = "guild.party.memberJoined";
         public const string BuildingQueued = "guild.building.queued";
         public const string BuildingStarted = "guild.building.started";
@@ -113,7 +115,8 @@ namespace GuildMaster.Core
             OrderTaken, PromotionTaken, OrderRefused, PromotionOffered, RankPromoted, Fled, DeserterReturned, Disappeared, EventQuestFound,
             PartyGatheredPair, PartyGatheredThree, PartyGatheredFour, PartyGatheredFive, PartyGatheredSix, PermanentPartySetOut,
             PartyNotGathered, PartyNotGatheredSolo, InvitationDeclined, InvitationDeclinedSolo,
-            PermanentPartyFormed, PermanentPartyFormedPair, PermanentPartyDisbanded, PartyMemberLeftQuarrel, PartyMemberLeftLoner, PartyMemberJoined,
+            PermanentPartyFormed, PermanentPartyFormedPair, PermanentPartyDisbanded, PartyMemberLeftQuarrel, PartyMemberLeftLoner, PartyMemberLeftSeparated, PartyMemberJoined,
+            DilemmaArrived,
             BuildingQueued, BuildingStarted, BuildingReady,
             StaffCandidateArrived, StaffCandidateLeft, StaffCandidateRefused, StaffHired, StaffDismissed, StaffQuit, SalaryUnpaid,
             DecreeEnabled, DecreeProhibition, DecreeProhibitionQuiet, DecreeRevoked, DecreeBenefitCancelled, DecreeExpired,
@@ -215,6 +218,8 @@ namespace GuildMaster.Core
                 { SimEventType.DecreeEnabled, (e, w, d) => DecreeEnabledKey(e, d) },
                 { SimEventType.DecreeRevoked, (e, w, d) => e.TryGet("benefit", out bool benefit) && benefit ? DecreeBenefitCancelled : DecreeRevoked },
                 { SimEventType.DecreeExpired, (e, w, d) => DecreeExpired },
+                { SimEventType.DilemmaArrived, (e, w, d) => DilemmaArrived },
+                { SimEventType.DilemmaAnswered, (e, w, d) => FromPayload(e) },
             };
 
         /// <summary>Объявлено распоряжение; у Сухого закона — своя строка (с Пьяницей-участником или без).</summary>
@@ -271,6 +276,7 @@ namespace GuildMaster.Core
             {
                 case "quarrel": return PartyMemberLeftQuarrel;
                 case "loner": return PartyMemberLeftLoner;
+                case PartyService.SeparatedCause: return PartyMemberLeftSeparated;
                 default: return null;
             }
         }

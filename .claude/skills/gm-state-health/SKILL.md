@@ -90,3 +90,10 @@ GuildMaster → Sandbox → State: `Light Wound First`, `Heavy Wound First`, `St
 человек не платит, `DecreeService.PayLiving`); цель довольства — `StateRules.ContentmentTarget(…, world)` + `DecreeRules.ContentmentTerm`
 (без мира — без распоряжений); после сдвига лояльности — `DecreeRules.DailyLoyalty`; снятие стресса в таверне × Сухой закон
 (`StateService.ApplyHour`), шанс Пьяницы пропустить день — `DecreeRules.DrunkardSkipChance`; компенсация за рану — в `HealthService.Wound`.
+
+## Обращения
+
+Скилл `gm-dilemmas`. `AdventurerState.WoundedQuestProfile` — гильдия разрешила ходить на задания с тяжёлой раной (профиль × число);
+`IsLaidUpByWound()` = тяжёлая рана без разрешения — её смотрят `CanTakeQuests`, `CanDecide`, `ActivitySystem` (отдых), `HealthSystem`
+(кого кладут на койку). Разрешение снимают: зажившая тяжёлая рана (`HealthSystem`) и любая новая рана — она сразу увечье
+(`HealthService.Wound`). `WalletService.Give` (деньги без долга) и `Take` (штраф, возврат утаенного) — internal.

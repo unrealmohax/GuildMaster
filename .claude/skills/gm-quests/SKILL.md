@@ -97,3 +97,7 @@ description: Задания GuildMaster — QuestSystem (шаг 4: выход, �
 - `QuestSystem_WithoutQuests_DoesNotShiftOtherSystems` — без заданий система не тратит бросков.
 - Длина фазы: `run.StartPhaseHours(n)` ставит и `PhaseHoursLeft`, и `PhaseHours` (интерфейс рисует долю фазы) — не присваивать
   `PhaseHoursLeft` напрямую. Час возвращения на обратном пути — `ObserverQueries.TryGetReturnAtHours`.
+- Обращения (скилл `gm-dilemmas`): `QuestRun.SkimmerId/SkimmedAmount/SkimCaught` (кто утаил и заметили ли — для «Ссоры из-за добычи»),
+  `GetAbandonedBy(беглец)` (кого бросил — для «Беглец вернулся»), `IsRedeeming` — прощённый беглец ищет искупления. `QuestTension.FleeChance`:
+  у флага памяти `Pardoned` — бросок `pardon-redemption` в первом моменте напряжения (флаг тратится); `TryHero` для искупающего — без порогов,
+  шанс × 3. `Flee` ставит флаг памяти `Fled`. Вернувшийся беглец — обращение (`DilemmaSystem`), отметка `IsDeserter` остаётся.

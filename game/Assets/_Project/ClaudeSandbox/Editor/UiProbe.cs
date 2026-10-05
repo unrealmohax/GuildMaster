@@ -119,6 +119,23 @@ namespace GuildMaster.Sandbox
             Debug.Log("[UiProbe] sample decrees sent");
         }
 
+        /// <summary>Вызвать обращения для снимков: просьбу в долг у первого человека, Влюблённых у второго, праздник Трактирщика.</summary>
+        [MenuItem("GuildMaster/Sandbox/UI/Spawn Sample Dilemmas")]
+        public static void SpawnSampleDilemmas()
+        {
+            UiRoot ui = Object.FindAnyObjectByType<UiRoot>();
+            if (!EditorApplication.isPlaying || ui == null || ui.Client == null || ui.Client.World.Adventurers.Active.Count < 2)
+            {
+                Debug.LogWarning("[UiProbe] Play Mode with bound UiRoot and two people required");
+                return;
+            }
+            IReadOnlyList<Adventurer> people = ui.Client.World.Adventurers.Active;
+            ui.Client.Send(new DebugDilemmaCommand(DilemmaTrigger.LoanRequest, people[0].Id));
+            ui.Client.Send(new DebugDilemmaCommand(DilemmaTrigger.LoversSameParty, people[1].Id));
+            ui.Client.Send(new DebugDilemmaCommand(DilemmaTrigger.TavernFeast, 0));
+            Debug.Log("[UiProbe] sample dilemmas sent");
+        }
+
         [MenuItem("GuildMaster/Sandbox/UI/Log Screen State")]
         public static void LogState()
         {
@@ -194,6 +211,15 @@ namespace GuildMaster.Sandbox
             }));
             Steps.Enqueue(($"{prefix}_15_defeat_preview", () => { CloseAll(nav); ui.OpenPopup(new Popup(PopupKind.Defeat)); }));
             Steps.Enqueue(($"{prefix}_16_decrees", () => { CloseAll(nav); nav.ShowScreen(ScreenId.Decrees); }));
+            Steps.Enqueue(($"{prefix}_17_dilemmas", () => { CloseAll(nav); nav.ShowScreen(ScreenId.Dilemmas); }));
+            Steps.Enqueue(($"{prefix}_18_dilemma_card", () =>
+            {
+                CloseAll(nav);
+                nav.ShowScreen(ScreenId.Dilemmas);
+                int id = world.Dilemmas.Open.Count > 0 ? world.Dilemmas.Open[0].Id
+                    : world.Dilemmas.Closed.Count > 0 ? world.Dilemmas.Closed[world.Dilemmas.Closed.Count - 1].Id : 0;
+                if (id != 0) ui.OpenPopup(new Popup(PopupKind.Dilemma, id));
+            }));
             Steps.Enqueue(($"{prefix}_end", () => { CloseAll(nav); nav.ShowScreen(ScreenId.Guild); }));
 
             waitFrames = FramesPerStep;

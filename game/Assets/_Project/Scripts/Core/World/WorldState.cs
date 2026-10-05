@@ -49,5 +49,8 @@ namespace GuildMaster.Core
 
         /// <summary>Распоряжения: включённые, их область и срок.</summary>
         public DecreeBook Decrees { get; } = new DecreeBook();
+
+        /// <summary>Обращения: открытые, закрытые, перезарядки, отложенный праздник.</summary>
+        public DilemmaBook Dilemmas { get; } = new DilemmaBook();
     }
 }

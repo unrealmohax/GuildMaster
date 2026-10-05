@@ -102,13 +102,12 @@ namespace GuildMaster.ClaudeSandbox
                 new[]
                 {
                     Option("Разрешить", "Почти всегда будут ходить вместе", "dilemma.lovers.allow",
-                        Effect(DilemmaEffectKind.AllowSameParty, DilemmaTarget.SubjectAndPartner, 0.5f),
-                        Flag(MemoryFlag.LoversTogether, DilemmaTarget.SubjectAndPartner)),
+                        // Флаги памяти LoversTogether / LoversSeparated ставят сами эффекты AllowSameParty / ForbidSameParty.
+                        Effect(DilemmaEffectKind.AllowSameParty, DilemmaTarget.SubjectAndPartner, 0.5f)),
                     Refusal("Запретить", "Не смогут ходить в одной группе; довольство и лояльность обоих падают", "dilemma.lovers.forbid",
                         Effect(DilemmaEffectKind.ForbidSameParty, DilemmaTarget.SubjectAndPartner, 0f),
                         Effect(DilemmaEffectKind.Contentment, DilemmaTarget.SubjectAndPartner, -15f),
-                        Effect(DilemmaEffectKind.Loyalty, DilemmaTarget.SubjectAndPartner, -5f),
-                        Flag(MemoryFlag.LoversSeparated, DilemmaTarget.SubjectAndPartner)),
+                        Effect(DilemmaEffectKind.Loyalty, DilemmaTarget.SubjectAndPartner, -5f)),
                 });
             Set(d["LoversSameParty"], "oncePerPair", true);
             Set(d["LoversSameParty"], "arrivalEffects", new List<DilemmaEffect> { RevealTrait(traits["Lover"], DilemmaTarget.SubjectAndPartner) });

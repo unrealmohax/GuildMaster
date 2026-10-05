@@ -60,7 +60,7 @@ namespace GuildMaster.Core
             if (state.Breakdown == BreakdownKind.Collapse) return Activity.Resting;
             if (phase == DayPhase.Night) return Activity.Sleeping;
             if (state.InInfirmary) return Activity.Infirmary;
-            if (state.HasHeavyWound()) return Activity.Resting;
+            if (state.IsLaidUpByWound()) return Activity.Resting;
             if (now < state.SkipsDayUntilHours) return Activity.Tavern;
             if (state.PlannedActivity.HasValue) return state.PlannedActivity.Value;
             return IsFreeTime(state.Activity) ? state.Activity : Activity.Resting;

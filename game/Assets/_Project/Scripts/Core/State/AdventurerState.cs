@@ -117,7 +117,18 @@ namespace GuildMaster.Core
         /// <summary>С кем человек на задании: один или в группе; вне задания — <see cref="PartyContext.None"/>.</summary>
         public PartyContext QuestParty { get; internal set; }
 
+        /// <summary>
+        /// Гильдия разрешила ходить на задания с тяжёлой раной: множитель профиля на время раны (0 — разрешения нет).
+        /// Снимается, когда тяжёлая рана заживёт или новая рана станет увечьем.
+        /// </summary>
+        public float WoundedQuestProfile { get; internal set; }
+
+        public bool HasWoundedQuestPermission => WoundedQuestProfile > 0f;
+
         public bool HasHeavyWound() => TryGetCondition(ConditionKind.HeavyWound, out _);
+
+        /// <summary>Тяжёлая рана держит человека дома: она есть, и разрешения ходить с ней на задания нет.</summary>
+        public bool IsLaidUpByWound() => HasHeavyWound() && !HasWoundedQuestPermission;
 
         public bool HasLightWound() => TryGetCondition(ConditionKind.LightWound, out _);
 

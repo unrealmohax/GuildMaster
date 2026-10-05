@@ -33,6 +33,16 @@ namespace GuildMaster.Data
         [Tooltip("Сумма — расходы на столько дней")]
         [SerializeField, Min(1)] private int loanSumDays = 30;
 
+        [Header("№2 Беглец вернулся")]
+        [Tooltip("Прощённый в первом моменте напряжения: шанс искупления (иначе — бегство)")]
+        [SerializeField, Range(0f, 1f)] private float pardonRedemptionChance = 0.5f;
+
+        [Tooltip("Искупление: шанс геройства × (пороги Хладнокровия и оси «Люди» не нужны)")]
+        [SerializeField, Min(1f)] private float pardonHeroMultiplier = 3f;
+
+        [Tooltip("Не искупил: шанс бегства ×")]
+        [SerializeField, Min(1f)] private float pardonFleeMultiplier = 1.5f;
+
         [Header("№3 Ссора из-за добычи")]
         [Tooltip("Ось Деньги от")]
         [SerializeField, Range(0f, 100f)] private float lootDisputeMoneyAxis = 50f;
@@ -64,6 +74,9 @@ namespace GuildMaster.Data
         public int LoanWalletDays => loanWalletDays;
         public float LoanWeeklyChance => loanWeeklyChance;
         public int LoanSumDays => loanSumDays;
+        public float PardonRedemptionChance => pardonRedemptionChance;
+        public float PardonHeroMultiplier => pardonHeroMultiplier;
+        public float PardonFleeMultiplier => pardonFleeMultiplier;
         public float LootDisputeMoneyAxis => lootDisputeMoneyAxis;
         public float LootDisputeRelationBelow => lootDisputeRelationBelow;
         public float LootDisputeChance => lootDisputeChance;

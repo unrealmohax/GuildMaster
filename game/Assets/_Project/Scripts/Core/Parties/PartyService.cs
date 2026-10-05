@@ -306,6 +306,30 @@ namespace GuildMaster.Core
             return count > 0 ? sum / count : 0f;
         }
 
+        /// <summary>Причина ухода из постоянной группы: гильдия запретила двоим ходить вместе.</summary>
+        public const string SeparatedCause = "separated";
+
+        /// <summary>
+        /// Гильдия запретила двоим ходить в одной группе: если они в одной постоянной группе, из неё выходит тот, кто вступил позже.
+        /// </summary>
+        internal static void Separate(SimContext ctx, Adventurer a, Adventurer b)
+        {
+            if (a.PermanentPartyId == 0 || a.PermanentPartyId != b.PermanentPartyId) return;
+            if (!ctx.World.Parties.TryGetParty(a.PermanentPartyId, out Party party)) return;
+            bool aEarlier = IndexOf(party.MemberIds, a.Id) < IndexOf(party.MemberIds, b.Id);
+            Adventurer leaver = aEarlier ? b : a;
+            Leave(ctx, party, leaver, SeparatedCause, aEarlier ? a : b);
+        }
+
+        private static int IndexOf(IReadOnlyList<int> ids, int id)
+        {
+            for (int i = 0; i < ids.Count; i++)
+            {
+                if (ids[i] == id) return i;
+            }
+            return -1;
+        }
+
         /// <summary>Человек ушёл из гильдии или погиб: выходит и из постоянной группы.</summary>
         internal static void OnRetired(SimContext ctx, Adventurer person)
         {

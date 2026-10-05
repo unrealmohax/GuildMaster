@@ -15,6 +15,7 @@ namespace GuildMaster.UI
         public const string Quests = "Задания";
         public const string TreasuryScreen = "Казна";
         public const string DecreesScreen = "Распоряжения";
+        public const string DilemmasScreen = "Обращения";
         public const string People = "Люди";
         public const string Parties = "Группы";
         public const string Buildings = "Постройки";
@@ -49,6 +50,24 @@ namespace GuildMaster.UI
         public const string CalendarAnswerFormat = "Срок ответа на заказ: {0}, {1}";
         public const string CalendarReturnFormat = "Возвращение: {0}";
         public const string CalendarDecreeFormat = "Кончается срок распоряжения: {0}";
+        public const string CalendarDilemmaFormat = "Срок ответа на обращение: {0} — {1}";
+
+        // Обращения.
+        public const string DilemmasOpen = "Ждут ответа";
+        public const string DilemmasClosed = "Недавние";
+        public const string DilemmasNone = "Сейчас никто ни о чём не просит.";
+        public const string DilemmaRemainingFormat = "осталось {0}";
+        public const string DilemmaDeadlineFormat = "Ответить до {0} (через {1}). Без ответа — вариант по умолчанию.";
+        public const string DilemmaFromFormat = "От кого: {0}";
+        public const string DilemmaUnaffordable = "Не хватает денег";
+        public const string DilemmaSent = "Ответ отправлен";
+        public const string DilemmaWithdrawn = "снято: обратившегося нет в гильдии";
+        public const string DilemmaNoAnswer = "без ответа";
+        public const string DilemmaNoAnswerFormat = "без ответа: {0}";
+        public const string DilemmaAnsweredFormat = "ответ: {0}";
+        public const string DilemmaGone = "Обращение уже закрыто";
+        public const string NotifyDilemmaFormat = "Обращение: {0} — {1}";
+        public const string DebugDilemma = "Дилемма";
 
         // Распоряжения
         public const string DecreeEnable = "Включить";

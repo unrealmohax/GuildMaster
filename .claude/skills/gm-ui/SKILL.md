@@ -113,3 +113,5 @@ description: Интерфейс GuildMaster (uGUI + TMP, сборка GuildMaste
 - Снимки зонда без фокуса окна Unity иногда теряются (записывается только последний) — повторить `Capture All`.
 - Экран «Распоряжения» (`ScreenId.Decrees`, `DecreesModel` с черновиком, как `RegistrarModel.pending`) и календарь — скилл
   `gm-decrees`. Кнопки навигации — автоподбор размера шрифта (`FontSize`…`FontSizeLarge`): длинное название не обрезается.
+- Экран «Обращения» (`ScreenId.Dilemmas`, `DilemmasScreen`), карточка `DilemmaWindow` (`PopupKind.Dilemma`, открывается сама первой
+  в `PopupQueue`), уведомление и календарь, отладочная «Дилемма» — скилл `gm-dilemmas`. Модель общая у экрана и окна (`DilemmasModel`).

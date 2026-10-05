@@ -7,7 +7,8 @@ namespace GuildMaster.Core
     /// Итоги вечера в таверне (в начале ночи). Кто провёл в таверне хотя бы час вечера (запой не считается), — по парам в порядке
     /// списка людей: отношения + <c>tavernEveningRelation</c>; затем, если отношения ниже <c>quarrelRelationBelow</c> или пара —
     /// Соперники, шанс ссоры <c>quarrelChance</c>: отношения + <c>quarrelRelation</c>, событие <see cref="SimEventType.Quarrel"/> [З].
-    /// Ссора Соперников раскрывает черту у обоих («Ссора»). Числа — <see cref="AdventurersBalance"/>.
+    /// Ссора Соперников раскрывает черту у обоих («Ссора»). Числа — <see cref="AdventurersBalance"/>. Если гильдия устроила праздник
+    /// (ответ на обращение Трактирщика), его эффекты получают те, кто был в таверне этим вечером.
     /// </summary>
     public static class TavernEvening
     {
@@ -56,6 +57,8 @@ namespace GuildMaster.Core
                     if (rivalB != null) RevealService.TryRevealTrait(ctx, b, rivalB.TraitId, RevealTrigger.RivalFirstClash);
                 }
             }
+
+            DilemmaService.ApplyFeast(ctx, there);
         }
 
         /// <summary>Черта Соперника у <paramref name="adventurer"/>, где партнёр — <paramref name="other"/>; нет — null.</summary>

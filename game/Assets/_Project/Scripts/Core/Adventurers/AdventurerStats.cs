@@ -26,6 +26,7 @@ namespace GuildMaster.Core
         {
             LightWoundMultiplier,
             FatigueMultiplier,
+            WoundedQuestMultiplier,
         };
 
         /// <summary>Базовое × постоянные модификаторы, не ниже естественного минимума. По нему считается архетип.</summary>
@@ -59,6 +60,10 @@ namespace GuildMaster.Core
         /// <summary>Лёгкая рана: весь профиль × <c>lightWoundProfileMultiplier</c> (0,85).</summary>
         private static float LightWoundMultiplier(Adventurer adventurer, StatId stat, DataRegistry data) =>
             adventurer.State.HasLightWound() ? data.Balance.Health.LightWoundProfileMultiplier : 1f;
+
+        /// <summary>Тяжёлая рана, с которой гильдия разрешила ходить на задания: весь профиль × множитель разрешения.</summary>
+        private static float WoundedQuestMultiplier(Adventurer adventurer, StatId stat, DataRegistry data) =>
+            adventurer.State.HasWoundedQuestPermission && adventurer.State.HasHeavyWound() ? adventurer.State.WoundedQuestProfile : 1f;
 
         /// <summary>Усталость выше <c>fatigueProfileThreshold</c>: весь профиль × <c>fatigueProfileMultiplier</c> (0,8).</summary>
         private static float FatigueMultiplier(Adventurer adventurer, StatId stat, DataRegistry data) =>

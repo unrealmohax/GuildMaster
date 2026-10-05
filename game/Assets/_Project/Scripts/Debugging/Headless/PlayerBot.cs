@@ -97,13 +97,14 @@ namespace GuildMaster.Debugging
         /// Ставит комиссию 20%, принимает всех кандидатов в авантюристы, Регистратору велит брать все типы до высшего ранга людей
         /// гильдии без порога награды, важные заказы принимает, как только в гильдии есть человек этого ранга или выше; до тех пор
         /// заказ ждёт, и без ответа заказчик уходит сам. Строит Общежитие → Лазарет → Тренировочный двор по одной, когда денег не
-        /// меньше цены и трёх месяцев расходов; на вакансию нанимает кандидата с высшим уровнем за просимую зарплату.
+        /// меньше цены и трёх месяцев расходов; на вакансию нанимает кандидата с высшим уровнем за просимую зарплату; на обращения
+        /// отвечает наугад (или не отвечает — тогда по сроку срабатывает вариант по умолчанию).
         /// </summary>
         public static PlayerBot Simple() =>
             new PlayerBot(SimpleName, new SetCommissionOnceRule(SimpleCommission), new AcceptAllCandidatesRule(),
                 new RegistrarUpToTopRankRule(), new AnswerImportantOrdersByRankRule(), new AnswerEventQuestsBySourceRankRule(),
                 new BuildWithReserveRule(SimpleReserveMonths, BuildingFunction.Dormitory, BuildingFunction.Infirmary, BuildingFunction.TrainingYard),
-                new HireBestCandidateRule());
+                new HireBestCandidateRule(), new AnswerDilemmasRandomlyRule());
 
         /// <summary>Повторяет команды сценария в их такты.</summary>
         public static PlayerBot Scenario(ScenarioScript script) => new PlayerBot(ScenarioName, new ScenarioRule(script));
@@ -253,6 +254,30 @@ namespace GuildMaster.Debugging
                     if (candidates[j].RoleId == role && candidates[j].Level > best.Level) best = candidates[j];
                 }
                 turn.Send(new OfferSalaryCommand(best.Id, best.AskedSalary));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Обращения: на каждое новое — один ответ наугад из вариантов, доступных сейчас, или «не отвечать» (равный шанс). Случайность —
+    /// своя у каждого обращения (из его id и часа появления): мир не сдвигается, а один прогон с тем же зерном отвечает так же.
+    /// </summary>
+    public sealed class AnswerDilemmasRandomlyRule : IBotRule
+    {
+        private readonly HashSet<int> seen = new HashSet<int>();
+
+        public void Act(BotTurn turn)
+        {
+            IReadOnlyList<Dilemma> open = turn.World.Dilemmas.Open;
+            for (int i = 0; i < open.Count; i++)
+            {
+                Dilemma dilemma = open[i];
+                if (!seen.Add(dilemma.Id)) continue;
+
+                List<int> options = DilemmaRules.AvailableOptions(turn.World, turn.Game.Data, dilemma);
+                var rng = new Rng(((ulong)(uint)dilemma.Id << 32) ^ (ulong)dilemma.ArrivedAtHours, (ulong)dilemma.Id);
+                int pick = rng.Range(0, options.Count + 1);
+                if (pick < options.Count) turn.Send(new AnswerDilemmaCommand(dilemma.Id, options[pick]));
             }
         }
     }

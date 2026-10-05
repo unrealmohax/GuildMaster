@@ -86,3 +86,6 @@ description: Группы GuildMaster — Party и PartyBook (группы по�
 - Песочница: `Groups 10 Years` (≈40 с) сравнивает с прогоном без групп; `Chronicle Year Seed 1` — летопись постоянных групп в `Logs/`.
 - `PartyLens(…, safetyMultiplier)` и `MeanGroupValue(…, safetyMultiplier)` — множитель «Безопасности» от распоряжений: передавать
   `scope.SafetyMultiplier`, иначе ценность группы и вариантов «одному» считаются в разных весах. «Только группой» — скилл `gm-decrees`.
+- Обращения (скилл `gm-dilemmas`): `PartnerScore` + `DilemmaRules.PartnerBonus` (Влюблённым разрешили ходить вместе — флаг
+  `LoversTogether` с числом); запрещённые пары (`LoversSeparated`) не попадают в `Invitable`; `PartyService.Separate` — из общей постоянной
+  группы выходит позже вступивший (`cause = separated`, строка `guild.party.memberLeft.separated`).
