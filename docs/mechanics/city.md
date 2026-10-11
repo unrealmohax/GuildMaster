@@ -1,6 +1,6 @@
 # Развитие города
 
-Связанные системы: [economy.md](economy.md), [staff.md](staff.md), [training.md](training.md), [stages.md](../stages.md).
+Связанные системы: [economy.md](economy.md), [staff.md](staff.md), [training.md](training.md), [stages.md](../stages.md). Минимальная версия для прототипа (Безопасность и Население как ставка игрока) — 💡 [stakes.md](stakes.md).
 
 ## ✅ Решено
 

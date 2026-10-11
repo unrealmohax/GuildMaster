@@ -40,6 +40,7 @@ GuildMaster/   ← git-репозиторий (всё вместе)
 | [mechanics/training.md](mechanics/training.md) | Места прокачки характеристик |
 | [mechanics/time.md](mechanics/time.md) | Течение времени |
 | [mechanics/city.md](mechanics/city.md) | Развитие города |
+| [mechanics/stakes.md](mechanics/stakes.md) | Ставки: давление и последствия — поселение, люди как ресурс, траты, кризисы (черновик) |
 | [content/event-feed.md](content/event-feed.md) | Шаблоны ленты событий (прототип) |
 | [content/numbers.md](content/numbers.md) | Числа-заглушки для прототипа (черновик) |
 | [world/setting.md](world/setting.md) | Мир: без магии, Скверна, окраина королевства, окрестности |
