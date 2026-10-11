@@ -42,6 +42,7 @@ namespace GuildMaster.Tests
                     Place = ctx.Data.OrderTexts.QuestTypes[0].Places[0],
                     Enemy = ctx.Data.OrderTexts.QuestTypes[0].Enemies[0],
                     Client = ctx.Data.OrderTexts.Clients[0],
+                    TravelHours = distance == OrderDistance.Far ? ctx.Data.Balance.Travel.FarHours.Min : ctx.Data.Balance.Travel.NearHours,
                 };
                 for (int i = 0; i < Vocabulary.StatCount; i++)
                     order.SetRequirement((StatId)i, Vocabulary.IsDiagramAxis((StatId)i) ? requirement : 0f);
@@ -613,8 +614,11 @@ namespace GuildMaster.Tests
         {
             using var quests = new QuestWorld();
             Adventurer a = quests.Add();
-            QuestRun run = quests.Start(quests.AddOrder(distance: OrderDistance.Far), a);
+            Order order = quests.AddOrder(distance: OrderDistance.Far);
+            order.TravelHours = quests.Registry.Balance.Travel.FarHours.Max;
+            QuestRun run = quests.Start(order, a);
             int hours = run.PhaseHoursLeft;
+            Assert.AreEqual(order.TravelHours, hours, "путь — из заказа");
             long start = quests.Simulation.World.Time.TotalHours;
             bool camped = false;
             while (run.Phase == QuestPhase.TravelOut)
@@ -963,7 +967,8 @@ namespace GuildMaster.Tests
         {
             var scores = new float[Vocabulary.MotiveCount];
             float perceived = QuestMath.PerceivedSoloOverlap(adventurer, order, quests.Registry);
-            QuestChoices.OrderScores(adventurer, order, perceived, quests.Simulation.World.Treasury.Commission, quests.Registry, scores);
+            QuestChoices.OrderScores(adventurer, order, perceived, quests.Simulation.World.Treasury.Commission, quests.Registry, scores,
+                RationRules.OwnStock(adventurer, quests.Simulation.World.Parties));
             MotiveWeights weights = Motives.Weigh(adventurer, quests.Registry, false);
             float value = 0f;
             for (int m = 0; m < scores.Length; m++) value += weights[(Motive)m] * Math.Max(-1f, Math.Min(1f, scores[m]));

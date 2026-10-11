@@ -14,9 +14,13 @@ namespace GuildMaster.Data
         [SerializeField] private string successFeedKey;
         [SerializeField] private string failFeedKey;
 
+        [Tooltip("Провал события может стоить группе части пайков")]
+        [SerializeField] private bool losesRations;
+
         public IReadOnlyList<NounForms> Enemies => enemies;
         public string StartFeedKey => startFeedKey;
         public string SuccessFeedKey => successFeedKey;
         public string FailFeedKey => failFeedKey;
+        public bool LosesRations => losesRations;
     }
 }

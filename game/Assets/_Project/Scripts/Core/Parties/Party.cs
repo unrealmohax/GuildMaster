@@ -35,6 +35,9 @@ namespace GuildMaster.Core
         /// <summary>Под какой заказ (у постоянной — текущий); 0 — ни под какой.</summary>
         public int OrderId { get; internal set; }
 
+        /// <summary>Общий запас пайков постоянной группы; у группы под задание не используется.</summary>
+        public RationStock Rations { get; } = new RationStock();
+
         /// <summary>Совместных заданий постоянной группы.</summary>
         public int JointQuests { get; internal set; }
 

@@ -1,6 +1,6 @@
 ---
 name: gm-parties
-description: Группы GuildMaster — Party и PartyBook (группы под задание и постоянные), оценка группы глазами человека PartyMath/PartyLens/ProfileCache/PresumedParty (перекрытие, шанс, доля, «Товарищи», оценка напарника), сбор группы и приглашения в DecisionSystem.Parties, решения постоянных групп, выход группой, жизнь групп PartyService (складывается, гость → член, ссоры, одиночка, распад), причины отказа PartyReasons. Использовать при правке того, как люди собираются в группы и как живут постоянные группы.
+description: Группы GuildMaster — Party и PartyBook (группы под задание и постоянные), оценка группы глазами человека PartyMath/PartyLens/ProfileCache/PresumedParty (перекрытие, шанс, доля, «Товарищи», оценка напарника), сбор группы и приглашения в DecisionSystem.Parties, решения постоянных групп, выход группой, жизнь групп PartyService (складывается, гость → член, ссоры, одиночка, распад), общий запас пайков постоянной группы, причины отказа PartyReasons. Использовать при правке того, как люди собираются в группы и как живут постоянные группы.
 ---
 
 # Группы
@@ -15,7 +15,7 @@ description: Группы GuildMaster — Party и PartyBook (группы по�
 
 | Файл | Что |
 |---|---|
-| `Party.cs` | `Party` (`IsPermanent`, `Name`, `MemberIds`, `InitiatorId`, `OrderId`, `JointQuests`, `JointSuccesses`, `GetQuestsTogether`, `GetGuestSuccesses`), `PartyBook` (`Active`, `TryGetParty`, `GetPermanentCount`, `IsNameUsed`, счётчики, свой счётчик id) |
+| `Party.cs` | `Party` (`Rations` — общий запас пайков постоянной группы, `IsPermanent`, `Name`, `MemberIds`, `InitiatorId`, `OrderId`, `JointQuests`, `JointSuccesses`, `GetQuestsTogether`, `GetGuestSuccesses`), `PartyBook` (`Active`, `TryGetParty`, `GetPermanentCount`, `IsNameUsed`, счётчики, свой счётчик id) |
 | `PartyMath.cs` | `PartyMath` (обёртки), `PartyLens` (взгляд одного на один заказ: `Overlap`, `Chance`, `Scores`, `Value`), `ProfileCache` (`Solo`, `Grouped`), `PresumedParty` (`Values`, `MinimumAbove`), `Companions`, `ExpectedShare`, `PartnerScore`, `BestPartner`, `Presume`, `MeanGroupValue` |
 | `PartyService.cs` | `StartGathering`, `Release`, `Attach`, `AfterQuest`, `TryForm`, `Form`, `CheckQuarrels`, `GroupLoyalty`, `OnRetired`, `Members`, `NameValue`, `NameOf`; поток названий `NameStream = "Parties"` |
 | `PartyReasons.cs` | `InvitationRefusal`, `Of`, `Text`, `Keys` (`reason.invite.*`) |
@@ -76,6 +76,18 @@ description: Группы GuildMaster — Party и PartyBook (группы по�
 Оценка групп — основная цена года после заданий. `PartyLens` считает требования и веса один раз; `ProfileCache` живёт час
 (`DecisionScope.Profiles`). Шнурки перекрытия — без массивов. Замер — GuildMaster → Sandbox → Parties → `Cost Benchmark`,
 `Year Time With And Without Parties`, `Trace Counts Seed 1`.
+
+## Общий запас пайков
+
+Правила — `RationService` (скилл `gm-state-health` → «Походные пайки»), вызовы — из `PartyService`:
+- `Form` и `Join` (гость стал членом) — личный запас в общий (`OnJoined`).
+- `Leave` — живой и оставшийся в гильдии (`quarrel`, `loner`, `separated`) уносит долю `общий / члены до ухода` по типам (`OnLeft`);
+  `gone` (ушёл из гильдии, погиб) — ничего.
+- `Disband` — общий запас поровну оставшимся в гильдии по типам, остаток пропадает (`OnDisbanded`).
+- Покупка при выходе: решающий (`QuestParty.Leader` среди членов) задаёт запас по своей оси Риск; доли поровну; обычные — только если
+  по карману всем; гость покупает себе сам. На задании член ест из общего, в городе без денег — тоже из общего.
+- Оценка заказа: `PartyLens(…, parties)` / `MeanGroupValue(…, parties)` — член учитывает долю общего запаса (`RationRules.OwnStock`).
+  Без `parties` — только личный запас (так зовут из тестов и песочницы).
 
 ## Ловушки
 

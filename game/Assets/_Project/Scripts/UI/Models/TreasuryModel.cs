@@ -141,13 +141,18 @@ namespace GuildMaster.UI
             if (category == LedgerCategories.Construction || category == LedgerCategories.Upkeep)
                 return data.TryGet(entry.Comment, out BuildingDefinition building) ? building.DisplayName : string.Empty;
             if (category == LedgerCategories.TavernFood)
-                return string.Format(UiStrings.LedgerTavernFoodFormat, Portions(entry.Comment, "cheap"), Portions(entry.Comment, "simple"),
+            {
+                string text = string.Format(UiStrings.LedgerTavernFoodFormat, Portions(entry.Comment, "cheap"), Portions(entry.Comment, "simple"),
                     Portions(entry.Comment, "luxury"));
+                int rationCheap = Portions(entry.Comment, "rationCheap");
+                int rations = rationCheap + Portions(entry.Comment, "rationRegular");
+                return rations > 0 ? text + string.Format(UiStrings.LedgerTavernRationsFormat, rations, rationCheap) : text;
+            }
             if (category == LedgerCategories.TavernDrinks) return string.Format(UiStrings.LedgerTavernDrinksFormat, Portions(entry.Comment, "drinks"));
             return string.Empty;
         }
 
-        /// <summary>Число порций из комментария записи таверны: «cheap=1 simple=2 luxury=0», «drinks=3».</summary>
+        /// <summary>Число порций из комментария записи таверны: «cheap=1 simple=2 luxury=0 rationCheap=4 rationRegular=0», «drinks=3».</summary>
         private static int Portions(string comment, string name)
         {
             foreach (string part in comment.Split(' '))

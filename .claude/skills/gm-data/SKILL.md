@@ -87,3 +87,6 @@ description: Слой данных GuildMaster — ScriptableObject-опреде
   `MealTier` в `Vocabulary.cs`, `StateStat.Satiety`, хук `TraitHook.FamilySavesOnFood` (у Семейного, ставит генератор). Валидатор —
   `CheckFood` (часы в сутках по возрастанию, пороги, типы не хуже предыдущего). Числа `MealBalance` в тестах — `Set("food.luxury.price", …)`.
   Убраны `expenses.food`, `expenses.tavernFood`, `state.tavernFoodContentment`, `decrees.newcomerDailyCost`.
+- Пайки: в `FoodBalance` — `rationCheap`/`rationRegular` (`MealBalance`, доступ `Ration(RationTier)`), запас, потери (`rationLossFailures` —
+  `IntRange` номеров провала), делёжка, `hungryRetreatBonus`; `RationTier` в `Vocabulary.cs`; флаг `RandomEventDefinition.losesRations`
+  (генератор ставит засаде). Валидатор `CheckFood` проверяет и пайки, и что ступени потерь — внутри лестницы провалов.

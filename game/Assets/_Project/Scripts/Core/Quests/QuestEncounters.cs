@@ -9,7 +9,7 @@ namespace GuildMaster.Core
     /// перекрытия.
     /// <list type="bullet">
     /// <item>Событие в пути (засада, звери) — одно из определений наугад. Провал: стресс всем, исход (рана одному наугад),
-    /// момент напряжения. Тяжело раненный на пути туда поворачивает назад один («не дошёл»); если он был один — задание
+    /// потеря пайков (у события с <see cref="RandomEventDefinition.LosesRations"/>), момент напряжения. Тяжело раненный на пути туда поворачивает назад один («не дошёл»); если он был один — задание
     /// кончается отступлением.</item>
     /// <item>Находка (пещера) — бросок за задание при выходе, в случайный час пути туда. Замечает лучший по параметру
     /// находки; истинный ранг — ранг задания со сдвигом. Решающий решает: исследовать (один раунд: успех — пусто или тайник,
@@ -57,6 +57,7 @@ namespace GuildMaster.Core
                     if (outcome.TurnsBack && run.Phase == QuestPhase.TravelOut) TurnBack(ctx, run, wounded);
                 }
             }
+            if (definition.LosesRations && QuestSystem.IsActive(ctx, run)) RationService.TryLose(ctx, run);
 
             if (QuestSystem.IsActive(ctx, run) && !run.Retreated) QuestTension.Moment(ctx, run);
             AfterFlight(ctx, run);

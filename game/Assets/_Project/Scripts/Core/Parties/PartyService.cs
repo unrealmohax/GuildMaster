@@ -148,10 +148,12 @@ namespace GuildMaster.Core
             if (ctx.World.Parties.TryGetParty(party.Id, out _)) CheckQuarrels(ctx, party);
         }
 
+        /// <summary>Гость стал членом постоянной группы: его личный запас пайков — в общий.</summary>
         private static void Join(SimContext ctx, Party party, Adventurer person)
         {
             party.AddMember(person.Id);
             person.PermanentPartyId = party.Id;
+            RationService.OnJoined(party, person);
             ctx.Log.Write(SimLogLevel.Info, "party #{0} {1}: #{2} {3} joined", party.Id, party.Name, person.Id, person.Name);
             ctx.Events.Publish(SimEventType.PartyMemberJoined, EventImportance.Normal, person.Id)
                 .With("party", NameValue(party.Name)).With("partyId", party.Id);
@@ -222,6 +224,7 @@ namespace GuildMaster.Core
             {
                 party.AddMember(member.Id);
                 member.PermanentPartyId = party.Id;
+                RationService.OnJoined(party, member);
             }
 
             if (ctx.Log.IsOn(SimLogLevel.Info))
@@ -338,8 +341,13 @@ namespace GuildMaster.Core
             person.PermanentPartyId = 0;
         }
 
+        /// <summary>
+        /// Человек вышел из постоянной группы. Живой и в гильдии (ссора, одиночка, разлучили) уносит долю общего запаса пайков;
+        /// ушедший из гильдии и погибший — нет. Остался один — группа распадается.
+        /// </summary>
         private static void Leave(SimContext ctx, Party party, Adventurer person, string cause, Adventurer other)
         {
+            if (cause != "gone") RationService.OnLeft(party, person, party.MemberIds.Count);
             party.RemoveMember(person.Id);
             person.PermanentPartyId = 0;
             ctx.Log.Write(SimLogLevel.Info, "party #{0} {1}: #{2} left ({3})", party.Id, party.Name, person.Id, cause);
@@ -349,10 +357,12 @@ namespace GuildMaster.Core
             if (party.MemberIds.Count < 2) Disband(ctx, party, cause);
         }
 
+        /// <summary>Постоянная группа распалась: общий запас пайков — поровну оставшимся в гильдии участникам.</summary>
         private static void Disband(SimContext ctx, Party party, string cause)
         {
             List<Adventurer> left = Members(ctx, party);
             foreach (Adventurer member in left) member.PermanentPartyId = 0;
+            RationService.OnDisbanded(party, left);
             PartyBook book = ctx.World.Parties;
             book.Remove(party);
             book.PermanentDisbanded++;

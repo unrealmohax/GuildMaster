@@ -163,8 +163,9 @@ namespace GuildMaster.Core
 
         /// <summary>
         /// Начать задание по взятому заказу этой группой: заказ — «идёт», у людей — занятие задания, путь туда
-        /// (длительность, событие в пути, находка — броски сразу, в этом порядке), строка «Выход». <paramref name="group"/> —
-        /// группа, которая собралась под заказ (идёт один — задание без группы). Соперники в одной группе раскрываются.
+        /// (длительность — из заказа; событие в пути, находка — броски сразу, в этом порядке), строка «Выход», пайки на дорогу
+        /// (<see cref="RationService.Buy"/>, без бросков). <paramref name="group"/> — группа, которая собралась под заказ (идёт
+        /// один — задание без группы). Соперники в одной группе раскрываются.
         /// </summary>
         internal static QuestRun Depart(SimContext ctx, Order order, IReadOnlyList<Adventurer> party, Party group = null)
         {
@@ -193,6 +194,7 @@ namespace GuildMaster.Core
             if (!run.IsPromotion) QuestEncounters.PlanDiscovery(ctx, run);
 
             QuestParty.Publish(ctx, SimEventType.QuestDeparted, run, EventImportance.Normal, Ids(party));
+            RationService.Buy(ctx, run, order, party, group);
             return run;
         }
 
@@ -228,15 +230,14 @@ namespace GuildMaster.Core
         }
 
         /// <summary>
-        /// Начать отрезок пути: длительность (близко — <c>nearHours</c>, далеко — бросок <c>farHours</c>), бросок события
-        /// в пути (шанс × <paramref name="eventChanceMultiplier"/>) и его ходовой час. На экзамене событий нет.
+        /// Начать отрезок пути: длительность — путь заказа (туда и обратно одинаков, без броска), бросок события в пути
+        /// (шанс × <paramref name="eventChanceMultiplier"/>) и его ходовой час. На экзамене событий нет.
         /// </summary>
         internal static void StartLeg(SimContext ctx, QuestRun run, QuestPhase phase, float eventChanceMultiplier)
         {
             TravelBalance travel = ctx.Data.Balance.Travel;
-            int hours = run.Distance == OrderDistance.Far ? ctx.Rng.RangeInclusive(travel.FarHours.Min, travel.FarHours.Max) : travel.NearHours;
             run.Phase = phase;
-            run.StartPhaseHours(Math.Max(1, hours));
+            run.StartPhaseHours(Math.Max(1, run.TravelHours));
             run.LegHoursDone = 0;
             run.TravelEventHour = 0;
             if (run.IsPromotion) return;

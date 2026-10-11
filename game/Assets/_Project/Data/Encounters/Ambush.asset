@@ -53,3 +53,4 @@ MonoBehaviour:
   startFeedKey: quest.event.ambush.start
   successFeedKey: quest.event.ambush.success
   failFeedKey: quest.event.ambush.fail
+  losesRations: 1

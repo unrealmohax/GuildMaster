@@ -236,6 +236,21 @@ namespace GuildMaster.Debugging
                     if (meal.Price < worse.Price || meal.SatietyCap < worse.SatietyCap || meal.Taste < worse.Taste)
                         report.Warning(balance, path, "тип лучше предыдущего, а цена, потолок или вкус меньше");
                 }
+
+                for (int i = 0; i < Vocabulary.RationTierCount; i++)
+                {
+                    var tier = (RationTier)i;
+                    MealBalance ration = food.Ration(tier);
+                    string path = $"food.ration{tier}";
+                    if (ration.SatietyGain <= 0f) report.Error(balance, path, "паёк не прибавляет сытости");
+                    if (ration.Price <= 0) report.Warning(balance, path, "паёк бесплатный: запас ничем не ограничен");
+                    if (i == 0) continue;
+                    MealBalance worse = food.Ration((RationTier)(i - 1));
+                    if (ration.Price < worse.Price || ration.SatietyCap < worse.SatietyCap || ration.Taste < worse.Taste)
+                        report.Warning(balance, path, "паёк лучше предыдущего, а цена, потолок или вкус меньше");
+                }
+                if (food.RationLossFailures.Min < 1 || food.RationLossFailures.Max > balance.Rounds.FailureLadder.Count)
+                    report.Warning(balance, "food.rationLossFailures", "ступени потери пайков вне лестницы провалов");
             }
 
             // ---------- Параметры, оси, черты, архетипы ----------

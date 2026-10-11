@@ -98,6 +98,14 @@ namespace GuildMaster.Core
         /// <summary>На какие оси профиля намекает описание.</summary>
         public IReadOnlyList<StatId> HintStats => hintStats;
 
+        /// <summary>
+        /// Путь в одну сторону, ходовых часов (ночлеги не считаются): известен с появления заказа, туда и обратно одинаков.
+        /// </summary>
+        public int TravelHours { get; internal set; }
+
+        /// <summary>Приёмов пищи за ожидаемое задание при выходе утром; −1 — ещё не считали (считает <see cref="TravelPlan"/>).</summary>
+        internal int ExpectedMealsCache { get; set; } = -1;
+
         /// <summary>Награда заказчика.</summary>
         public int Reward { get; internal set; }
 

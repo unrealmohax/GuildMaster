@@ -60,3 +60,4 @@ MonoBehaviour:
   startFeedKey: quest.event.beasts.start
   successFeedKey: quest.event.beasts.success
   failFeedKey: quest.event.beasts.fail
+  losesRations: 0

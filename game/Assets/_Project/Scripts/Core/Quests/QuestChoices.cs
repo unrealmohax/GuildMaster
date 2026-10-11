@@ -31,15 +31,17 @@ namespace GuildMaster.Core
             Math.Max(1f, data.Balance.Decisions.MoneyExpenseDays * WalletService.DailyLivingCost(adventurer, data.Balance));
 
         /// <summary>
-        /// Оценки заказа по мотивам (индекс — <see cref="Motive"/>): Деньги = min(1, доля / расходы) × p, Слава = ранг заказа /
+        /// Оценки заказа по мотивам (индекс — <see cref="Motive"/>): Деньги = min(1, (доля − цена пайков) / расходы) × p (не ниже 0;
+        /// цена пайков — <see cref="RationRules.OrderCost"/> за вычетом <paramref name="ownRations"/>), Слава = ранг заказа /
         /// ранг человека (не больше 1; экзамену — ещё +<c>promotionGloryBonus</c>), Безопасность = p² (экзамену —
         /// <c>promotionSafety</c>: он без ран), Отдых = 1 − усталость/100 − <c>orderRestOffset</c>; Товарищи и Утешение — 0 (соло).
         /// </summary>
-        public static void OrderScores(Adventurer adventurer, Order order, float perceived, float commission, DataRegistry data, float[] scores)
+        public static void OrderScores(Adventurer adventurer, Order order, float perceived, float commission, DataRegistry data, float[] scores,
+            int ownRations)
         {
             DecisionsBalance decisions = data.Balance.Decisions;
             float share = ExpectedShare(order, commission, 1);
-            scores[(int)Motive.Money] = Math.Min(1f, share / ExpenseScale(adventurer, data)) * perceived;
+            scores[(int)Motive.Money] = MoneyScore(adventurer, order, share, perceived, data, ownRations);
             float glory = Math.Min(1f, QuestMath.RankNumber(order.Rank) / (float)QuestMath.RankNumber(adventurer.GuildRank));
             scores[(int)Motive.Glory] = order.IsPromotion ? glory + decisions.PromotionGloryBonus : glory;
             scores[(int)Motive.Safety] = order.IsPromotion ? decisions.PromotionSafety : perceived * perceived;
@@ -47,16 +49,29 @@ namespace GuildMaster.Core
         }
 
         /// <summary>
-        /// Решение группы после проваленного раунда: продолжить или отступить. Строки: решение (продолжить / сомнение / спор)
-        /// и отступление ([З], автопауза). Возвращает <c>true</c> — продолжают.
+        /// Оценка «Деньги» заказа: min(1, (доля − цена пайков) / расходы) × p, не ниже 0. Цена пайков — сколько человеку стоит
+        /// докупить пайки на ожидаемое задание сверх своего запаса (<see cref="RationRules.OrderCost"/>).
+        /// </summary>
+        public static float MoneyScore(Adventurer adventurer, Order order, float share, float perceived, DataRegistry data, int ownRations)
+        {
+            float net = Math.Max(0f, share - RationRules.OrderCost(adventurer, order, data, ownRations));
+            return Math.Min(1f, net / ExpenseScale(adventurer, data)) * perceived;
+        }
+
+        /// <summary>
+        /// Решение группы после проваленного раунда: продолжить или отступить. Мало еды на обратный путь
+        /// (<see cref="RationService.IsShortForReturn"/>) — к ценности отступления + <c>hungryRetreatBonus</c>, в причинах —
+        /// <c>food</c>. Строки: решение (продолжить / сомнение / спор) и отступление ([З], автопауза). Возвращает <c>true</c> —
+        /// продолжают.
         /// </summary>
         public static bool DecideAfterFailure(SimContext ctx, QuestRun run, Order order)
         {
             List<Adventurer> present = QuestParty.Present(ctx.World, run);
             Adventurer leader = QuestParty.Leader(present, ctx.Data);
             float[] group = QuestMath.GroupProfile(present, ctx.Data, run.Panicked, run.Rushing);
+            float hungry = RationService.IsShortForReturn(ctx, run, present) ? ctx.Data.Balance.Food.HungryRetreatBonus : 0f;
 
-            Choice leaderChoice = FailureChoice(ctx, run, order, present, group, leader);
+            Choice leaderChoice = FailureChoice(ctx, run, order, present, group, leader, hungry);
             bool keepGoing = Pick(ctx, leader, leaderChoice, "after-failure " + run.FailedRounds, run);
 
             // Остальные: у кого предпочтение противоположное — сомнение (слабое) или спор (сильное).
@@ -65,7 +80,7 @@ namespace GuildMaster.Core
             foreach (Adventurer member in present)
             {
                 if (member.Id == leader.Id) continue;
-                Choice own = FailureChoice(ctx, run, order, present, group, member);
+                Choice own = FailureChoice(ctx, run, order, present, group, member, hungry);
                 float gap = own.Continue - own.Retreat; // > 0 — хочет продолжать
                 if ((gap > 0f) == keepGoing || gap == 0f) continue;
                 if (strongest == null || Math.Abs(gap) > strongestGap)
@@ -97,8 +112,9 @@ namespace GuildMaster.Core
 
             if (!keepGoing)
             {
+                bool forFood = hungry > 0f && leaderChoice.Retreat > leaderChoice.Continue && leaderChoice.Retreat - hungry <= leaderChoice.Continue;
                 QuestParty.Publish(ctx, SimEventType.PartyRetreated, run, EventImportance.Notable, leader.Id)
-                    .With("failed", run.FailedRounds).With("reasons", leaderChoice.Reasons);
+                    .With("failed", run.FailedRounds).With("reasons", leaderChoice.Reasons).With("food", forFood);
             }
             return keepGoing;
         }
@@ -107,9 +123,10 @@ namespace GuildMaster.Core
         /// Продолжить: Деньги = оценка заказа по Деньгам (без потерянного бонуса) × p, Слава = оценка по Славе × p, Безопасность = p²
         /// и −<c>deadlyFailureSafetyPenalty</c>, если следующая ступень лестницы грозит гибелью, Отдых = 1 − усталость/100 −
         /// <c>orderRestOffset</c>. Отступить: Безопасность = <c>retreatSafetyPerFailure</c> × провалов + <c>retreatWoundedSafety</c>,
-        /// если есть раненые (не больше 1), Отдых = усталость/100.
+        /// если есть раненые (не больше 1), Отдых = усталость/100; к ценности отступления + <paramref name="hungryBonus"/> (мало еды).
         /// </summary>
-        private static Choice FailureChoice(SimContext ctx, QuestRun run, Order order, List<Adventurer> present, float[] group, Adventurer viewer)
+        private static Choice FailureChoice(SimContext ctx, QuestRun run, Order order, List<Adventurer> present, float[] group, Adventurer viewer,
+            float hungryBonus)
         {
             DataRegistry data = ctx.Data;
             DecisionsBalance decisions = data.Balance.Decisions;
@@ -130,7 +147,8 @@ namespace GuildMaster.Core
             back[(int)Motive.Safety] = Math.Min(1f, decisions.RetreatSafetyPerFailure * run.FailedRounds + (wounded ? decisions.RetreatWoundedSafety : 0f));
             back[(int)Motive.Rest] = viewer.State.Fatigue / 100f;
 
-            return Evaluate(viewer, data, "Continue", goOn, "Retreat", back, p);
+            Choice choice = Evaluate(viewer, data, "Continue", goOn, "Retreat", back, p);
+            return hungryBonus > 0f ? choice.WithSecondBonus(hungryBonus, "food") : choice;
         }
 
         /// <summary>
@@ -250,6 +268,22 @@ namespace GuildMaster.Core
             public float Perceived { get; }
             public string Reasons { get; }
             public MotiveWeights Weights { get; }
+
+            /// <summary>
+            /// К ценности второго варианта — довод <paramref name="bonus"/> не из мотивов; если второй стал лучшим, довод —
+            /// первая из главных причин.
+            /// </summary>
+            public Choice WithSecondBonus(float bonus, string reason)
+            {
+                float second = Retreat + bonus;
+                string reasons = Reasons;
+                if (second > Continue)
+                {
+                    string own = reason + " " + AdventurerLog.Number(bonus);
+                    reasons = Continue > Retreat || reasons.Length == 0 ? own : own + ", " + reasons;
+                }
+                return new Choice(FirstName, Continue, SecondName, second, Perceived, reasons, Weights);
+            }
         }
     }
 }

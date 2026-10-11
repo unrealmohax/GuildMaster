@@ -76,6 +76,9 @@ namespace GuildMaster.UI
         /// <summary>Что ест — по последнему приёму: «ест простую еду» или «ничего не ел: не на что».</summary>
         public string Meal { get; private set; } = string.Empty;
 
+        /// <summary>Пайки: личный запас и общий запас постоянной группы.</summary>
+        public string Rations { get; private set; } = string.Empty;
+
         public string Health { get; private set; } = string.Empty;
         public string Money { get; private set; } = string.Empty;
         public List<RelationRow> Relations { get; } = new List<RelationRow>();
@@ -136,7 +139,11 @@ namespace GuildMaster.UI
             Satiety = state.Satiety;
             Hunger = FoodRules.StageOf(state.Satiety, data.Balance.Food);
             HungerWord = (female ? UiStrings.HungerStagesFemale : UiStrings.HungerStagesMale)[(int)Hunger];
-            Meal = state.LastMealTier.HasValue ? string.Format(UiStrings.MealFormat, UiStrings.MealTiers[(int)state.LastMealTier.Value]) : UiStrings.MealNone;
+            Meal = state.LastMealWasRation ? UiStrings.MealRation
+                : state.LastMealTier.HasValue ? string.Format(UiStrings.MealFormat, UiStrings.MealTiers[(int)state.LastMealTier.Value]) : UiStrings.MealNone;
+            Rations = string.Format(UiStrings.RationsFormat, person.Rations.Total, person.Rations.Cheap);
+            if (person.PermanentPartyId != 0 && world.Parties.TryGetParty(person.PermanentPartyId, out Party party))
+                Rations += string.Format(UiStrings.PartyRationsFormat, party.Rations.Total);
             Loyalty = PersonText.Loyalty(person, data) + (RevealAll ? $" ({UiFormat.Number(state.Loyalty)})" : string.Empty);
 
             string wounds = PersonText.Wounds(person, data);

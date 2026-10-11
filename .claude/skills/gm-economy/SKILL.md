@@ -84,3 +84,6 @@ description: Экономика гильдии GuildMaster — казна Treasu
   `cheap=… simple=… luxury=…`, доля гильдии по типу `MealBalance.GuildShare`) и `TavernDrinks` («Таверна: выпивка», `drinks=…`,
   `tavernIncomePerServing`); Сухой закон × обе; дробные остатки — `TavernFoodRemainder`/`TavernDrinkRemainder`. Отчёт и сводка
   показывают их отдельными строками сами; журнал казны расписывает порции (`TreasuryModel.Describe`).
+- Пайки (скилл `gm-state-health` → «Походные пайки»): проданные при выходе пайки — в «Таверна: еда» (`Treasury.TavernRations`,
+  `CountTavernRations`; комментарий `… rationCheap=… rationRegular=…`, доля гильдии — `food.rationCheap/rationRegular.guildShare`);
+  журнал казны дописывает «пайки N (дешёвых M)». Паёк, съеденный в городе, дохода не даёт (уже куплен).

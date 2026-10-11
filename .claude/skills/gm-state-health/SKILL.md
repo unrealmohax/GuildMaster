@@ -1,6 +1,6 @@
 ---
 name: gm-state-health
-description: Состояние и здоровье авантюристов GuildMaster — AdventurerState (усталость, стресс, довольство, лояльность, кошелёк, долг, флаги), занятия Activity и ActivitySystem, суточные сдвиги и срывы StateSystem/StateService, множители черт StateRates, чистые правила StateRules, стресс от событий StressEvents, личные деньги WalletService, раны Condition/HealthService, лечение и Лазарет HealthSystem/IInfirmary, проверка ухода; еда и сытость FoodRules/FoodService (приёмы пищи, бюджет на еду, голод и истощение, расходы на день). Использовать при правке показателей состояния, срывов, ран, расходов людей, ухода из гильдии.
+description: Состояние и здоровье авантюристов GuildMaster — AdventurerState (усталость, стресс, довольство, лояльность, кошелёк, долг, флаги), занятия Activity и ActivitySystem, суточные сдвиги и срывы StateSystem/StateService, множители черт StateRates, чистые правила StateRules, стресс от событий StressEvents, личные деньги WalletService, раны Condition/HealthService, лечение и Лазарет HealthSystem/IInfirmary, проверка ухода; еда и сытость FoodRules/FoodService (приёмы пищи, бюджет на еду, голод и истощение, расходы на день), походные пайки RationStock/RationRules/RationService (покупка при выходе, еда в пути, делёжка, потери, общий запас постоянной группы, паёк в городе). Использовать при правке показателей состояния, срывов, ран, расходов людей, ухода из гильдии.
 ---
 
 # Состояние и здоровье
@@ -22,6 +22,9 @@ description: Состояние и здоровье авантюристов Gui
 | `State/StressEvents.cs` | `RoundFailed`, `ComradeWounded`, `AdventurerDied` (+ «Потерявший товарища») |
 | `State/WalletService.cs` | `Pay`, `MarkUnpaid`, `ReceiveIncome(IncomeKind.Reward/Loot)`, `TakeLoan`, `DailyLivingCost` (жильё + 3 × простая), `WeeklyExpenses`, `IsBelowWeeklyExpenses`, `MoneyMotiveMultiplier`, `PayDaily` (только жильё), `Share`, `Coins` |
 | `Food/FoodRules.cs` | чистые: `HungerStage` (Fed/Hungry/Starving/Exhausted), `StageOf`, `IsHungry`, `AfterMeal`, `HousingCost`, `Reserve`, `BudgetDays`, `Choose` (тип по бюджету или `null` — пропуск), `StatMultiplier`, `DayTaste` |
+| `Food/RationStock.cs` | запас пайков (дешёвые/обычные): `Adventurer.Rations` — личный, `Party.Rations` — общий постоянной группы; `TakeOne` — сначала дешёвый |
+| `Food/RationRules.cs` | чистые: `ReserveMeals` (запас по оси Риск), `Need`, `Afford` (тип по резерву бюджета), `Cost`, `OwnStock`, `OrderCost`, `IsGreedy`, `IsTeamPlayer` |
+| `Food/RationService.cs` | `Buy` (при выходе), `EatOnQuest` (+ делёжка `FindDonor`), `GroupStock`, `IsShortForReturn`, `TryLose`, `OnDeath`, `EatInTown`, `OnJoined`/`OnLeft`/`OnDisbanded` |
 | `Food/FoodService.cs` | `ApplyHour` (приём в час приёма → убывание → стресс голода и события стадий), `Eat`, `ApplyDay` (истощение — довольство в 00:00) |
 | `Health/Condition.cs` | `LightWound`/`HeavyWound`, `RemainingDays`, `IsComplicated` |
 | `Health/HealthService.cs` | `Wound(ctx, человек, вид, PartyContext)`, `Maim`, `FindMaimedTrait` |
@@ -104,9 +107,8 @@ GuildMaster → Sandbox → State: `Light Wound First`, `Heavy Wound First`, `St
 
 Код — `Core/Food/`; числа — `BalanceSettings.Food` (`FoodBalance`, типы — `MealBalance`, перечисление `MealTier`). Дизайн — `docs/mechanics/food.md`.
 
-- **Час** (`FoodService.ApplyHour`, из `StateSystem` после `StateService.ApplyHour`): человек на задании — пропуск целиком (ни приёма,
-  ни убывания, ни стресса голода; беглец и идущий домой — тоже, у них занятие задания). Иначе: в час из `mealHours` (7, 13, 19) —
-  `Eat`; сытость −2; стадия «после часа»: голоден (< 30) — стресс +0,5 (× черты); переход в голод (< 10) — `HungerStarted` [З],
+- **Час** (`FoodService.ApplyHour`, из `StateSystem` после `StateService.ApplyHour`): в час из `mealHours` (7, 13, 19) — в городе
+  `Eat`, на задании (и беглец, и идущий домой — у них занятие задания) — `RationService.EatOnQuest`; сытость −2 везде; стадия «после часа»: голоден (< 30) — стресс +0,5 (× черты); переход в голод (< 10) — `HungerStarted` [З],
   в истощение (0) — `Exhausted` [В] с автопаузой `AutopauseKind.Exhausted`. Приём пищи — не занятие: едят и в Лазарете, и в запое.
 - **Выбор** — `FoodRules.Choose`, без бросков и мотивов: резерв `reserveDays` × (жильё + 3 × дешёвая) = 42 в городе; лучший тип,
   на который остатка хватит на `budgetDays` (10) дней (Жадный — × (1 + сила полюса Деньги), Семейный — × 1,5, хук `FamilySavesOnFood`);
@@ -116,8 +118,8 @@ GuildMaster → Sandbox → State: `Light Wound First`, `Heavy Wound First`, `St
   `LastMealTier`; `TreasuryService.CountTavernMeal(тип)`; лог `Debug` `meal #3 Имя Simple 2 (wallet=…, spare=…)`; событие `MealEaten`
   (`tier`, `guildPays`; лог `Trace`, без строки). Новичок по распоряжению — `DecreeService.PayMeal` за простую, если сам не выбрал
   роскошную (её платит сам).
-- **Сутки**: цель довольства + `FoodRules.DayTaste` (сумма вкуса / 3, пропуск — 0) вместо прежнего «ест в таверне»; истощённый вне
-  задания — довольство −10 после сдвига к цели (`ApplyDay`); `TasteToday` сбрасывается.
+- **Сутки**: цель довольства + `FoodRules.DayTaste` (сумма вкуса / 3, пропуск — 0) вместо прежнего «ест в таверне»; истощённый (и на
+  задании) — довольство −10 после сдвига к цели (`ApplyDay`); `TasteToday` сбрасывается.
 - **Последствия голода в других системах**: штраф характеристик — `AdventurerStats.HungerMultiplier` (временный, только 8 характеристик,
   архетип не трогает; на задании — по замороженной сытости); мотивы — `StateFactor.Hunger` (Деньги × 1,5, Безопасность × 0,7);
   уход — `LeaveCause.Hunger` (`reason.hunger`, считается денежной: раскрывает Наёмника).
@@ -126,10 +128,29 @@ GuildMaster → Sandbox → State: `Light Wound First`, `Heavy Wound First`, `St
 - Интерфейс: карточка — полоса «Сытость» со словом стадии, «ест … еду», значок ● у имени; отладка — «Сытость» в показателях и кнопки
   «Сытость 0/100» (`DebugSetStateCommand`, `StateStat.Satiety`).
 
+## Походные пайки
+
+Дизайн — `docs/mechanics/food.md` → «Припасы в поход»; числа — `FoodBalance` (`rationCheap`/`rationRegular` — `MealBalance`, тип `RationTier`;
+`rationReserveMeals`, `cautiousExtraMeals`, `rationLossChance`, `rationLossShare`, `rationLossFailures`, `greedyNoShareAxis`,
+`shareRelation`, `hungryRetreatBonus`). Без бросков, кроме потери.
+
+- **Покупка** (`Buy`, из `QuestSystem.Depart`): приёмы ожидаемого задания по ритму дня с часа выхода (`TravelPlan`) + запас
+  (3 × (1 − сила Безрассудного) + 3 × сила Труса). Тип (`Afford`): обычные, если `кошелёк − FoodRules.Reserve ≥ число × 2`; иначе дешёвые,
+  сколько хватит денег. Постоянная группа — в общий запас, доли поровну. Пайки — в доход таверны (`TreasuryService.CountTavernRations`,
+  статья «Таверна: еда»). Строка `quest.rations.bought|enough|short`, лог `Debug` `rations quest #N …`.
+- **Еда в пути** (`EatOnQuest`): свой запас (член идущей постоянной группы — общий, потом личный) → товарищ по заданию с личным запасом
+  (`FindDonor`: не Жадный — Деньги ≥ 50; Командные первыми; больше запас), отношения +3, `RationsShared` → иначе голодный приём
+  `QuestMealMissed` (Trace); у группы ни одного пайка — раз за задание `RationsRanOut`. Лог `Debug` `ration #id Имя Cheap [from …]`.
+- **Город** (`Eat` → `EatInTown`): нет денег даже на дешёвую — паёк (член постоянной группы — из общего); `LastMealWasRation`, порция
+  не в доход таверны, «кошелёк пуст» отмечается.
+- **Потери, гибель, решение отступить, постоянная группа** — скиллы `gm-quests` и `gm-parties`.
+
 ### Ловушки еды
 
 - `StateWorld.Add` даёт 1000 монет — такие люди едят роскошную (15 в день): тесты, считающие кошелёк, учитывают еду; человек
   без денег в долгом тесте **голодает** (стресс, штраф, довольство) — держать сытость `LambdaSystem` или пополнять кошелёк.
 - Стресс голода +0,5 равен снятию стресса отдыхом: у отдыхающего голодного стресс стоит, растёт лишь относительно сытого.
+- На задании сытость теперь убывает: долгий тест с человеком на задании без пайков — голод (стресс, штраф характеристик, истощение).
+  Пайки покупаются при `Depart` из кошелька — тесты, считающие кошелёк после выхода, учитывают покупку.
 - Сытость по умолчанию у нового `AdventurerState` — 100; генерация ставит `food.startSatiety`.
 - Сводка: «Сытость», «Приёмов: … %», «Пропущено приёмов», «Дней в голоде/истощении» (часы стадий из `SummaryRecorder`), «Ушли из-за голода».

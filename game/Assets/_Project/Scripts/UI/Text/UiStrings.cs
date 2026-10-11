@@ -216,6 +216,9 @@ namespace GuildMaster.UI
         public static readonly string[] MealTiers = { "дешёвую еду", "простую еду", "роскошную еду" };
         public const string MealFormat = "ест {0}";
         public const string MealNone = "ничего не ел: не на что";
+        public const string MealRation = "ест пайки: на таверну нет денег";
+        public const string RationsFormat = "Пайки: {0} (дешёвых {1})";
+        public const string PartyRationsFormat = "; общий запас группы: {0}";
         public const string HungerIcon = " ●";
         public const string DebtFormat = "долг гильдии {0}";
         public const string HousingCity = "живёт в городе";
@@ -299,6 +302,7 @@ namespace GuildMaster.UI
         public const string ColBalance = "Казна";
         public const string LedgerShownFormat = "показано {0} из {1}";
         public const string LedgerTavernFoodFormat = "дешёвая {0}, простая {1}, роскошная {2}";
+        public const string LedgerTavernRationsFormat = ", пайки {0} (дешёвых {1})";
         public const string LedgerTavernDrinksFormat = "выпивка {0}";
         public const string LedgerSalaryDebt = " (долг)";
         public const string ReportsHistory = "Отчёты месяца";

@@ -44,6 +44,13 @@ namespace GuildMaster.Debugging
             new MonthColumn("Дней в истощении", m => m.HungerDays(HungerStage.Exhausted, m.Game.Calendar.HoursPerDay), SummaryTotal.Sum, "0.#"),
             new MonthColumn("Ушли из-за голода", m => m.Count(SimEventType.AdventurerLeft, e => e.TryGet("cause", out LeaveCause cause) && cause == LeaveCause.Hunger),
                 SummaryTotal.Sum, "0"),
+            new MonthColumn("Пайков куплено", m => SumOf(m, SimEventType.RationsBought, "amount"), SummaryTotal.Sum, "0"),
+            new MonthColumn("Пайков потеряно", m => SumOf(m, SimEventType.QuestLoss, "amount", e => IsResult(e, "rations")), SummaryTotal.Sum, "0"),
+            new MonthColumn("Делёжек", m => m.Count(SimEventType.RationsShared), SummaryTotal.Sum, "0"),
+            new MonthColumn("Голодных приёмов в пути", m => m.Count(SimEventType.QuestMealMissed), SummaryTotal.Sum, "0"),
+            new MonthColumn("Припасы кончились", m => m.Count(SimEventType.RationsRanOut), SummaryTotal.Sum, "0"),
+            new MonthColumn("Отступлений из-за еды", m => m.Count(SimEventType.PartyRetreated, e => e.TryGet("food", out bool food) && food),
+                SummaryTotal.Sum, "0"),
             new MonthColumn("Лента [О]", m => m.FeedLines(EventImportance.Normal), SummaryTotal.Sum, "0"),
             new MonthColumn("Лента [З]", m => m.FeedLines(EventImportance.Notable), SummaryTotal.Sum, "0"),
             new MonthColumn("Лента [В]", m => m.FeedLines(EventImportance.Important), SummaryTotal.Sum, "0"),
@@ -115,6 +122,17 @@ namespace GuildMaster.Debugging
         /// <summary>Законченные задания месяца (без экзаменов), подходящие под условие.</summary>
         private static int Quests(MonthRecord month, Func<SimEvent, bool> condition) =>
             month.Count(SimEventType.QuestReturned, e => !IsPromotion(e) && condition(e));
+
+        /// <summary>Сумма целого числа из данных событий этого типа за месяц (по условию).</summary>
+        private static int SumOf(MonthRecord month, SimEventType type, string key, Func<SimEvent, bool> condition = null)
+        {
+            int sum = 0;
+            foreach (SimEvent simEvent in month.Events)
+            {
+                if (simEvent.Type == type && (condition == null || condition(simEvent)) && simEvent.TryGet(key, out int value)) sum += value;
+            }
+            return sum;
+        }
 
         private static bool IsResult(SimEvent simEvent, string kind) => simEvent.TryGet("kind", out string value) && value == kind;
 

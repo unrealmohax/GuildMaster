@@ -93,3 +93,7 @@ description: Отладка и прогоны GuildMaster без интерфе�
   `MealEaten` и часы стадий голода), «Ушли из-за голода»; «Доход: Таверна: еда» и «…: выпивка» — статьи. Лог `Debug` — `meal #3 Имя
   Simple 2 (wallet=…, spare=…)` / `meal … skipped (wallet=0)`; события `MealEaten`/`MealSkipped` — на `Trace`; суточная строка — `satiety=`.
   Распределение кошельков на момент еды — прогон `Year Seed 1 Debug` и разбор строк `meal`.
+- Пайки (скилл `gm-state-health` → «Походные пайки»): столбцы «Пайков куплено», «Пайков потеряно», «Делёжек», «Голодных приёмов в пути»,
+  «Припасы кончились», «Отступлений из-за еды» (`SummaryColumns.SumOf` — сумма числа из данных событий). Лог `Debug` — `rations quest #N …`
+  (покупка), `ration #id Имя Cheap [from …]` (еда в пути и паёк в городе), бросок `ration-loss`; `RationsBought`/`RationsShared` — `Debug`,
+  `QuestMealMissed` — `Trace`; решение отступить «из-за еды» — `because food 0.5, …`.

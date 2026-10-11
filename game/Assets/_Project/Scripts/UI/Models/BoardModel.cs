@@ -13,6 +13,7 @@ namespace GuildMaster.UI
         public string Type;
         public GuildRank Rank;
         public string Client;
+        /// <summary>Расстояние и путь в одну сторону: «далеко, ≈ 2,5 дн.».</summary>
         public string Distance;
         public int Reward;
         public int Surcharge;
@@ -102,7 +103,7 @@ namespace GuildMaster.UI
                 Type = TypeName(client.Data, order.TypeId),
                 Rank = order.Rank,
                 Client = order.Client?.Nominative ?? string.Empty,
-                Distance = order.Distance == OrderDistance.Far ? UiStrings.Far : UiStrings.Near,
+                Distance = $"{(order.Distance == OrderDistance.Far ? UiStrings.Far : UiStrings.Near)}, {UiFormat.Travel(order.TravelHours, client.Data.Balance.Time)}",
                 Reward = order.Reward,
                 Surcharge = order.Surcharge,
                 InWork = order.IsInWork,

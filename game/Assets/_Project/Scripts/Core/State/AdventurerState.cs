@@ -38,6 +38,9 @@ namespace GuildMaster.Core
         /// <summary>Тип последнего приёма пищи; <c>null</c> — ещё не ел или последний приём пропущен.</summary>
         public MealTier? LastMealTier { get; internal set; }
 
+        /// <summary>Последний приём в городе — паёк из запаса: на еду в таверне не хватило денег.</summary>
+        public bool LastMealWasRation { get; internal set; }
+
         /// <summary>Монеты, ≥ 0.</summary>
         public int Wallet { get; internal set; }
 

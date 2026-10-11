@@ -118,6 +118,7 @@ namespace GuildMaster.Core
             TypeId = order.TypeId;
             Rank = order.Rank;
             Distance = order.Distance;
+            TravelHours = order.TravelHours;
             Place = order.Place;
             Enemy = order.Enemy;
             Client = order.Client;
@@ -135,6 +136,9 @@ namespace GuildMaster.Core
 
         public GuildRank Rank { get; }
         public OrderDistance Distance { get; }
+
+        /// <summary>Путь в одну сторону, ходовых часов — из заказа.</summary>
+        public int TravelHours { get; }
         public NounForms Place { get; }
         public NounForms Enemy { get; }
         public NounForms Client { get; }
@@ -235,6 +239,9 @@ namespace GuildMaster.Core
 
         /// <summary>Сколько ходовых часов шли туда (для тех, кто повернул назад, и для обратного пути).</summary>
         internal int OutHoursDone { get; set; }
+
+        /// <summary>Строка «припасы кончились» уже была.</summary>
+        internal bool RationsRanOut { get; set; }
 
         /// <summary>Группа сейчас ночует: утром — строка «ночь прошла».</summary>
         internal bool Camping { get; set; }

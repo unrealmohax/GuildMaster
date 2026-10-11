@@ -400,6 +400,28 @@ MonoBehaviour:
     exhaustionContentmentPerDay: 10
     hungerMoneyMultiplier: 1.5
     hungerSafetyMultiplier: 0.7
+    rationCheap:
+      price: 1
+      satietyGain: 25
+      satietyCap: 60
+      taste: -5
+      guildShare: 0.2
+    rationRegular:
+      price: 2
+      satietyGain: 35
+      satietyCap: 85
+      taste: 0
+      guildShare: 0.5
+    rationReserveMeals: 3
+    cautiousExtraMeals: 3
+    rationLossChance: 0.3
+    rationLossShare: 0.25
+    rationLossFailures:
+      min: 2
+      max: 3
+    greedyNoShareAxis: 50
+    shareRelation: 3
+    hungryRetreatBonus: 0.5
   state:
     startFatigue: 10
     startStress:

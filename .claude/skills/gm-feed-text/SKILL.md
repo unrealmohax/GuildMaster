@@ -91,3 +91,6 @@ description: Лента событий и тексты GuildMaster — FeedSyste
   (`feedKey` события). Тексты самих обращений (тело, варианты) рендерит `DilemmaTextSource` (`{сумма}` у варианта — его деньги).
 - Еда: ключи `guild.food.hunger` (`HungerStarted`, [З]) и `guild.food.exhausted` (`Exhausted`, [В]) в `FeedKeys.Fixed`; причина
   `reason.hunger` («не мог[|ла]@имя прокормиться»); статьи `ledger.tavernFood` / `ledger.tavernDrinks`. Приёмы пищи строк не дают.
+- Пайки: `quest.rations.bought|enough|short` (по `kind` события `RationsBought`, `{число}` — дни еды), `quest.rations.shared`
+  (`{имя}` отдал, `{напарник}` получил), `quest.rations.ranOut`, `quest.loss.rations` (вид `rations` у `QuestLoss`). Голодный приём в пути
+  (`QuestMealMissed`) строки не даёт.

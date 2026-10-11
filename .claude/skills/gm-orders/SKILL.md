@@ -1,6 +1,6 @@
 ---
 name: gm-orders
-description: Заказы GuildMaster — модель Order и статусы, доска OrderBoard (Open, InWork, Closed, правила Регистратора RegistrarRules, счётчики OrderTotals), генерация OrderGenerator (смесь рангов, профиль требований, награда, описание и намёки, точность описания), OrderSystem (поток по утрам, снятие по сроку, важные заказы игроку), команды SetRegistrarRulesCommand/AnswerImportantOrderCommand/SetSurchargeCommand, репутация гильдии. Использовать при правке прихода, отбора и жизни заказов, скрытого профиля и описаний, Регистратора и репутации.
+description: Заказы GuildMaster — модель Order и статусы, доска OrderBoard (Open, InWork, Closed, правила Регистратора RegistrarRules, счётчики OrderTotals), генерация OrderGenerator (смесь рангов, профиль требований, награда, описание и намёки, точность описания, путь TravelHours), OrderSystem (поток по утрам, снятие по сроку, важные заказы игроку), команды SetRegistrarRulesCommand/AnswerImportantOrderCommand/SetSurchargeCommand, репутация гильдии. Использовать при правке прихода, отбора и жизни заказов, скрытого профиля и описаний, Регистратора и репутации.
 ---
 
 # Заказы, доска, репутация
@@ -12,7 +12,7 @@ description: Заказы GuildMaster — модель Order и статусы, 
 
 | Файл | Что |
 |---|---|
-| `Order.cs` | заказ; `OrderStatus` (Incoming → OnBoard / AwaitingPlayer → Declined / Expired; Taken → InProgress → Done / Failed), `OrderDistance`, `OrderDeclinedBy` (Registrar, Player, NoAnswer). Видимое игроку — public; **скрытое — internal**: `Profile`/`Requirement(StatId)`, `StatCeiling`, `PartySizeCeiling`, `DescriptionAccuracy`, `TrueRank` |
+| `Order.cs` | заказ (`TravelHours` — путь в одну сторону, виден игроку; internal `ExpectedMealsCache` — кеш `TravelPlan.ExpectedMeals`); `OrderStatus` (Incoming → OnBoard / AwaitingPlayer → Declined / Expired; Taken → InProgress → Done / Failed), `OrderDistance`, `OrderDeclinedBy` (Registrar, Player, NoAnswer). Видимое игроку — public; **скрытое — internal**: `Profile`/`Requirement(StatId)`, `StatCeiling`, `PartySizeCeiling`, `DescriptionAccuracy`, `TrueRank` |
 | `OrderBoard.cs` | `Open`, `InWork`, `Closed` (≤ `closedOrdersLimit`), `Rules`, `Totals`, `TryGetOpen`, `TryGetOrder`, `GetPromisedSurcharges`, `TryGetPromotion`; свой `NextId`; `RegistrarRules` (по умолчанию: все типы, до C, минимум 0), `OrderTotals` |
 | `OrderGenerator.cs` | internal, чистые функции от потока: `Generate`, `RankMixFor`, `OrdersPerDay`, `BuildProfile`, `Reward`, `LargestAxes`, `IsImportant` |
 | `OrderSystem.cs` | шаг 3: `Tick`, `ApplyStart` (поток `OrderStart`), internal `Post`, `Decline`, `Publish`, `WriteGenerated` |
@@ -36,7 +36,9 @@ description: Заказы GuildMaster — модель Order и статусы, 
 
 Ранг по смеси для репутации (`RankMixFor`: последняя строка с порогом не выше репутации; G и F остаются при любой репутации) →
 «сложный не по времени» (один бросок всегда) → тип по весам → расстояние → профиль (`BuildProfile`) → награда → срок на доске →
-заказчик, место, враг, груз → шаблон описания → намёки → точность описания. **Порядок не менять** — сдвинутся все заказы.
+заказчик, место, враг, груз → шаблон описания → намёки → точность описания → путь (`TravelHours`: далеко — бросок `farHours`,
+близко — `nearHours` без броска). **Порядок не менять** — сдвинутся все заказы. Экзамен — тот же генератор; событийное задание
+берёт путь задания-источника.
 
 `BuildProfile`: главные оси типа — из диапазона главных осей ранга, второстепенные — второстепенных; далеко без Выживания —
 Выживание второстепенной; каждая × случайный множитель; все оси диаграммы не ниже `requirementFloor`; Слаженность — 0.
@@ -70,6 +72,9 @@ accuracy=0.97 profile Str=16.2 … hints=…: текст`. `Info` — событ
 «Отклонено Регистратором», «Отклонено игроком», «Снято по сроку», «Репутация».
 
 ## Ловушки
+
+- Путь на доске — столбец «Путь» (`BoardModel.OrderRow.Distance`: «далеко, ≈ 2,5 дн.», `UiFormat.Travel` по ритму дня при выходе утром).
+- Заказ, собранный вручную (`new Order`), без `TravelHours` идёт час в одну сторону (`StartLeg` берёт не меньше 1) — ставить путь явно.
 
 - Id заказа — в данных события (`order`), **не** в участниках: участники — люди.
 - Стартовые заказы (`ApplyStart`) — без событий и вне счётчиков; тесты состояния убирают `OrderSystem` и снимают стартовые с доски.
