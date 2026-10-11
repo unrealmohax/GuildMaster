@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using GuildMaster.Core;
 
 namespace GuildMaster.UI
@@ -99,6 +99,7 @@ namespace GuildMaster.UI
             { AutopauseKind.BankruptcyStarted, "Начало банкротства" },
             { AutopauseKind.DilemmaReceived, "Обращение" },
             { AutopauseKind.ImportantOrder, "Важный заказ" },
+            { AutopauseKind.Exhausted, "Истощение от голода" },
         };
 
         public static string AutopauseKindName(AutopauseKind kind) => AutopauseKinds.TryGetValue(kind, out string name) ? name : kind.ToString();
@@ -113,6 +114,9 @@ namespace GuildMaster.UI
         public const string ColStress = "Стресс";
         public const string ColContentment = "Довольство";
         public const string ColLoyalty = "Лояльность";
+        public const string ColSatiety = "Сытость";
+        public const string DebugSatietyEmpty = "Сытость 0";
+        public const string DebugSatietyFull = "Сытость 100";
         public const string ColWallet = "Кошелёк";
         public const string FilterAll = "Все";
         public const string FilterOnQuest = "На заданиях";
@@ -203,6 +207,16 @@ namespace GuildMaster.UI
         public const string RankTop = "ранг {0} · высший";
         public const string PowerFormat = "ранг характеристик {0}";
         public const string WalletFormat = "кошелёк {0}";
+
+        /// <summary>Стадии голода в карточке, по <see cref="HungerStage"/>.</summary>
+        public static readonly string[] HungerStagesMale = { "сыт", "голоден", "голод", "истощение" };
+        public static readonly string[] HungerStagesFemale = { "сыта", "голодна", "голод", "истощение" };
+
+        /// <summary>Что человек ест, по <see cref="MealTier"/> последнего приёма.</summary>
+        public static readonly string[] MealTiers = { "дешёвую еду", "простую еду", "роскошную еду" };
+        public const string MealFormat = "ест {0}";
+        public const string MealNone = "ничего не ел: не на что";
+        public const string HungerIcon = " ●";
         public const string DebtFormat = "долг гильдии {0}";
         public const string HousingCity = "живёт в городе";
         public const string HousingDormitory = "живёт в Общежитии";
@@ -284,7 +298,8 @@ namespace GuildMaster.UI
         public const string ColRelated = "К чему относится";
         public const string ColBalance = "Казна";
         public const string LedgerShownFormat = "показано {0} из {1}";
-        public const string LedgerTavernFormat = "еда {0}, выпивка {1}";
+        public const string LedgerTavernFoodFormat = "дешёвая {0}, простая {1}, роскошная {2}";
+        public const string LedgerTavernDrinksFormat = "выпивка {0}";
         public const string LedgerSalaryDebt = " (долг)";
         public const string ReportsHistory = "Отчёты месяца";
         public const string NoReports = "Отчётов ещё не было";

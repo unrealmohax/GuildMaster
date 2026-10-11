@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using GuildMaster.Core;
 using GuildMaster.Data;
@@ -18,21 +18,19 @@ namespace GuildMaster.Tests
         public void TearDown() => world.Dispose();
 
         [Test]
-        public void DailyExpenses_FoodAndCityHousing_TavernMealIfWalletCoversWeek()
+        public void DailyExpenses_HousingAtMidnight_LivingCostIsHousingAndSimpleMeals()
         {
-            ExpensesBalance expenses = world.Balance.Expenses;
-            world.Data.Set("decisions.bestChoiceChance", 1f); // вечером — всегда в таверну (лучший вариант)
-            Adventurer rich = world.Add();
-            Adventurer modest = world.Add();
-            rich.State.Wallet = 100;
-            modest.State.Wallet = 34;
-            Assert.AreEqual(35, WalletService.WeeklyExpenses(modest, expenses), "7 × (еда 2 + город 3)");
+            Adventurer city = world.Add();
+            Assert.AreEqual(3 + 3 * 2, WalletService.DailyLivingCost(city, world.Balance), "город 3 + три простых приёма");
+            Assert.AreEqual(63, WalletService.WeeklyExpenses(city, world.Balance), "7 × (город 3 + 3 × простая 2)");
 
+            world.TickToHour(23);
+            Assert.Greater(city.State.TasteToday, 0f, "ел днём");
+            int before = city.State.Wallet;
             world.TickToHour(0);
 
-            Assert.AreEqual(100 - 3 - 3, rich.State.Wallet, "ел в таверне: еда 3, жильё 3");
-            Assert.AreEqual(34 - 2 - 3, modest.State.Wallet, "меньше недели — еда 2");
-            Assert.IsFalse(rich.State.AteInTavernToday, "учёт суток сброшен");
+            Assert.AreEqual(before - 3, city.State.Wallet, "в 00:00 — только жильё");
+            Assert.AreEqual(0f, city.State.TasteToday, "учёт суток сброшен");
         }
 
         [Test]
@@ -56,9 +54,10 @@ namespace GuildMaster.Tests
                 foreach (Adventurer adventurer in spent.Keys) spent[adventurer].Add(1000 - adventurer.State.Wallet);
             }
 
-            Assert.IsTrue(spent[calm].All(x => x == 0));
-            CollectionAssert.AreEquivalent(new[] { 2, 3, 4, 5 }, spent[stressed].Distinct());
-            CollectionAssert.AreEquivalent(new[] { 2, 3, 4, 5 }, spent[drunkard].Distinct());
+            int meals = world.Balance.Food.MealsPerDay * world.Balance.Food.Luxury.Price; // денег много — роскошная еда
+            Assert.IsTrue(spent[calm].All(x => x == meals));
+            CollectionAssert.AreEquivalent(new[] { 2, 3, 4, 5 }, spent[stressed].Select(x => x - meals).Distinct());
+            CollectionAssert.AreEquivalent(new[] { 2, 3, 4, 5 }, spent[drunkard].Select(x => x - meals).Distinct());
         }
 
         [Test]
@@ -73,7 +72,7 @@ namespace GuildMaster.Tests
             SimEvent emptied = events.Single(e => e.Type == SimEventType.WalletEmptied);
             Assert.AreEqual(EventImportance.Notable, emptied.Importance);
             Assert.IsTrue(emptied.TryGet("unpaid", out int unpaid));
-            Assert.AreEqual(2, unpaid);
+            Assert.AreEqual(3, unpaid, "три монеты ушли на дешёвую еду, жильё 3 не оплачено");
 
             world.Days(1);
             Assert.AreEqual(0, adventurer.State.Wallet, "не уходит в минус");
@@ -87,10 +86,10 @@ namespace GuildMaster.Tests
         public void LowWallet_DoublesMoneyMotive()
         {
             Adventurer adventurer = world.Add();
-            adventurer.State.Wallet = 35;
+            adventurer.State.Wallet = 63;
             Assert.AreEqual(1f, WalletService.MoneyMotiveMultiplier(adventurer, world.Balance));
-            adventurer.State.Wallet = 34;
-            Assert.IsTrue(WalletService.IsBelowWeeklyExpenses(adventurer, world.Balance.Expenses));
+            adventurer.State.Wallet = 62;
+            Assert.IsTrue(WalletService.IsBelowWeeklyExpenses(adventurer, world.Balance));
             Assert.AreEqual(2f, WalletService.MoneyMotiveMultiplier(adventurer, world.Balance));
         }
 

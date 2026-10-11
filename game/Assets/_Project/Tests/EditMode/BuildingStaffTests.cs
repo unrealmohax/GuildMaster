@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -159,9 +159,8 @@ namespace GuildMaster.Tests
             Assert.IsTrue(people.Take(10).All(a => a.Housing == Housing.Dorm), "первыми — кто раньше в гильдии (при равенстве — меньший id)");
             Assert.IsTrue(people.Skip(10).All(a => a.Housing == Housing.City));
 
-            ExpensesBalance expenses = world.Balance.Expenses;
-            Assert.AreEqual(2 + 1, WalletService.DailyLivingCost(people[0], false, expenses));
-            Assert.AreEqual(2 + 3, WalletService.DailyLivingCost(people[11], false, expenses));
+            Assert.AreEqual(1 + 3 * 2, WalletService.DailyLivingCost(people[0], world.Balance), "Общежитие 1 + три простых приёма");
+            Assert.AreEqual(3 + 3 * 2, WalletService.DailyLivingCost(people[11], world.Balance), "город 3 + три простых приёма");
 
             float commission = world.Simulation.World.Treasury.Commission;
             Assert.AreEqual(10f, StateRules.ContentmentTarget(people[0], commission, world.Registry)

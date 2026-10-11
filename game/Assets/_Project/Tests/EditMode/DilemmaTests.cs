@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using GuildMaster.Core;
 using GuildMaster.Data;
@@ -53,7 +53,7 @@ namespace GuildMaster.Tests
             Dilemma loan = OpenOf(world, DilemmaTrigger.LoanRequest);
             Assert.AreEqual(1, Open(world).Count, "просит только Семейный с пустым кошельком: у простого шанс 0");
             Assert.AreEqual(family.Id, loan.SubjectId);
-            Assert.AreEqual(30 * WalletService.DailyLivingCost(family, false, world.Balance.Expenses), loan.Amount, "сумма — расходы на 30 дней");
+            Assert.AreEqual(30 * WalletService.DailyLivingCost(family, world.Balance), loan.Amount, "сумма — расходы на 30 дней");
             Assert.AreEqual("Дома ждут, а платить нечем.", loan.Reason, "у Семейного — своя причина");
             Assert.IsTrue(family.Traits[0].Revealed, "причина раскрывает Семейного");
             Assert.AreEqual(world.Time.TotalHours + 48, loan.DeadlineAtHours, "срок ответа — 2 суток");
@@ -347,7 +347,7 @@ namespace GuildMaster.Tests
             world.TickToHour(12);
             Dilemma dilemma = OpenOf(world, DilemmaTrigger.WoundedWantsQuest);
             int cost = DilemmaRules.OptionCost(world.Simulation.World, world.Registry, dilemma, 2);
-            Assert.AreEqual(WalletService.WeeklyExpenses(wounded, world.Balance.Expenses), cost, "Лазарета нет — только неделя");
+            Assert.AreEqual(WalletService.WeeklyExpenses(wounded, world.Balance), cost, "Лазарета нет — только неделя");
             int wallet = wounded.State.Wallet;
 
             Answer(world, dilemma, 2);

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 
 namespace GuildMaster.Data
@@ -15,9 +15,6 @@ namespace GuildMaster.Data
         [SerializeField] private float benefitCancelContentment = -5f;
 
         [Header("№2 Еда и жильё для новичков")]
-        [Tooltip("Гильдия платит за новичка в день")]
-        [SerializeField, Min(0f)] private float newcomerDailyCost = 5f;
-
         [Tooltip("Новичок — в гильдии меньше, дней")]
         [SerializeField, Min(1)] private int newcomerPeriodDays = 30;
 
@@ -59,7 +56,6 @@ namespace GuildMaster.Data
         public int WeekDurationDays => weekDurationDays;
         public int MonthDurationDays => monthDurationDays;
         public float BenefitCancelContentment => benefitCancelContentment;
-        public float NewcomerDailyCost => newcomerDailyCost;
         public int NewcomerPeriodDays => newcomerPeriodDays;
         public float NewcomerInfluxMultiplier => newcomerInfluxMultiplier;
         public float FreeloaderWorkShift => freeloaderWorkShift;

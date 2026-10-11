@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using GuildMaster.Core;
@@ -34,6 +34,16 @@ namespace GuildMaster.Debugging
             new MonthColumn("Пустых кошельков", m => CountActive(m, a => a.State.IsWalletEmpty), SummaryTotal.Last, "0"),
             new MonthColumn("Отдых, %", m => m.ActivityShare(Activity.Resting), SummaryTotal.Mean, "0.#"),
             new MonthColumn("Таверна, %", m => m.ActivityShare(Activity.Tavern), SummaryTotal.Mean, "0.#"),
+            new MonthColumn("Сытость", m => Average(m, a => a.State.Satiety), SummaryTotal.Mean),
+            new MonthColumn("Приёмов: дешёвая, %", m => m.MealShare(MealTier.Cheap), SummaryTotal.Mean, "0.#"),
+            new MonthColumn("Приёмов: простая, %", m => m.MealShare(MealTier.Simple), SummaryTotal.Mean, "0.#"),
+            new MonthColumn("Приёмов: роскошная, %", m => m.MealShare(MealTier.Luxury), SummaryTotal.Mean, "0.#"),
+            new MonthColumn("Приёмов", m => m.Meals(MealTier.Cheap) + m.Meals(MealTier.Simple) + m.Meals(MealTier.Luxury), SummaryTotal.Sum, "0"),
+            new MonthColumn("Пропущено приёмов", m => m.Count(SimEventType.MealSkipped), SummaryTotal.Sum, "0"),
+            new MonthColumn("Дней в голоде", m => m.HungerDays(HungerStage.Starving, m.Game.Calendar.HoursPerDay), SummaryTotal.Sum, "0.#"),
+            new MonthColumn("Дней в истощении", m => m.HungerDays(HungerStage.Exhausted, m.Game.Calendar.HoursPerDay), SummaryTotal.Sum, "0.#"),
+            new MonthColumn("Ушли из-за голода", m => m.Count(SimEventType.AdventurerLeft, e => e.TryGet("cause", out LeaveCause cause) && cause == LeaveCause.Hunger),
+                SummaryTotal.Sum, "0"),
             new MonthColumn("Лента [О]", m => m.FeedLines(EventImportance.Normal), SummaryTotal.Sum, "0"),
             new MonthColumn("Лента [З]", m => m.FeedLines(EventImportance.Notable), SummaryTotal.Sum, "0"),
             new MonthColumn("Лента [В]", m => m.FeedLines(EventImportance.Important), SummaryTotal.Sum, "0"),

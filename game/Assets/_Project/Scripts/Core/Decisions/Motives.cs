@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using GuildMaster.Data;
 
 namespace GuildMaster.Core
@@ -17,6 +17,9 @@ namespace GuildMaster.Core
 
         /// <summary>Лёгкая рана: Безопасность.</summary>
         LightWound,
+
+        /// <summary>Голоден (сытость ниже порога): Деньги сильнее, Безопасность слабее.</summary>
+        Hunger,
     }
 
     /// <summary>Веса шести мотивов и факторы состояния, которые их усилили.</summary>
@@ -65,7 +68,8 @@ namespace GuildMaster.Core
     /// (<see cref="AxisMath.ArrowMultiplier"/>), у особых черт — полная стрелка. Скрытые черты действуют так же, как раскрытые.
     /// Утешение Пьяницы (<see cref="TraitHook.DrunkardComfortOnlyInTavern"/>) действует только на таверну.</item>
     /// <item>Состояние: кошелёк меньше расходов на неделю — Деньги × 2; усталость выше 50 — Отдых × (1 + (усталость − 50) / 25);
-    /// стресс выше 40 — Утешение × (1 + (стресс − 40) / 30) и Безопасность × 1,3; лёгкая рана — Безопасность × 1,3.</item>
+    /// стресс выше 40 — Утешение × (1 + (стресс − 40) / 30) и Безопасность × 1,3; лёгкая рана — Безопасность × 1,3;
+    /// голоден (сытость ниже 30) — Деньги × 1,5 и Безопасность × 0,7: ищет прибыльный заказ, риск не отпугивает.</item>
     /// </list>
     /// </summary>
     public static class Motives
@@ -115,7 +119,7 @@ namespace GuildMaster.Core
             AdventurerState state = adventurer.State;
             DecisionsBalance decisions = balance.Decisions;
 
-            if (WalletService.IsBelowWeeklyExpenses(adventurer, balance.Expenses))
+            if (WalletService.IsBelowWeeklyExpenses(adventurer, balance))
             {
                 weights.Multiply(Motive.Money, WalletService.MoneyMotiveMultiplier(adventurer, balance));
                 weights.AddFactor(StateFactor.LowWallet, Motive.Money, state.Wallet);
@@ -136,6 +140,13 @@ namespace GuildMaster.Core
             {
                 weights.Multiply(Motive.Safety, decisions.LightWoundSafetyMultiplier);
                 weights.AddFactor(StateFactor.LightWound, Motive.Safety, 1f);
+            }
+            if (FoodRules.IsHungry(state, balance.Food))
+            {
+                weights.Multiply(Motive.Money, balance.Food.HungerMoneyMultiplier);
+                weights.Multiply(Motive.Safety, balance.Food.HungerSafetyMultiplier);
+                weights.AddFactor(StateFactor.Hunger, Motive.Money, state.Satiety);
+                weights.AddFactor(StateFactor.Hunger, Motive.Safety, state.Satiety);
             }
         }
 

@@ -14,7 +14,7 @@ description: Экономика гильдии GuildMaster — казна Treasu
 |---|---|
 | `Treasury.cs` | `Money` (может быть < 0), `StartMoney`, `Ledger`, `Commission`, `Bankruptcy` (`NegativeSinceHours`, `Active`, `StartedAtHours`, `EndsAtHours`), `IsClosed`, `ClosedAtHours`; internal счётчики порций таверны; `LedgerEntry` (время, статья, сумма со знаком, комментарий, `RelatedId`, `BalanceAfter`) |
 | `LedgerCategory.cs` | `LedgerFlow`, `ExpenseKind` (`Mandatory` — даже в минус, `IfAffordable` — только если хватает), `LedgerCategories.All` |
-| `TreasuryService.cs` | `Credit`, `Debit` → bool, `CanAfford`, internal `CountTavernFood/Drink`, `SettleTavern` |
+| `TreasuryService.cs` | `Credit`, `Debit` → bool, `CanAfford`, internal `CountTavernMeal(тип)`/`CountTavernDrink`, `SettleTavern` (еда и выпивка — две записи) |
 | `EconomySystem.cs` | шаг 11: 00:00 — доход таверны; каждый час — банкротство; начало месяца — `HardTimes` |
 | `HardTimes.cs` | `IsNow` (банкротство или уход за месяц), `Apply` (Проверенный, раскрытие Преданного) |
 | `SetCommissionCommand.cs` | комиссия в пределах `commissionLimits`, смена — `CommissionChanged` [О] |
@@ -30,7 +30,7 @@ description: Экономика гильдии GuildMaster — казна Treasu
 - Нулевая сумма записи не даёт. `Debit` `IfAffordable`-статьи без денег — `false`, ничего не пишет.
 - Кошельки людей — не казна (скилл `gm-state-health`). Казну трогают: таверна, комиссия, погашение долга, платы за Общежитие,
   Лазарет и двор, доплаты, событийные задания, находки, стройка, содержание, зарплаты. Трофеи заданий — деньги извне.
-- Статьи сейчас: доходы — `Tavern`, `Commission`, `DebtRepayment`, `Dormitory`, `Infirmary`, `TrainingYard`; обязательные расходы —
+- Статьи сейчас: доходы — `TavernFood`, `TavernDrinks`, `Commission`, `DebtRepayment`, `Dormitory`, `Infirmary`, `TrainingYard`; обязательные расходы —
   `Surcharges`, `EventQuests`, `Discoveries`, `Upkeep`; только если хватает — `Construction`, `Salaries` (скилл `gm-buildings-staff`).
 - **1-е число, 00:00**: `EconomySystem` (трудные времена) → `StaffSystem` (долги по зарплате, уход) → `BuildingSystem` (содержание) →
   `SalarySystem` (зарплаты) → `MonthReportSystem` — всё это в отчёте прошедшего месяца.
@@ -80,3 +80,7 @@ description: Экономика гильдии GuildMaster — казна Treasu
 - Обращения (скилл `gm-dilemmas`): статьи `Loans` («Займы авантюристам», только если хватает), `Dilemmas` («Обращения», только если
   хватает), `Fines` («Штрафы», доход); комментарий — id дилеммы. Раздел отчёта `report.dilemmas` (пришло, ответили, без ответа, снято) —
   перед «Репутацией».
+- Еда (скилл `gm-state-health` → «Еда и сытость»): доход таверны — две статьи, `TavernFood` («Таверна: еда», комментарий
+  `cheap=… simple=… luxury=…`, доля гильдии по типу `MealBalance.GuildShare`) и `TavernDrinks` («Таверна: выпивка», `drinks=…`,
+  `tavernIncomePerServing`); Сухой закон × обе; дробные остатки — `TavernFoodRemainder`/`TavernDrinkRemainder`. Отчёт и сводка
+  показывают их отдельными строками сами; журнал казны расписывает порции (`TreasuryModel.Describe`).

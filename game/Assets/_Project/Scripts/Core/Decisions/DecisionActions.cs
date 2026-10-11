@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using GuildMaster.Data;
 
@@ -189,16 +189,13 @@ namespace GuildMaster.Core
             scores[(int)Motive.Comfort] = state.Stress / 100f + decisions.TavernComfortBonus;
         }
 
-        /// <summary>Сколько спишется за поход в таверну сегодня: выпивка (среднее) и наценка еды.</summary>
+        /// <summary>Сколько спишется за поход в таверну сегодня: выпивка (среднее). Еда — в часы приёмов, не от таверны.</summary>
         public static float TavernPrice(Adventurer adventurer, DataRegistry data)
         {
-            AdventurerState state = adventurer.State;
             ExpensesBalance expenses = data.Balance.Expenses;
-            float price = 0f;
-            if (!state.DrankToday && ActivitySystem.WantsToDrink(adventurer, data)) price += (expenses.Drink.Min + expenses.Drink.Max) / 2f;
-            if (!state.AteInTavernToday && state.Wallet >= WalletService.WeeklyExpenses(adventurer, expenses))
-                price += WalletService.Coins(expenses.TavernFood) - WalletService.Coins(expenses.Food);
-            return price;
+            return !adventurer.State.DrankToday && ActivitySystem.WantsToDrink(adventurer, data)
+                ? (expenses.Drink.Min + expenses.Drink.Max) / 2f
+                : 0f;
         }
 
         /// <summary>Оценки варианта по мотивам, каждая в пределах −1..1.</summary>

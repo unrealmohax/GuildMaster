@@ -1,18 +1,12 @@
-using System;
+﻿using System;
 using UnityEngine;
 
 namespace GuildMaster.Data
 {
-    /// <summary>Раздел <c>Expenses</c>: расходы авантюриста из своего кошелька.</summary>
+    /// <summary>Раздел <c>Expenses</c>: расходы авантюриста из своего кошелька, кроме еды (она — в <see cref="FoodBalance"/>).</summary>
     [Serializable]
     public sealed class ExpensesBalance
     {
-        [Tooltip("Еда в день")]
-        [SerializeField, Min(0f)] private float food = 2f;
-
-        [Tooltip("Еда в день, если ел в таверне")]
-        [SerializeField, Min(0f)] private float tavernFood = 3f;
-
         [Tooltip("Жильё в городе в день")]
         [SerializeField, Min(0f)] private float cityHousing = 3f;
 
@@ -37,8 +31,6 @@ namespace GuildMaster.Data
         [Tooltip("«Расходы на неделю» для порогов кошелька: дней")]
         [SerializeField, Min(1)] private int reserveDays = 7;
 
-        public float Food => food;
-        public float TavernFood => tavernFood;
         public float CityHousing => cityHousing;
         public float DormHousing => dormHousing;
         public float Infirmary => infirmary;

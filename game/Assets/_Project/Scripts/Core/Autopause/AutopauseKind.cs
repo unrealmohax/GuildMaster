@@ -1,4 +1,4 @@
-namespace GuildMaster.Core
+﻿namespace GuildMaster.Core
 {
     /// <summary>
     /// Вид автопаузы — переключатель в настройках (экран «Время»).
@@ -32,5 +32,8 @@ namespace GuildMaster.Core
 
         /// <summary>Важный заказ ждёт решения игрока.</summary>
         ImportantOrder,
+
+        /// <summary>Истощение от голода: человек вот-вот уйдёт.</summary>
+        Exhausted,
     }
 }

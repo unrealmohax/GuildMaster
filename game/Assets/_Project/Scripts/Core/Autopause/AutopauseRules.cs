@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace GuildMaster.Core
 {
@@ -25,6 +25,7 @@ namespace GuildMaster.Core
                 { SimEventType.AdventurerDisappeared, AutopauseKind.MemberLeftGuild },
                 { SimEventType.StaffQuit, AutopauseKind.MemberLeftGuild },
                 { SimEventType.DilemmaArrived, AutopauseKind.DilemmaReceived },
+                { SimEventType.Exhausted, AutopauseKind.Exhausted },
             };
     }
 }

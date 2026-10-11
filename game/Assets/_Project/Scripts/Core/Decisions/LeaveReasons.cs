@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 using GuildMaster.Data;
@@ -40,11 +40,14 @@ namespace GuildMaster.Core
 
         /// <summary>Утешение без явного повода: тяжело на душе.</summary>
         HeavyHeart,
+
+        /// <summary>Деньги, когда человек голоден: не мог прокормиться.</summary>
+        Hunger,
     }
 
     /// <summary>
     /// Причины ухода: до <c>maxReasons</c> мотивов, у которых вес (черты × состояние) выше веса по умолчанию, от большего
-    /// к меньшему; какой текст у мотива — по состоянию (пустой кошелёк, рана, недавний срыв). Нет выделяющегося мотива —
+    /// к меньшему; какой текст у мотива — по состоянию (голод, пустой кошелёк, рана, недавний срыв). Нет выделяющегося мотива —
     /// <see cref="LeaveCause.LowLoyalty"/>. Тексты — шаблоны ключей <c>reason.*</c> в данных: условие «черта раскрыта»
     /// выбирает строку, которая называет черту; скрытая черта не называется. Случайных чисел не тратит.
     /// </summary>
@@ -85,8 +88,8 @@ namespace GuildMaster.Core
             return causes;
         }
 
-        /// <summary>Главная причина — деньги (пустой кошелёк или мало платят).</summary>
-        public static bool IsMoney(LeaveCause cause) => cause == LeaveCause.EmptyWallet || cause == LeaveCause.LowPay;
+        /// <summary>Главная причина — деньги (голод, пустой кошелёк или мало платят).</summary>
+        public static bool IsMoney(LeaveCause cause) => cause == LeaveCause.EmptyWallet || cause == LeaveCause.LowPay || cause == LeaveCause.Hunger;
 
         private static LeaveCause CauseOf(Motive motive, Adventurer adventurer, MotiveWeights weights, DataRegistry data, long nowHours, Calendar calendar)
         {
@@ -95,6 +98,7 @@ namespace GuildMaster.Core
             switch (motive)
             {
                 case Motive.Money:
+                    if (FoodRules.IsHungry(state, data.Balance.Food)) return LeaveCause.Hunger;
                     return weights.TryGetFactor(Motive.Money, out _, out _) ? LeaveCause.EmptyWallet : LeaveCause.LowPay;
                 case Motive.Glory:
                     return LeaveCause.Glory;

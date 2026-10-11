@@ -354,8 +354,6 @@ MonoBehaviour:
     cohesionPerGroupQuest: 0.5
     cohesionPerPermanentPartyQuest: 1
   expenses:
-    food: 2
-    tavernFood: 3
     cityHousing: 3
     dormHousing: 1
     infirmary: 5
@@ -368,6 +366,40 @@ MonoBehaviour:
       min: 10
       max: 40
     reserveDays: 7
+  food:
+    startSatiety: 100
+    satietyDecayPerHour: 2
+    mealHours: 070000000d00000013000000i
+    cheap:
+      price: 1
+      satietyGain: 25
+      satietyCap: 60
+      taste: -5
+      guildShare: 0.2
+    simple:
+      price: 2
+      satietyGain: 35
+      satietyCap: 85
+      taste: 3
+      guildShare: 0.5
+    luxury:
+      price: 5
+      satietyGain: 50
+      satietyCap: 100
+      taste: 10
+      guildShare: 1.5
+    reserveDays: 7
+    budgetDays: 10
+    greedyBudgetBonus: 1
+    familyBudgetMultiplier: 1.5
+    hungryThreshold: 30
+    starvingThreshold: 10
+    hungryStressPerHour: 0.5
+    hungerStatMultiplier: 0.9
+    exhaustionStatMultiplier: 0.75
+    exhaustionContentmentPerDay: 10
+    hungerMoneyMultiplier: 1.5
+    hungerSafetyMultiplier: 0.7
   state:
     startFatigue: 10
     startStress:
@@ -414,7 +446,6 @@ MonoBehaviour:
     contentmentDailyStep: 1
     cityHousingContentment: -10
     dormHousingContentment: 0
-    tavernFoodContentment: 5
     emptyWalletContentment: -15
     commissionThreshold: 0.25
     commissionStep: 0.05
@@ -576,7 +607,6 @@ MonoBehaviour:
     weekDurationDays: 7
     monthDurationDays: 30
     benefitCancelContentment: -5
-    newcomerDailyCost: 5
     newcomerPeriodDays: 30
     newcomerInfluxMultiplier: 1.5
     freeloaderWorkShift: -20

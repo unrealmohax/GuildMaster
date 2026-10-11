@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using GuildMaster.Core;
@@ -50,6 +50,7 @@ namespace GuildMaster.UI
         private readonly BarView fatigue;
         private readonly BarView stress;
         private readonly BarView contentment;
+        private readonly BarView satiety;
         private readonly TextMeshProUGUI right;
 
         public CardWindow(UiContext context, RectTransform parent) : base(context, parent, "Card", 1400, 940)
@@ -78,6 +79,7 @@ namespace GuildMaster.UI
             fatigue = StateBar(rightContent, UiStrings.ColFatigue);
             stress = StateBar(rightContent, UiStrings.ColStress);
             contentment = StateBar(rightContent, UiStrings.ColContentment);
+            satiety = StateBar(rightContent, UiStrings.ColSatiety);
             right = Factory.LinkLabel(rightContent, Context.OnLink);
         }
 
@@ -111,7 +113,9 @@ namespace GuildMaster.UI
             string dim = UiTheme.ToHex(Theme.TextDim);
             string text = UiTheme.ToHex(Theme.Text);
 
-            TitleLabel.text = model.Name;
+            TitleLabel.text = model.Hunger >= HungerStage.Starving
+                ? $"{model.Name}<color={UiTheme.ToHex(model.Hunger == HungerStage.Exhausted ? Theme.Danger : Theme.Accent)}>{UiStrings.HungerIcon}</color>"
+                : model.Name;
             subtitle.text = model.Subtitle;
             rankLine.text = $"{model.RankLine} · {model.Power}";
             rankBar.Set(model.RankProgress, UiFormat.Percent(model.RankProgress));
@@ -121,11 +125,13 @@ namespace GuildMaster.UI
             fatigue.Set(model.Fatigue / 100f, UiFormat.Number(model.Fatigue), model.Fatigue > 80 ? Theme.Danger : Theme.Accent);
             stress.Set(model.Stress / 100f, UiFormat.Number(model.Stress), model.Stress > 80 ? Theme.Danger : Theme.Accent);
             contentment.Set(model.Contentment / 100f, UiFormat.Number(model.Contentment));
+            satiety.Set(model.Satiety / 100f, $"{UiFormat.Number(model.Satiety)} · {model.HungerWord}",
+                model.Hunger >= HungerStage.Starving ? Theme.Danger : Theme.Accent);
 
             var r = new StringBuilder();
             r.Append($"<color={dim}>{UiStrings.ColLoyalty}</color><pos=26%>{model.Loyalty}\n\n");
             r.Append($"<color={accent}>{UiStrings.Health}</color>\n{model.Health}\n\n");
-            r.Append($"<color={accent}>{UiStrings.Money}</color>\n{model.Money}\n\n");
+            r.Append($"<color={accent}>{UiStrings.Money}</color>\n{model.Money}, {model.Meal}\n\n");
             r.Append($"<color={accent}>{UiStrings.Relations}</color>\n");
             if (model.Relations.Count == 0) r.Append($"<color={dim}>{UiStrings.NoRelations}</color>");
             for (int i = 0; i < model.Relations.Count; i++)

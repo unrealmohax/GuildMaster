@@ -1,4 +1,4 @@
-namespace GuildMaster.Core
+﻿namespace GuildMaster.Core
 {
     /// <summary>
     /// Типы событий симуляции. Новые типы добавляются в конец.
@@ -366,5 +366,19 @@ namespace GuildMaster.Core
 
         /// <summary>Обращение снято без последствий: тот, кого оно касалось, ушёл из гильдии. Без строки.</summary>
         DilemmaWithdrawn,
+
+        // Еда. Участник — человек.
+
+        /// <summary>Сытость упала ниже порога голода: характеристики ниже. <c>satiety</c>. [З].</summary>
+        HungerStarted,
+
+        /// <summary>Сытость дошла до 0 — истощение. [В], автопауза <see cref="AutopauseKind.Exhausted"/>.</summary>
+        Exhausted,
+
+        /// <summary>Приём пищи в таверне: <c>tier</c> — тип еды, <c>guildPays</c> — заплатила гильдия по распоряжению. Без строки.</summary>
+        MealEaten,
+
+        /// <summary>Приём пищи пропущен: нет денег даже на дешёвую еду. Без строки.</summary>
+        MealSkipped,
     }
 }

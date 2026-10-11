@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
 using GuildMaster.Core;
 using GuildMaster.Data;
@@ -14,7 +14,8 @@ namespace GuildMaster.UI
     /// </summary>
     public sealed class DebugPanel : WindowView
     {
-        private static readonly StateStat[] StateStats = { StateStat.Fatigue, StateStat.Stress, StateStat.Contentment, StateStat.Loyalty };
+        private static readonly StateStat[] StateStats =
+            { StateStat.Fatigue, StateStat.Stress, StateStat.Contentment, StateStat.Loyalty, StateStat.Satiety };
         private static readonly DebugEventKind[] QuestEvents = { DebugEventKind.Ambush, DebugEventKind.Discovery };
 
         private readonly RectTransform content;
@@ -108,7 +109,12 @@ namespace GuildMaster.UI
             foreach (StateStat s in StateStats) stateNames.Add(s.ToString());
             state = ValueRow(out stateInput, stateNames, StateName,
                 () => WithPerson(id => new DebugSetStateCommand(id, ParseEnum<StateStat>(state.Value), Float(stateInput))));
-            Factory.Button(content, UiStrings.Breakdown, () => WithPerson(id => new DebugEventCommand(DebugEventKind.Breakdown, id)),
+            RectTransform eventsRow = Row();
+            Factory.Button(eventsRow, UiStrings.Breakdown, () => WithPerson(id => new DebugEventCommand(DebugEventKind.Breakdown, id)), 150,
+                fontSize: Theme.FontSizeSmall);
+            Factory.Button(eventsRow, UiStrings.DebugSatietyEmpty, () => WithPerson(id => new DebugSetStateCommand(id, StateStat.Satiety, 0f)), 150,
+                fontSize: Theme.FontSizeSmall);
+            Factory.Button(eventsRow, UiStrings.DebugSatietyFull, () => WithPerson(id => new DebugSetStateCommand(id, StateStat.Satiety, 100f)), 150,
                 fontSize: Theme.FontSizeSmall);
             RectTransform dilemmaRow = Row(UiStrings.DebugDilemma);
             dilemma = new CycleSelector(Factory, dilemmaRow, 250);
@@ -250,6 +256,7 @@ namespace GuildMaster.UI
                 case StateStat.Fatigue: return UiStrings.ColFatigue;
                 case StateStat.Stress: return UiStrings.ColStress;
                 case StateStat.Contentment: return UiStrings.ColContentment;
+                case StateStat.Satiety: return UiStrings.ColSatiety;
                 default: return UiStrings.ColLoyalty;
             }
         }

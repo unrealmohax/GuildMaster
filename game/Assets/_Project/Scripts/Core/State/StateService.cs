@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using GuildMaster.Data;
 
@@ -127,9 +127,11 @@ namespace GuildMaster.Core
             return BreakdownKind.Collapse;
         }
 
-        /// <summary>Стартовые показатели нового человека: усталость 10, стресс 10–30, довольство 50, лояльность 40–60.</summary>
-        internal static void InitializeNew(Rng rng, AdventurerState state, StateBalance balance)
+        /// <summary>Стартовые показатели нового человека: усталость 10, стресс 10–30, довольство 50, лояльность 40–60, сытость 100.</summary>
+        internal static void InitializeNew(Rng rng, AdventurerState state, BalanceSettings settings)
         {
+            StateBalance balance = settings.State;
+            state.Satiety = StateRules.Clamp(settings.Food.StartSatiety);
             state.Fatigue = StateRules.Clamp(balance.StartFatigue);
             state.Stress = StateRules.Clamp(rng.RangeInclusive(balance.StartStress.Min, balance.StartStress.Max));
             state.Contentment = StateRules.Clamp(balance.StartContentment);

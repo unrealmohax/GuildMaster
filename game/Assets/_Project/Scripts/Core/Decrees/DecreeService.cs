@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using GuildMaster.Data;
 
@@ -73,12 +73,23 @@ namespace GuildMaster.Core
             Publish(ctx, SimEventType.DecreeExpired, EventImportance.Normal, decree);
         }
 
-        /// <summary>Гильдия платит суточные еду и жильё новичка: <c>newcomerDailyCost</c>, даже в минус.</summary>
-        internal static void PayLiving(SimContext ctx, Adventurer adventurer)
+        /// <summary>
+        /// Гильдия платит суточное жильё новичка (00:00), даже в минус. Жильё в городе — расход по распоряжению; место
+        /// в Общежитии гильдия просто не берёт с него — денег не движется.
+        /// </summary>
+        internal static void PayHousing(SimContext ctx, Adventurer adventurer)
+        {
+            if (adventurer.Housing == Housing.Dorm) return;
+            DecreeDefinition decree = DecreeRules.Find(ctx.Data, DecreeEffect.FreeLodgingForNewcomers);
+            TreasuryService.Debit(ctx, LedgerCategories.Decrees, FoodRules.HousingCost(adventurer, ctx.Data.Balance.Expenses), decree.Id,
+                adventurer.Id);
+        }
+
+        /// <summary>Гильдия платит приём пищи новичка (простая еда), даже в минус.</summary>
+        internal static void PayMeal(SimContext ctx, Adventurer adventurer, int price)
         {
             DecreeDefinition decree = DecreeRules.Find(ctx.Data, DecreeEffect.FreeLodgingForNewcomers);
-            TreasuryService.Debit(ctx, LedgerCategories.Decrees, WalletService.Coins(ctx.Data.Balance.Decrees.NewcomerDailyCost), decree.Id,
-                adventurer.Id);
+            TreasuryService.Debit(ctx, LedgerCategories.Decrees, price, decree.Id, adventurer.Id);
         }
 
         /// <summary>Компенсация за рану, если распоряжение включено: казна → кошелёк раненого.</summary>

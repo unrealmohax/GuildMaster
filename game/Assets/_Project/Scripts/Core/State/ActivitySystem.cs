@@ -1,4 +1,4 @@
-using GuildMaster.Data;
+﻿using GuildMaster.Data;
 
 namespace GuildMaster.Core
 {
@@ -14,8 +14,7 @@ namespace GuildMaster.Core
     /// иначе прежнее свободное занятие (отдых, таверна, тренировка); после сна, срыва, Лазарета — <see cref="Activity.Resting"/>.</item>
     /// </list>
     /// Выбранное решением занятие ставится только здесь, поэтому за час решения показатели считаются по прежнему занятию.
-    /// Расходы занятия — раз в сутки, в первый его час: таверна — выпивка 2–5 (если стресс выше 30 или Пьяница) и еда
-    /// в таверне (если кошелёк не меньше расходов на неделю; платится в 00:00); запой — выпивка <c>bingeDrinkPerDay</c>;
+    /// Расходы занятия — раз в сутки, в первый его час: таверна — выпивка 2–5 (если стресс выше 30 или Пьяница); запой — выпивка <c>bingeDrinkPerDay</c>;
     /// Лазарет — <c>infirmary</c>, в казну — сколько заплачено (недостача — недополученный доход гильдии). Выпивка в таверне
     /// и в запое, за которую заплачено хоть что-то, — порция в доход таверны (<see cref="TreasuryService"/>).
     /// Тренировка — занятие на <c>trainingHoursPerDay</c> часов, плата <c>training</c> в казну при начале; после него человек
@@ -121,8 +120,6 @@ namespace GuildMaster.Core
             switch (state.Activity)
             {
                 case Activity.Tavern:
-                    if (!state.AteInTavernToday && state.Wallet >= WalletService.WeeklyExpenses(adventurer, expenses))
-                        state.AteInTavernToday = true;
                     if (!state.DrankToday && WantsToDrink(adventurer, ctx.Data))
                     {
                         state.DrankToday = true;

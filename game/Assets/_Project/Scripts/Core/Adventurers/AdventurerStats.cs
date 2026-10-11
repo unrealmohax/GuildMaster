@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using GuildMaster.Data;
 
 namespace GuildMaster.Core
@@ -8,7 +8,7 @@ namespace GuildMaster.Core
     /// <list type="bullet">
     /// <item><b>Постоянные</b> модификаторы (Калека −30%) не опускают параметр ниже естественного минимума (10) и входят
     /// в расчёт архетипа.</item>
-    /// <item><b>Временные</b> (лёгкая рана, усталость выше 70, паника) могут опустить ниже 10 и в архетип не входят.</item>
+    /// <item><b>Временные</b> (лёгкая рана, усталость выше 70, голод — только характеристики, паника) могут опустить ниже 10 и в архетип не входят.</item>
     /// </list>
     /// Новый модификатор — одна строка в <see cref="PermanentModifiers"/> или <see cref="TemporaryModifiers"/>.
     /// </summary>
@@ -27,6 +27,7 @@ namespace GuildMaster.Core
             LightWoundMultiplier,
             FatigueMultiplier,
             WoundedQuestMultiplier,
+            HungerMultiplier,
         };
 
         /// <summary>Базовое × постоянные модификаторы, не ниже естественного минимума. По нему считается архетип.</summary>
@@ -64,6 +65,10 @@ namespace GuildMaster.Core
         /// <summary>Тяжёлая рана, с которой гильдия разрешила ходить на задания: весь профиль × множитель разрешения.</summary>
         private static float WoundedQuestMultiplier(Adventurer adventurer, StatId stat, DataRegistry data) =>
             adventurer.State.HasWoundedQuestPermission && adventurer.State.HasHeavyWound() ? adventurer.State.WoundedQuestProfile : 1f;
+
+        /// <summary>Голод: характеристики × 0,9, истощение — × 0,75 (<see cref="FoodRules.StatMultiplier"/>).</summary>
+        private static float HungerMultiplier(Adventurer adventurer, StatId stat, DataRegistry data) =>
+            FoodRules.StatMultiplier(adventurer, stat, data.Balance.Food);
 
         /// <summary>Усталость выше <c>fatigueProfileThreshold</c>: весь профиль × <c>fatigueProfileMultiplier</c> (0,8).</summary>
         private static float FatigueMultiplier(Adventurer adventurer, StatId stat, DataRegistry data) =>

@@ -88,3 +88,8 @@ description: Отладка и прогоны GuildMaster без интерфе�
 - Обращения (скилл `gm-dilemmas`): бот «Простой» — `AnswerDilemmasRandomlyRule` (наугад или без ответа); сценарий `dilemma Id Вариант`;
   столбцы «Обращений», «Без ответа, %», по видам и вариантам (`MonthlyFor`); лог `Info` — `decide … request: …`, `dilemma #N …: option K`,
   `Debug` — броски `loan-request`, `loot-dispute`, `pardon-redemption`. Зонд: UI → `Spawn Sample Dilemmas`.
+- Еда (скилл `gm-state-health`): столбцы «Сытость», «Приёмов: дешёвая / простая / роскошная, %», «Приёмов», «Пропущено приёмов»,
+  «Дней в голоде», «Дней в истощении» (`MonthRecord.Meals/MealShare/HungerDays` — `SummaryRecorder` считает приёмы по событиям
+  `MealEaten` и часы стадий голода), «Ушли из-за голода»; «Доход: Таверна: еда» и «…: выпивка» — статьи. Лог `Debug` — `meal #3 Имя
+  Simple 2 (wallet=…, spare=…)` / `meal … skipped (wallet=0)`; события `MealEaten`/`MealSkipped` — на `Trace`; суточная строка — `satiety=`.
+  Распределение кошельков на момент еды — прогон `Year Seed 1 Debug` и разбор строк `meal`.

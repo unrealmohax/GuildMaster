@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using GuildMaster.Core;
 using GuildMaster.Data;
@@ -181,6 +181,7 @@ namespace GuildMaster.Tests
                 {
                     adventurer.State.Stress = pinned;
                     adventurer.State.Breakdown = BreakdownKind.None;
+                    adventurer.State.Wallet = 1000; // не голодает: голод добавил бы стресса
                 }
             }));
             people = world.AddMany(20);
@@ -247,8 +248,8 @@ namespace GuildMaster.Tests
             Assert.AreEqual(BreakdownKind.None, veteran.State.Breakdown);
             Assert.AreEqual(Activity.Sleeping, veteran.State.Activity);
 
-            // Два дня: выпивка 5, еда 2 (в запое за еду таверны не считается), жильё 3.
-            Assert.AreEqual(100 - 2 * 5 - 2 * (2 + 3), veteran.State.Wallet);
+            // Два дня: выпивка 5, жильё 3 и три приёма дешёвой еды по 1 (кошелёк меньше резерва и бюджета на еду получше).
+            Assert.AreEqual(100 - 2 * 5 - 2 * 3 - 2 * 3 * 1, veteran.State.Wallet);
         }
 
         [Test]
@@ -313,20 +314,20 @@ namespace GuildMaster.Tests
         {
             world = new StateWorld();
             world.Data.Set("decisions.bestChoiceChance", 1f); // вечером — всегда в таверну (лучший вариант)
-            Adventurer rich = world.Add();       // город −10, ест в таверне +5 → цель 45
-            Adventurer poor = world.Add();       // город −10, кошелёк меньше недели — не ест в таверне → цель 40
-            poor.State.Wallet = 20;
-            rich.State.Contentment = 50f;
+            Adventurer rich = world.Add();       // город −10, роскошная еда +10 → цель 50
+            Adventurer poor = world.Add();       // город −10, денег мало — дешёвая еда −5 → цель 35
+            poor.State.Wallet = 60;
+            rich.State.Contentment = 55f;
             poor.State.Contentment = 30f;
 
             world.TickToHour(1);
-            Assert.AreEqual(49f, rich.State.Contentment, 1e-4f);
+            Assert.AreEqual(54f, rich.State.Contentment, 1e-4f);
             Assert.AreEqual(31f, poor.State.Contentment, 1e-4f);
+            Assert.AreEqual(MealTier.Cheap, poor.State.LastMealTier);
 
-            world.Days(20);
-            Assert.AreEqual(45f, rich.State.Contentment, 1e-4f, "не проскакивает цель");
-            Assert.IsTrue(poor.State.IsWalletEmpty, "20 монет кончились на пятый день");
-            Assert.AreEqual(25f, poor.State.Contentment, 1e-4f, "пустой кошелёк: цель 40 − 15");
+            world.Days(5); // 60 монет хватает на 10 дней дешёвой еды и жилья
+            Assert.AreEqual(50f, rich.State.Contentment, 1e-4f, "не проскакивает цель");
+            Assert.AreEqual(35f, poor.State.Contentment, 1e-4f, "дешёвая еда: цель 40 − 5");
         }
 
         [Test]
@@ -338,7 +339,7 @@ namespace GuildMaster.Tests
             float commission = world.Balance.Economy.DefaultCommission;
 
             Assert.AreEqual(40f, StateRules.ContentmentTarget(adventurer, commission, data), "город −10, комиссия 20% — 0");
-            adventurer.State.AteInTavernToday = true;
+            adventurer.State.TasteToday = 15f; // три приёма со вкусом +5
             Assert.AreEqual(45f, StateRules.ContentmentTarget(adventurer, commission, data));
             adventurer.State.IsWalletEmpty = true;
             Assert.AreEqual(30f, StateRules.ContentmentTarget(adventurer, commission, data));
@@ -347,7 +348,7 @@ namespace GuildMaster.Tests
             adventurer.State.Stress = 70f;
             Assert.AreEqual(30f, StateRules.ContentmentTarget(adventurer, commission, data));
 
-            adventurer.State.AteInTavernToday = false;
+            adventurer.State.TasteToday = 0f;
             adventurer.State.IsWalletEmpty = false;
             Assert.AreEqual(35f, StateRules.ContentmentTarget(adventurer, 0.30f, data), "30% — один шаг −5");
             Assert.AreEqual(30f, StateRules.ContentmentTarget(adventurer, 0.35f, data));
@@ -384,10 +385,16 @@ namespace GuildMaster.Tests
         [Test]
         public void MonthlyLeave_BelowLoyalty25_TwentyPercent_FamilyTimesOnePointFive()
         {
-            world = new StateWorld(21u);
+            List<Adventurer> loyal = null;
+            // Сытость держится: голод с пустым кошельком сдвинул бы довольство и лояльность.
+            world = new StateWorld(21u, beforeState: new LambdaSystem("PinSatiety", ctx =>
+            {
+                if (loyal == null) return;
+                foreach (Adventurer adventurer in loyal) adventurer.State.Satiety = 100f;
+            }));
             List<Adventurer> plain = world.AddMany(600);
             List<Adventurer> family = world.AddMany(600, "Family");
-            List<Adventurer> loyal = world.AddMany(100);
+            loyal = world.AddMany(100);
             foreach (Adventurer adventurer in plain.Concat(family)) adventurer.State.Loyalty = adventurer.State.Contentment = 10f;
             // Граница: пустой кошелёк держит цель довольства на 25 (50 − 10 город − 15), лояльность стоит ровно на 25 весь месяц.
             foreach (Adventurer adventurer in loyal)

@@ -29,7 +29,7 @@ MonoBehaviour:
     tension: 0
     partyPreference: 0
     stats: 
-  codeHooks: 0600000007000000i
+  codeHooks: 06000000070000000d000000i
   requiresPartner: 0
   incompatibleWith: []
   revealTrigger: 25

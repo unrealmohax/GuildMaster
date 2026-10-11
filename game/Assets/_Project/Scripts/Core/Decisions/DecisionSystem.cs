@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
 using GuildMaster.Data;
@@ -313,6 +313,7 @@ namespace GuildMaster.Core
                 case StateFactor.LowWallet: return "wallet";
                 case StateFactor.Fatigue: return "fatigue";
                 case StateFactor.Stress: return "stress";
+                case StateFactor.Hunger: return "satiety";
                 default: return "light wound";
             }
         }

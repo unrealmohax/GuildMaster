@@ -62,7 +62,7 @@ namespace GuildMaster.Core
         public static bool IsNewcomer(Adventurer adventurer, WorldState world, DataRegistry data) =>
             world.Time.TotalHours - adventurer.JoinedAtHours < (long)data.Balance.Decrees.NewcomerPeriodDays * data.Balance.Time.HoursPerDay;
 
-        /// <summary>Еду и жильё этого человека сегодня платит гильдия.</summary>
+        /// <summary>Жильё (в 00:00) и простую еду (в часы приёмов) этого человека платит гильдия.</summary>
         public static bool GuildPaysLiving(Adventurer adventurer, WorldState world, DataRegistry data) =>
             IsOn(world, data, DecreeEffect.FreeLodgingForNewcomers) && IsNewcomer(adventurer, world, data);
 

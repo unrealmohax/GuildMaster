@@ -115,3 +115,7 @@ description: Интерфейс GuildMaster (uGUI + TMP, сборка GuildMaste
   `gm-decrees`. Кнопки навигации — автоподбор размера шрифта (`FontSize`…`FontSizeLarge`): длинное название не обрезается.
 - Экран «Обращения» (`ScreenId.Dilemmas`, `DilemmasScreen`), карточка `DilemmaWindow` (`PopupKind.Dilemma`, открывается сама первой
   в `PopupQueue`), уведомление и календарь, отладочная «Дилемма» — скилл `gm-dilemmas`. Модель общая у экрана и окна (`DilemmasModel`).
+- Еда (скилл `gm-state-health`): `CardModel.Satiety/Hunger/HungerWord/Meal`; `CardWindow` — полоса «Сытость» (красная от голода),
+  «ест … еду» в строке денег, значок `UiStrings.HungerIcon` (●) у имени — охра при голоде, красный при истощении; отладочная
+  панель — `StateStat.Satiety` в строке показателей и кнопки «Сытость 0/100»; автопауза «Истощение от голода»; журнал казны — порции
+  по типам (`LedgerTavernFoodFormat`) и выпивка.

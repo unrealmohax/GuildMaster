@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using GuildMaster.Data;
 
 namespace GuildMaster.Core
@@ -67,7 +67,7 @@ namespace GuildMaster.Core
 
         /// <summary>
         /// Цель довольства: <c>contentmentBase</c> + условия, 0..100.
-        /// Жильё, еда в таверне за прошедшие сутки, пустой кошелёк, комиссия гильдии (× чувствительность черт),
+        /// Жильё, вкус еды за прошедшие сутки (<see cref="FoodRules.DayTaste"/>), пустой кошелёк, комиссия гильдии (× чувствительность черт),
         /// стресс выше 70; включённые распоряжения мира <paramref name="world"/> (<see cref="DecreeRules.ContentmentTerm"/>),
         /// без мира — без распоряжений.
         /// </summary>
@@ -78,7 +78,7 @@ namespace GuildMaster.Core
 
             float target = balance.ContentmentBase;
             target += adventurer.Housing == Housing.Dorm ? balance.DormHousingContentment : balance.CityHousingContentment;
-            if (state.AteInTavernToday) target += balance.TavernFoodContentment;
+            target += FoodRules.DayTaste(state, data.Balance.Food);
             if (state.IsWalletEmpty) target += balance.EmptyWalletContentment;
             target += CommissionContentment(commission, balance) * StateRates.PayContentmentSensitivity(adventurer, data);
             if (state.Stress > balance.HighStressThreshold) target += balance.HighStressContentment;

@@ -25,9 +25,9 @@ namespace GuildMaster.Core
         public static int CooldownDays(DilemmaDefinition dilemma, DilemmasBalance balance) =>
             dilemma.CooldownDays > 0 ? dilemma.CooldownDays : balance.DefaultCooldownDays;
 
-        /// <summary>Сумма просьбы в долг: расходы на жизнь (обычная еда и жильё) за <c>loanSumDays</c> дней.</summary>
+        /// <summary>Сумма просьбы в долг: расходы на жизнь (жильё и простая еда) за <c>loanSumDays</c> дней.</summary>
         public static int LoanAmount(Adventurer adventurer, BalanceSettings balance) =>
-            balance.Dilemmas.LoanSumDays * WalletService.DailyLivingCost(adventurer, ateInTavern: false, balance.Expenses);
+            balance.Dilemmas.LoanSumDays * WalletService.DailyLivingCost(adventurer, balance);
 
         /// <summary>
         /// Оплатить лечение и дать на неделю: расходы на неделю и плата Лазарета за каждый оставшийся день тяжёлой раны,
@@ -35,7 +35,7 @@ namespace GuildMaster.Core
         /// </summary>
         public static int WeekAndTreatment(WorldState world, DataRegistry data, Adventurer adventurer)
         {
-            int total = WalletService.WeeklyExpenses(adventurer, data.Balance.Expenses);
+            int total = WalletService.WeeklyExpenses(adventurer, data.Balance);
             if (!BuildingRules.IsReady(world, data, BuildingFunction.Infirmary)) return total;
             if (!adventurer.State.TryGetCondition(ConditionKind.HeavyWound, out Condition wound)) return total;
             int days = (int)Math.Ceiling(Math.Max(0f, wound.RemainingDays) - 1e-3f);

@@ -13,7 +13,7 @@ description: Слой данных GuildMaster — ScriptableObject-опреде
 | Где | Что |
 |---|---|
 | `Data/GameConfig.cs` | корневой ассет: `Balance`, `StatCatalog`, списки `Axes`, `SpecialTraits`, `Archetypes`, `QuestTypes`, `RandomEvents`, `Discoveries`, `Buildings`, `StaffRoles`, `Decrees`, `Dilemmas`, `FeedTemplates`, `NameList`, `OrderTexts`; `AllDefinitions()` |
-| `Data/Balance/BalanceSettings.cs` + 19 разделов | `Time`, `Orders`, `Ranks`, `Rounds`, `Travel`, `Adventurers`, `Growth`, `Expenses`, `State`, `Health`, `Decisions`, `Tension`, `Traits`, `Guild`, `Staff`, `Economy`, `Decrees`, `Dilemmas`, `Feed` |
+| `Data/Balance/BalanceSettings.cs` + 20 разделов | `Time`, `Orders`, `Ranks`, `Rounds`, `Travel`, `Adventurers`, `Growth`, `Expenses`, `Food`, `State`, `Health`, `Decisions`, `Tension`, `Traits`, `Guild`, `Staff`, `Economy`, `Decrees`, `Dilemmas`, `Feed` |
 | `Data/Definitions/` | `AxisDefinition` (+ полюса с эффектами и триггерами), `SpecialTraitDefinition`, `TraitEffect`, `ArchetypeDefinition`, `QuestTypeDefinition` (+ `StatCeiling`), `EncounterDefinition`, `RandomEventDefinition`, `DiscoveryDefinition`, `BuildingDefinition`, `StaffRoleDefinition`, `DecreeDefinition`, `DilemmaDefinition`, `StatCatalog` (порядок осей диаграммы `RadarOrder`) |
 | `Data/Text/` | `FeedTemplateSet` (+ `FeedTemplate`, `FeedCondition`), `NameList` (имена в 6 падежах, части названий групп), `OrderTextTemplates`, `TextPlaceholders` (словарь меток) |
 | `Data/Vocabulary/` | `Vocabulary.cs` (`StatId` 14, `AxisId` 6, `AxisPole`, `Motive` 6, `GuildRank` G–C, падежи, род), `EffectEnums.cs`, `DefinitionEnums.cs` (`TraitHook`, `RevealTrigger`, `TraitCategory`, `FeedConditionKind`, `DilemmaTrigger`…) |
@@ -83,3 +83,7 @@ description: Слой данных GuildMaster — ScriptableObject-опреде
 - Распоряжения находятся по `DecreeDefinition.Effect` (`DecreeEffect`), не по id; валидатор требует правило и его уникальность.
 - `DilemmasBalance` (скилл `gm-dilemmas`): кроме общих правил и чисел триггеров — числа цепочки прощённого беглеца (`pardon*`). Генератор
   `BalanceSettings` не перезаписывает: новые поля в ассете получают значения по умолчанию из кода.
+- Еда: раздел `Food` (`FoodBalance`: часы приёмов `int[]`, типы — вложенные `MealBalance` `cheap/simple/luxury`, бюджет, голод),
+  `MealTier` в `Vocabulary.cs`, `StateStat.Satiety`, хук `TraitHook.FamilySavesOnFood` (у Семейного, ставит генератор). Валидатор —
+  `CheckFood` (часы в сутках по возрастанию, пороги, типы не хуже предыдущего). Числа `MealBalance` в тестах — `Set("food.luxury.price", …)`.
+  Убраны `expenses.food`, `expenses.tavernFood`, `state.tavernFoodContentment`, `decrees.newcomerDailyCost`.

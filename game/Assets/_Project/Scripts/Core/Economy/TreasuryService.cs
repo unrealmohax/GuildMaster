@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.Globalization;
 using System.Text;
+using GuildMaster.Data;
 
 namespace GuildMaster.Core
 {
@@ -46,32 +47,55 @@ namespace GuildMaster.Core
         /// <summary>Хватает ли денег на расход, зависящий от денег.</summary>
         public static bool CanAfford(WorldState world, int amount) => world.Treasury.Money >= amount;
 
-        /// <summary>Человек поел в таверне: порция засчитывается в доход таверны при суточном расчёте.</summary>
-        internal static void CountTavernFood(SimContext ctx) => ctx.World.Treasury.TavernFood++;
+        /// <summary>Человек поел в таверне: порция этого типа засчитывается в доход таверны при суточном расчёте.</summary>
+        internal static void CountTavernMeal(SimContext ctx, MealTier tier) => ctx.World.Treasury.TavernMeals[(int)tier]++;
 
         /// <summary>Человек выпил в таверне (и в запое): порция засчитывается в доход таверны при суточном расчёте.</summary>
         internal static void CountTavernDrink(SimContext ctx) => ctx.World.Treasury.TavernDrinks++;
 
         /// <summary>
-        /// Доход таверны за прошедшие сутки: порции × доля гильдии с порции (× Сухой закон). Зачисляются целые монеты одной записью,
+        /// Доход таверны за прошедшие сутки (× Сухой закон): еда — порции каждого типа × доля гильдии с порции этого типа,
+        /// выпивка — порции × <c>tavernIncomePerServing</c>. Еда и выпивка — отдельные записи журнала; зачисляются целые монеты,
         /// дробный остаток переносится на следующие сутки.
         /// </summary>
         internal static void SettleTavern(SimContext ctx)
         {
             Treasury treasury = ctx.World.Treasury;
-            int food = treasury.TavernFood;
+            double multiplier = DecreeRules.TavernIncomeMultiplier(ctx.World, ctx.Data);
+            FoodBalance food = ctx.Data.Balance.Food;
+
+            int[] meals = treasury.TavernMeals;
+            int mealCount = 0;
+            double foodIncome = 0;
+            for (int i = 0; i < meals.Length; i++)
+            {
+                mealCount += meals[i];
+                foodIncome += meals[i] * (double)food.Meal((MealTier)i).GuildShare;
+            }
+            if (mealCount > 0)
+            {
+                string comment = string.Format(CultureInfo.InvariantCulture, "cheap={0} simple={1} luxury={2}",
+                    meals[(int)MealTier.Cheap], meals[(int)MealTier.Simple], meals[(int)MealTier.Luxury]);
+                treasury.TavernFoodRemainder = Settle(ctx, LedgerCategories.TavernFood, treasury.TavernFoodRemainder + foodIncome * multiplier, comment);
+                Array.Clear(meals, 0, meals.Length);
+            }
+
             int drinks = treasury.TavernDrinks;
-            if (food == 0 && drinks == 0) return;
+            if (drinks > 0)
+            {
+                double drinkIncome = drinks * (double)ctx.Data.Balance.Economy.TavernIncomePerServing * multiplier;
+                string comment = string.Format(CultureInfo.InvariantCulture, "drinks={0}", drinks);
+                treasury.TavernDrinkRemainder = Settle(ctx, LedgerCategories.TavernDrinks, treasury.TavernDrinkRemainder + drinkIncome, comment);
+                treasury.TavernDrinks = 0;
+            }
+        }
 
-            double perServing = ctx.Data.Balance.Economy.TavernIncomePerServing * (double)DecreeRules.TavernIncomeMultiplier(ctx.World, ctx.Data);
-            double total = treasury.TavernRemainder + (food + drinks) * perServing;
+        /// <summary>Зачислить целые монеты суммы, вернуть дробный остаток.</summary>
+        private static double Settle(SimContext ctx, LedgerCategory category, double total, string comment)
+        {
             int coins = (int)Math.Floor(total + 1e-9);
-            treasury.TavernRemainder = Math.Max(0, total - coins);
-            treasury.TavernFood = 0;
-            treasury.TavernDrinks = 0;
-            if (coins == 0) return;
-
-            Credit(ctx, LedgerCategories.Tavern, coins, string.Format(CultureInfo.InvariantCulture, "food={0} drinks={1}", food, drinks));
+            Credit(ctx, category, coins, comment);
+            return Math.Max(0, total - coins);
         }
 
         private static void Apply(SimContext ctx, LedgerCategory category, int amount, string comment, int relatedId)

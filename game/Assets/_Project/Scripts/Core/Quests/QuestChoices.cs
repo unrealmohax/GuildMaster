@@ -28,7 +28,7 @@ namespace GuildMaster.Core
 
         /// <summary>Расходы человека на жизнь за <c>moneyExpenseDays</c> дней — мерило «много ли это денег».</summary>
         public static float ExpenseScale(Adventurer adventurer, DataRegistry data) =>
-            Math.Max(1f, data.Balance.Decisions.MoneyExpenseDays * WalletService.DailyLivingCost(adventurer, false, data.Balance.Expenses));
+            Math.Max(1f, data.Balance.Decisions.MoneyExpenseDays * WalletService.DailyLivingCost(adventurer, data.Balance));
 
         /// <summary>
         /// Оценки заказа по мотивам (индекс — <see cref="Motive"/>): Деньги = min(1, доля / расходы) × p, Слава = ранг заказа /

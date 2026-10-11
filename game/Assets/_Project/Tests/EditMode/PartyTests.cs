@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -149,7 +149,8 @@ namespace GuildMaster.Tests
         {
             using var quests = new QuestWorld();
             List<Adventurer> pool = Enumerable.Range(0, 8).Select(_ => PartyTestSupport.Person(quests, cohesion: 50f)).ToList();
-            Order order = quests.AddOrder(requirement: 50f, reward: 90);
+            // Награда в масштабе расходов на жизнь (9 в день): доля в группе заметна для жадного.
+            Order order = quests.AddOrder(requirement: 50f, reward: 162);
 
             int Size(float money, float people)
             {
