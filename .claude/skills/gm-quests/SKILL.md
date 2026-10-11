@@ -1,6 +1,6 @@
 ---
 name: gm-quests
-description: Задания GuildMaster — QuestSystem (шаг 4: выход, путь, ночлег, раунды, возвращение), QuestRun/QuestBook/Straggler, расчёт перекрытия и шанса QuestMath (диаграмма 13 осей, синергии, потолки, воспринимаемый шанс), раунд и лестница провалов QuestRounds, моменты напряжения QuestTension (паника, бегство, бросок вперёд, геройство), решения на задании QuestChoices, события в пути и находки QuestEncounters, итог и выплаты QuestSettlement, экзамены PromotionOrders, событийные задания EventQuests, лента задания. Использовать при любой правке хода, расчёта или итога задания.
+description: Задания GuildMaster — QuestSystem (шаг 4: выход, путь, ночлег, раунды, возвращение), QuestRun/QuestBook/Straggler, расчёт перекрытия и шанса QuestMath (диаграмма 13 осей, синергии, потолки, воспринимаемый шанс), раунд и лестница провалов QuestRounds, моменты напряжения QuestTension (паника, бегство, бросок вперёд, геройство), решения на задании QuestChoices, события в пути и находки QuestEncounters, итог и выплаты QuestSettlement, экзамены PromotionOrders, событийные задания EventQuests, путь и приёмы по ритму дня TravelPlan, пайки в пути (покупка, еда, потери, «мало еды» в решении отступить), лента задания. Использовать при любой правке хода, расчёта или итога задания.
 ---
 
 # Задания: ход и расчёт
@@ -14,6 +14,7 @@ description: Задания GuildMaster — QuestSystem (шаг 4: выход, �
 |---|---|
 | `QuestSystem.cs` | шаг 4, свой поток: `Tick`, `Departures`, `Depart`, `StartLeg`, `StartReturn`, `Advance`, `AddStraggler`, `LeaveQuest` |
 | `QuestRun.cs` | `QuestPhase` (TravelOut → AtSite → TravelBack → Returned), `QuestResult` (скрытый уровень), `QuestDiscovery`/`DiscoveryState`, `QuestRun` (участники, `Members`/`Departed`/`TurnedBack`/`Fled`/`Dead`, `Panicked`, `Rushing`, `Round`, `FailedRounds`, `BonusLost`, `LootLost`, `Retreated`, `Completed`, `Log`), `QuestBook` (`Active`, `Finished`, `Stragglers`), `Straggler` |
+| `TravelPlan.cs` | без бросков: `WorkHours` (туда + раунд + назад), `CalendarHours` (с ночлегами), `MealsDuring`, `ExpectedMeals` (с часа выхода; без часа — с утра, кеш в заказе), `RoundHours` |
 | `QuestMath.cs` | без побочных эффектов: `Overlap`, `GroupProfile`, `Synergy`, `CeilingHit`, `RiskPerception`, `PerceivedRequirements`, `PerceivedSoloOverlap`, `RealOverlap`, `EncounterProfile`, `ShiftRank`, `RankNumber` |
 | `QuestParty.cs` | `Present`, `Leader` (решающий), `Shield` (принимает удар), `MostWounded`, `Best`, `PartyName`, `Publish` (событие задания со всеми данными для строк), `ContextOf` |
 | `QuestRounds.cs` | `Resolve` (раунд на месте), `StepFor`, `Wound`, увечье, Лекарь, `Kill` |
@@ -33,7 +34,8 @@ description: Задания GuildMaster — QuestSystem (шаг 4: выход, �
 (у кого `PlannedOrderId`: группа выходит вместе, кто не может — остаётся, `Depart`) → `Advance` каждого активного задания.
 
 **`Depart`**: заказ `InProgress`, у людей занятие задания и `QuestRunId`, `QuestParty` (Solo/InGroup), путь туда — броски сразу в
-порядке: длительность → событие в пути → находка; строка «Выход»; Соперники в одной группе раскрываются; Хвастун, переоценивший себя,
+порядке: событие в пути → находка (длительность — `run.TravelHours` из заказа, без броска); строка «Выход»; пайки
+(`RationService.Buy`, без бросков, строка `quest.rations.*`); Соперники в одной группе раскрываются; Хвастун, переоценивший себя,
 запоминается (`Overreached`).
 
 **`Advance` на час**: ночлег (`DayRhythm.IsCampHour` → `OnQuestCamp`, утром строка «ночь прошла») → путь (ходовой час, событие
@@ -49,8 +51,8 @@ description: Задания GuildMaster — QuestSystem (шаг 4: выход, �
 геройство, Лекарь, снаряжение, добыча, гибель самого тяжело раненого с шансом спасения Лекарем, гибель всех) → моменты
 напряжения по каждому → решение группы (`DecideAfterFailure`: решающий — высший ранг, потом Хладнокровие; продолжить или
 отступить; «сомнение»/«спор» по разнице ценностей). Экзамен — один раунд без синергий, потолков, лестницы и решений.
-**Порядок бросков** — в комментарии `QuestRounds`: раунд, бонус, рана, увечье, геройство, Лекарь, снаряжение, добыча, гибель,
-момент напряжения по каждому, решение группы.
+**Порядок бросков** — в комментарии `QuestRounds`: раунд, бонус, рана, увечье, геройство, Лекарь, снаряжение, потеря пайков
+(ступени `food.rationLossFailures`, если у группы есть пайки), добыча, гибель, момент напряжения по каждому, решение группы.
 
 ## Моменты напряжения (`QuestTension.Moment`, по каждому по порядку выхода)
 
@@ -81,6 +83,22 @@ description: Задания GuildMaster — QuestSystem (шаг 4: выход, �
 - **Новая реакция напряжения** — значение в конец `TensionKind`, эффекты `TensionModifier` в данных, шаг в `QuestTension.Moment`.
 - **Новое событие задания** — через `QuestParty.Publish`; частое — `Debug` в `EventLogLevels`; строка — ключ `quest.*` в `FeedKeys`.
 
+## Пайки в пути
+
+Код — `Core/Food/RationService.cs`, `RationRules.cs`, `RationStock.cs` (скилл `gm-state-health` → «Походные пайки»). Здесь они касаются заданий так:
+- **Путь известен заранее**: `Order.TravelHours` (бросок последним в `OrderGenerator`), копия — `QuestRun.TravelHours`; `StartLeg` берёт его
+  туда и обратно. Событийное задание — путь задания-источника.
+- **Выход**: `RationService.Buy` после строки «Выход»: каждый, кроме членов идущей постоянной группы, — себе (нужно = `TravelPlan.ExpectedMeals`
+  с часа выхода + запас по оси Риск − личный запас); постоянная группа — в общий запас, доли поровну. Событие `RationsBought`.
+- **Ход часа**: еда — в `FoodService.ApplyHour` (шаг 6), не в `QuestSystem`; приём на задании → `EatOnQuest` (свой запас → товарищ →
+  голодный приём `QuestMealMissed`, раз за задание `RationsRanOut`).
+- **Потери** (`TryLose`, бросок `ration-loss`, только если у группы есть пайки): лестница — после снаряжения; событие в пути — после исхода,
+  только у определения с `LosesRations` (засада) и только при провале. Строка `quest.loss.rations`.
+- **Гибель**: `QuestRounds.Kill` → `RationService.OnDeath` (поровну живым, член постоянной — в общий).
+- **Решение после провала**: `RationService.IsShortForReturn` → к ценности «отступить» + `hungryRetreatBonus` (`Choice.WithSecondBonus`),
+  в причинах лога `food`; в `PartyRetreated` — `food = true`, если бонус перевесил.
+- **Оценка заказа**: `QuestChoices.OrderScores(…, ownRations)` / `MoneyScore` — Деньги = (доля − `RationRules.OrderCost`) / расходы, не ниже 0.
+
 ## Отладка
 
 - Лог `Info` — решения (`decide … TakeOrder#12`), шанс раунда, строки ленты; мелкие шаги — `Debug`; `Trace` — `order-eval`.
@@ -95,6 +113,8 @@ description: Задания GuildMaster — QuestSystem (шаг 4: выход, �
 - Взятый заказ уходит с доски сразу; не смог выйти — `ReturnToOpen`.
 - На задании люди не срываются от стресса по суткам и не уходят из гильдии.
 - `QuestSystem_WithoutQuests_DoesNotShiftOtherSystems` — без заданий система не тратит бросков.
+- Тестовый заказ `QuestWorld.AddOrder` ставит путь сам: далеко — `farHours.Min`, близко — `nearHours`; нужен другой — `order.TravelHours = …`
+  до `Start`. Люди на задании теперь едят пайки и голодают без них — в долгих тестах это сдвигает сытость, стресс и характеристики.
 - Длина фазы: `run.StartPhaseHours(n)` ставит и `PhaseHoursLeft`, и `PhaseHours` (интерфейс рисует долю фазы) — не присваивать
   `PhaseHoursLeft` напрямую. Час возвращения на обратном пути — `ObserverQueries.TryGetReturnAtHours`.
 - Обращения (скилл `gm-dilemmas`): `QuestRun.SkimmerId/SkimmedAmount/SkimCaught` (кто утаил и заметили ли — для «Ссоры из-за добычи»),

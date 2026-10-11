@@ -43,7 +43,7 @@ namespace GuildMaster.Data
     }
 
     /// <summary>
-    /// Раздел <c>Food</c>: сытость, приёмы пищи, типы еды, бюджет на еду, голод и истощение.
+    /// Раздел <c>Food</c>: сытость, приёмы пищи, типы еды, бюджет на еду, голод и истощение, походные пайки.
     /// </summary>
     [Serializable]
     public sealed class FoodBalance
@@ -52,7 +52,7 @@ namespace GuildMaster.Data
         [Tooltip("Сытость нового человека")]
         [SerializeField, Range(0f, 100f)] private float startSatiety = 100f;
 
-        [Tooltip("Убывание сытости в час (на задании не убывает)")]
+        [Tooltip("Убывание сытости в час")]
         [SerializeField, Min(0f)] private float satietyDecayPerHour = 2f;
 
         [Tooltip("Часы приёмов пищи, по возрастанию")]
@@ -101,6 +101,34 @@ namespace GuildMaster.Data
         [Tooltip("Голоден: мотив «Безопасность» ×")]
         [SerializeField, Min(0f)] private float hungerSafetyMultiplier = 0.7f;
 
+        [Header("Походные пайки")]
+        [SerializeField] private MealBalance rationCheap = new MealBalance(1, 25f, 60f, -5f, 0.2f);
+        [SerializeField] private MealBalance rationRegular = new MealBalance(2, 35f, 85f, 0f, 0.5f);
+
+        [Tooltip("Запас на задержки: сверх приёмов пищи ожидаемого задания, приёмов")]
+        [SerializeField, Min(0)] private int rationReserveMeals = 3;
+
+        [Tooltip("Осторожный (ось Риск к Трусу): к запасу ещё до стольких приёмов по силе полюса; Безрассудный — запас до 0")]
+        [SerializeField, Min(0)] private int cautiousExtraMeals = 3;
+
+        [Tooltip("Потеря пайков: шанс на группу (ступени лестницы провалов ниже, событие в пути с потерей)")]
+        [SerializeField, Range(0f, 1f)] private float rationLossChance = 0.3f;
+
+        [Tooltip("Потеря пайков: доля каждого запаса (вниз, но хотя бы 1)")]
+        [SerializeField, Range(0f, 1f)] private float rationLossShare = 0.25f;
+
+        [Tooltip("Ступени лестницы провалов (номер провала), на которых бывает потеря пайков")]
+        [SerializeField] private IntRange rationLossFailures = new IntRange(2, 3);
+
+        [Tooltip("Жадный (ось Деньги не ниже) не делится пайками")]
+        [SerializeField, Range(0f, 100f)] private float greedyNoShareAxis = 50f;
+
+        [Tooltip("Поделился пайком: отношения пары +")]
+        [SerializeField, Min(0f)] private float shareRelation = 3f;
+
+        [Tooltip("Мало еды на обратный путь: к ценности отступления +")]
+        [SerializeField, Min(0f)] private float hungryRetreatBonus = 0.5f;
+
         public float StartSatiety => startSatiety;
         public float SatietyDecayPerHour => satietyDecayPerHour;
         public int[] MealHours => mealHours;
@@ -120,6 +148,27 @@ namespace GuildMaster.Data
         public float ExhaustionContentmentPerDay => exhaustionContentmentPerDay;
         public float HungerMoneyMultiplier => hungerMoneyMultiplier;
         public float HungerSafetyMultiplier => hungerSafetyMultiplier;
+        public MealBalance RationCheap => rationCheap;
+        public MealBalance RationRegular => rationRegular;
+        public int RationReserveMeals => rationReserveMeals;
+        public int CautiousExtraMeals => cautiousExtraMeals;
+        public float RationLossChance => rationLossChance;
+        public float RationLossShare => rationLossShare;
+        public IntRange RationLossFailures => rationLossFailures;
+        public float GreedyNoShareAxis => greedyNoShareAxis;
+        public float ShareRelation => shareRelation;
+        public float HungryRetreatBonus => hungryRetreatBonus;
+
+        /// <summary>Числа типа пайка: цена, сытость, вкус, доля гильдии — как у еды в таверне.</summary>
+        public MealBalance Ration(RationTier tier)
+        {
+            switch (tier)
+            {
+                case RationTier.Cheap: return rationCheap;
+                case RationTier.Regular: return rationRegular;
+                default: throw new ArgumentOutOfRangeException(nameof(tier), tier, null);
+            }
+        }
 
         /// <summary>Числа типа еды.</summary>
         public MealBalance Meal(MealTier tier)

@@ -131,7 +131,7 @@ namespace GuildMaster.UI
             var r = new StringBuilder();
             r.Append($"<color={dim}>{UiStrings.ColLoyalty}</color><pos=26%>{model.Loyalty}\n\n");
             r.Append($"<color={accent}>{UiStrings.Health}</color>\n{model.Health}\n\n");
-            r.Append($"<color={accent}>{UiStrings.Money}</color>\n{model.Money}, {model.Meal}\n\n");
+            r.Append($"<color={accent}>{UiStrings.Money}</color>\n{model.Money}, {model.Meal}\n{model.Rations}\n\n");
             r.Append($"<color={accent}>{UiStrings.Relations}</color>\n");
             if (model.Relations.Count == 0) r.Append($"<color={dim}>{UiStrings.NoRelations}</color>");
             for (int i = 0; i < model.Relations.Count; i++)

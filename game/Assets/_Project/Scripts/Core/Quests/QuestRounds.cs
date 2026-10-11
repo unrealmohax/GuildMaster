@@ -16,7 +16,8 @@ namespace GuildMaster.Core
     /// через <c>promotionRetryDays</c>.</item>
     /// </list>
     /// Броски — поток системы заданий, в порядке: раунд, бонус, рана, увечье, геройство, Лекарь, снаряжение (и ремонт),
-    /// добыча, гибель (спасение Лекарем), момент напряжения по каждому, решение группы.
+    /// потеря пайков (на ступенях <c>rationLossFailures</c>, если у группы есть пайки), добыча, гибель (спасение Лекарем),
+    /// момент напряжения по каждому, решение группы.
     /// </summary>
     public static class QuestRounds
     {
@@ -171,6 +172,9 @@ namespace GuildMaster.Core
                 }
             }
 
+            IntRange rationLoss = ctx.Data.Balance.Food.RationLossFailures;
+            if (run.FailedRounds >= rationLoss.Min && run.FailedRounds <= rationLoss.Max) RationService.TryLose(ctx, run);
+
             if (!run.LootLost && step.LootLossChance > 0f && ctx.RollChance(step.LootLossChance, "loot-loss", null, "failed", run.FailedRounds))
             {
                 run.LootLost = true;
@@ -308,13 +312,14 @@ namespace GuildMaster.Core
         }
 
         /// <summary>
-        /// Человек погиб на задании: уходит из группы и из гильдии (архив), стресс и «Потерявший товарища» у остальных,
+        /// Человек погиб на задании: его пайки — товарищам, уходит из группы и из гильдии (архив), стресс и «Потерявший товарища» у остальных,
         /// репутация −<c>deathReputation</c>, событие [В] с автопаузой.
         /// </summary>
         public static void Kill(SimContext ctx, QuestRun run, Adventurer victim, bool everyone)
         {
             run.RemoveMember(victim.Id);
             run.AddDead(victim.Id);
+            RationService.OnDeath(ctx, run, victim);
             AdventurerState state = victim.State;
             state.QuestRunId = 0;
             state.QuestParty = PartyContext.None;

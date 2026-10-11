@@ -50,11 +50,17 @@ namespace GuildMaster.Core
         /// <summary>Человек поел в таверне: порция этого типа засчитывается в доход таверны при суточном расчёте.</summary>
         internal static void CountTavernMeal(SimContext ctx, MealTier tier) => ctx.World.Treasury.TavernMeals[(int)tier]++;
 
+        /// <summary>Человек купил пайки в таверне: они засчитываются в доход таверны с еды при суточном расчёте.</summary>
+        internal static void CountTavernRations(SimContext ctx, RationTier tier, int count)
+        {
+            if (count > 0) ctx.World.Treasury.TavernRations[(int)tier] += count;
+        }
+
         /// <summary>Человек выпил в таверне (и в запое): порция засчитывается в доход таверны при суточном расчёте.</summary>
         internal static void CountTavernDrink(SimContext ctx) => ctx.World.Treasury.TavernDrinks++;
 
         /// <summary>
-        /// Доход таверны за прошедшие сутки (× Сухой закон): еда — порции каждого типа × доля гильдии с порции этого типа,
+        /// Доход таверны за прошедшие сутки (× Сухой закон): еда — порции и пайки каждого типа × доля гильдии с порции этого типа,
         /// выпивка — порции × <c>tavernIncomePerServing</c>. Еда и выпивка — отдельные записи журнала; зачисляются целые монеты,
         /// дробный остаток переносится на следующие сутки.
         /// </summary>
@@ -72,12 +78,23 @@ namespace GuildMaster.Core
                 mealCount += meals[i];
                 foodIncome += meals[i] * (double)food.Meal((MealTier)i).GuildShare;
             }
-            if (mealCount > 0)
+            int[] rations = treasury.TavernRations;
+            int rationCount = 0;
+            for (int i = 0; i < rations.Length; i++)
+            {
+                rationCount += rations[i];
+                foodIncome += rations[i] * (double)food.Ration((RationTier)i).GuildShare;
+            }
+            if (mealCount + rationCount > 0)
             {
                 string comment = string.Format(CultureInfo.InvariantCulture, "cheap={0} simple={1} luxury={2}",
                     meals[(int)MealTier.Cheap], meals[(int)MealTier.Simple], meals[(int)MealTier.Luxury]);
+                if (rationCount > 0)
+                    comment += string.Format(CultureInfo.InvariantCulture, " rationCheap={0} rationRegular={1}",
+                        rations[(int)RationTier.Cheap], rations[(int)RationTier.Regular]);
                 treasury.TavernFoodRemainder = Settle(ctx, LedgerCategories.TavernFood, treasury.TavernFoodRemainder + foodIncome * multiplier, comment);
                 Array.Clear(meals, 0, meals.Length);
+                Array.Clear(rations, 0, rations.Length);
             }
 
             int drinks = treasury.TavernDrinks;

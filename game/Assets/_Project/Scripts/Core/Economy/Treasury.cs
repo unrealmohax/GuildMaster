@@ -39,6 +39,9 @@ namespace GuildMaster.Core
         /// <summary>Порций еды в таверне по типам (<see cref="MealTier"/>) с прошлого расчёта дохода таверны.</summary>
         internal int[] TavernMeals { get; } = new int[Vocabulary.MealTierCount];
 
+        /// <summary>Пайков, проданных в таверне, по типам (<see cref="RationTier"/>) с прошлого расчёта дохода таверны.</summary>
+        internal int[] TavernRations { get; } = new int[Vocabulary.RationTierCount];
+
         /// <summary>Порций выпивки в таверне с прошлого расчёта дохода таверны.</summary>
         internal int TavernDrinks { get; set; }
 

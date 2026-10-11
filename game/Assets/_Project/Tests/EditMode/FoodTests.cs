@@ -181,7 +181,7 @@ namespace GuildMaster.Tests
         }
 
         [Test]
-        public void OnQuest_SatietyDoesNotChange_NoMeals()
+        public void OnQuest_SatietyDecays_EatsRations_NotTavern()
         {
             using var quests = new QuestWorld();
             Adventurer person = quests.Add();
@@ -189,16 +189,30 @@ namespace GuildMaster.Tests
             Order order = quests.AddOrder(distance: OrderDistance.Far);
             quests.Start(order, person);
             int wallet = person.State.Wallet;
+            int rations = person.Rations.Total;
+            Assert.Greater(rations, 0, "пайки куплены при выходе");
 
+            FoodBalance food = quests.Registry.Balance.Food;
+            int meals = 0;
+            bool decayed = false;
             List<SimEvent> events = quests.World.Collect(() =>
             {
-                for (int i = 0; i < 24 && person.State.IsOnQuest(); i++) quests.Simulation.Tick();
+                for (int i = 0; i < 24 && person.State.IsOnQuest(); i++)
+                {
+                    if (food.IsMealHour(quests.Simulation.World.Time.Hour)) meals++;
+                    float before = person.State.Satiety;
+                    quests.Simulation.Tick();
+                    decayed |= person.State.Satiety < before;
+                }
             });
 
             Assert.IsTrue(person.State.IsOnQuest(), "всё ещё в пути");
-            Assert.AreEqual(50f, person.State.Satiety, 1e-4f, "на задании сытость не меняется");
+            Assert.Greater(meals, 0);
+            Assert.AreEqual(rations - meals, person.Rations.Total, "в каждый приём пищи — паёк");
+            Assert.IsTrue(decayed, "на задании сытость убывает");
             Assert.AreEqual(wallet - 3, person.State.Wallet, "в пути за еду не платит — только жильё в 00:00");
-            Assert.IsFalse(events.Any(e => (e.Type == SimEventType.MealEaten || e.Type == SimEventType.MealSkipped) && e.Participants[0] == person.Id));
+            Assert.IsFalse(events.Any(e => (e.Type == SimEventType.MealEaten || e.Type == SimEventType.MealSkipped) && e.Participants[0] == person.Id),
+                "в таверне не ест");
         }
 
         [Test]

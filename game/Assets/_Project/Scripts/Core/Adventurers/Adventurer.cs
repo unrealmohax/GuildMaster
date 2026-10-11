@@ -84,6 +84,9 @@ namespace GuildMaster.Core
         /// <summary>Флаги памяти для цепочек: брал в долг, сбежал, прощён, наказан…</summary>
         public AdventurerMemory Memory { get; } = new AdventurerMemory();
 
+        /// <summary>Личный запас походных пайков (у члена постоянной группы обычно пуст: запас общий).</summary>
+        public RationStock Rations { get; } = new RationStock();
+
         public Housing Housing { get; internal set; }
 
         /// <summary>Когда вступил в гильдию; у кандидата — когда пришёл.</summary>

@@ -119,7 +119,7 @@ namespace GuildMaster.Core
                 List<Adventurer> candidates = pool.FindAll(c => GuildRanks.CanTakeOrder(c, order.Rank));
                 if (candidates.Count == 0) continue;
 
-                var lens = new PartyLens(adventurer, order, false, commission, relations, data, scope.Profiles, scope.SafetyMultiplier);
+                var lens = new PartyLens(adventurer, order, false, commission, relations, data, scope.Profiles, scope.SafetyMultiplier, ctx.World.Parties);
                 PresumedParty party = PartyMath.Presume(lens, candidates);
                 if (party.Members.Count < 2) continue;
                 presumed[order.Id] = party;
@@ -159,7 +159,7 @@ namespace GuildMaster.Core
 
             var group = new List<Adventurer> { initiator };
             var lens = new PartyLens(initiator, order, false, ctx.World.Treasury.Commission, ctx.World.Relations, data, scope.Profiles,
-                scope.SafetyMultiplier);
+                scope.SafetyMultiplier, ctx.World.Parties);
             InviteWhileValueGrows(scope, lens, party, group, false, point, null, lens.Value);
 
             if (group.Count >= minimum)
@@ -245,7 +245,7 @@ namespace GuildMaster.Core
             var snapshot = new List<Adventurer>(group);
             float commission = ctx.World.Treasury.Commission;
             RelationBook relations = ctx.World.Relations;
-            var lens = new PartyLens(invitee, order, permanent, commission, relations, data, scope.Profiles, scope.SafetyMultiplier);
+            var lens = new PartyLens(invitee, order, permanent, commission, relations, data, scope.Profiles, scope.SafetyMultiplier, ctx.World.Parties);
             var join = new DecisionAction(DecisionActionKind.JoinParty, Activity.Resting, false,
                 (sc, a, scores) => lens.Scores(snapshot, scores), order.Id);
 
@@ -364,7 +364,7 @@ namespace GuildMaster.Core
                 }
                 if (group.Count < 2) continue;
                 choices.Add(new PartyOption(order, group, PartyMath.MeanGroupValue(order, group, true, commission, relations, data, scope.Profiles,
-                    scope.SafetyMultiplier),
+                    scope.SafetyMultiplier, ctx.World.Parties),
                     choices.Count));
             }
             if (choices.Count == 1) return;
@@ -389,10 +389,10 @@ namespace GuildMaster.Core
             {
                 if (member.Id != leader.Id && Invite(scope, member, leader, party, target, chosen.Group, true, point)) going.Add(member);
             }
-            var leaderLens = new PartyLens(leader, target, true, commission, relations, data, scope.Profiles, scope.SafetyMultiplier);
+            var leaderLens = new PartyLens(leader, target, true, commission, relations, data, scope.Profiles, scope.SafetyMultiplier, ctx.World.Parties);
             InviteWhileValueGrows(scope, leaderLens, party, going, true, point, outside,
                 members => PartyMath.MeanGroupValue(target, members, true, commission, relations, data, scope.Profiles,
-                    scope.SafetyMultiplier));
+                    scope.SafetyMultiplier, ctx.World.Parties));
 
             if (going.Count < 2)
             {

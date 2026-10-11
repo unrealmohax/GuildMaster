@@ -9,6 +9,7 @@ namespace GuildMaster.UI
     public static class UiFormat
     {
         private static readonly NumberFormatInfo Thousands = new NumberFormatInfo { NumberGroupSeparator = " ", NumberGroupSizes = new[] { 3 } };
+        private static readonly NumberFormatInfo Russian = new NumberFormatInfo { NumberDecimalSeparator = "," };
 
         /// <summary>«День 12, месяц 1, год 1 · 14:00».</summary>
         public static string Date(GameTime time) =>
@@ -44,6 +45,19 @@ namespace GuildMaster.UI
             if (months > 0) return days > 0 ? $"{months} мес. {days} дн." : $"{months} мес.";
             if (days > 0) return h > 0 ? $"{days} дн. {h} ч" : $"{days} дн.";
             return $"{h} ч";
+        }
+
+        /// <summary>
+        /// Путь в одну сторону: укладывается в один дневной переход — «3 ч» (ходовые часы); дольше — «≈ 2,5 дн.»: календарное
+        /// время при выходе утром, с ночлегами, до половины суток.
+        /// </summary>
+        public static string Travel(int travelHours, TimeBalance time)
+        {
+            int calendarHours = TravelPlan.CalendarHours(time, time.MorningHour, travelHours);
+            int hoursPerDay = System.Math.Max(1, time.HoursPerDay);
+            if (calendarHours <= time.CampHour - time.MorningHour || calendarHours < hoursPerDay) return $"{travelHours} ч";
+            double days = System.Math.Round(calendarHours * 2.0 / hoursPerDay, System.MidpointRounding.AwayFromZero) / 2.0;
+            return $"≈ {days.ToString("0.#", Russian)} дн.";
         }
 
         /// <summary>Целые дни до срока, округление вверх (для «ещё 3 дн.»).</summary>

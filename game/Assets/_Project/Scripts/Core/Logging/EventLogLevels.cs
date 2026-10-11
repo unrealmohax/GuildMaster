@@ -9,7 +9,8 @@ namespace GuildMaster.Core
     /// среди бросков), часы и фазы дня — <see cref="SimLogLevel.Trace"/>. Мелкие шаги задания (выход, ночлег, потери, раны,
     /// синергии, обратный путь, трофеи) — <see cref="SimLogLevel.Debug"/>: на Info их и так рассказывают строки ленты задания.
     /// Будни построек (лёг в Лазарет, начал тренировку, переселился в Общежитие) — тоже <see cref="SimLogLevel.Debug"/>.
-    /// Приёмы пищи — <see cref="SimLogLevel.Trace"/>: на Debug их и так пишет своя строка «meal …».
+    /// Приёмы пищи — <see cref="SimLogLevel.Trace"/>: на Debug их и так пишет своя строка «meal …» / «ration …». Покупка пайков
+    /// и делёжка — <see cref="SimLogLevel.Debug"/>, как мелкие шаги задания.
     /// Новое частое событие — одна строка в таблице.
     /// </summary>
     public static class EventLogLevels
@@ -35,6 +36,9 @@ namespace GuildMaster.Core
             { SimEventType.MovedToDormitory, SimLogLevel.Debug },
             { SimEventType.MealEaten, SimLogLevel.Trace },
             { SimEventType.MealSkipped, SimLogLevel.Trace },
+            { SimEventType.RationsBought, SimLogLevel.Debug },
+            { SimEventType.RationsShared, SimLogLevel.Debug },
+            { SimEventType.QuestMealMissed, SimLogLevel.Trace },
         };
 
         public static SimLogLevel Of(SimEventType type) => Levels.TryGetValue(type, out SimLogLevel level) ? level : SimLogLevel.Info;

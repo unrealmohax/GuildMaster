@@ -113,7 +113,7 @@ namespace GuildMaster.UI
                 new TableColumn { Title = UiStrings.ColType, Width = 130 },
                 new TableColumn { Title = UiStrings.ColRank, Width = 56 },
                 new TableColumn { Title = UiStrings.ColClient, Width = -1 },
-                new TableColumn { Title = UiStrings.ColDistance, Width = 90 },
+                new TableColumn { Title = UiStrings.ColDistance, Width = 160 },
                 new TableColumn { Title = UiStrings.ColReward, Width = 90 },
                 new TableColumn { Title = UiStrings.ColSurcharge, Width = 90 },
                 new TableColumn { Title = UiStrings.ColTimeLeft, Width = 170 },

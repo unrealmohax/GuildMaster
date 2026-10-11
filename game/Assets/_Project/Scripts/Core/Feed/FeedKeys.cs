@@ -95,9 +95,12 @@ namespace GuildMaster.Core
         public const string QuestFlee = "quest.tension.flee";
         public const string QuestLootHandedIn = "quest.loot.handedIn";
         public const string QuestLootSkimmed = "quest.loot.skimmed";
+        public const string QuestRationsShared = "quest.rations.shared";
+        public const string QuestRationsRanOut = "quest.rations.ranOut";
 
         // Строки ленты задания с видом из данных события (kind): «префикс.вид».
-        private static readonly string[] QuestLossKinds = { "time", "stress", "bonus", "gear", "loot" };
+        private static readonly string[] QuestLossKinds = { "time", "stress", "bonus", "gear", "loot", "rations" };
+        private static readonly string[] QuestRationKinds = { "bought", "enough", "short" };
         private static readonly string[] QuestWoundKinds = { "shield", "light", "heavy", "maimed" };
         private static readonly string[] QuestDecisionKinds = { "continue", "doubt", "argue" };
         private static readonly string[] QuestTensionKinds = { "panic", "rush", "hero", "hold", "breakdown" };
@@ -124,7 +127,8 @@ namespace GuildMaster.Core
             DecreeEnabled, DecreeProhibition, DecreeProhibitionQuiet, DecreeRevoked, DecreeBenefitCancelled, DecreeExpired,
             QuestDeparted, QuestTravel, QuestCamp, QuestCeiling, QuestDeath, QuestLost, QuestOnlyFugitive, QuestMedicSaved,
             QuestReturnTrip, QuestReturnTripHard, QuestRetreat, QuestFlee, QuestLootHandedIn, QuestLootSkimmed,
-        }.Concat(Prefixed("quest.loss.", QuestLossKinds)).Concat(Prefixed("quest.wound.", QuestWoundKinds))
+            QuestRationsShared, QuestRationsRanOut,
+        }.Concat(Prefixed("quest.loss.", QuestLossKinds)).Concat(Prefixed("quest.rations.", QuestRationKinds)).Concat(Prefixed("quest.wound.", QuestWoundKinds))
             .Concat(Prefixed("quest.decision.", QuestDecisionKinds)).Concat(Prefixed("quest.tension.", QuestTensionKinds))
             .Concat(Prefixed("quest.synergy.", QuestSynergyKinds)).Concat(Prefixed("quest.returned.", QuestResultKinds))
             .Concat(Prefixed("quest.promotion.", PromotionKinds)).ToArray();
@@ -202,6 +206,9 @@ namespace GuildMaster.Core
                 { SimEventType.QuestReturned, (e, w, d) => e.TryGet("count", out int count) && count > 0 ? Kind(e, "quest.returned.", QuestResultKinds) : null },
                 { SimEventType.LootHandedIn, (e, w, d) => QuestLootHandedIn },
                 { SimEventType.LootSkimmed, (e, w, d) => QuestLootSkimmed },
+                { SimEventType.RationsBought, (e, w, d) => Kind(e, "quest.rations.", QuestRationKinds) },
+                { SimEventType.RationsShared, (e, w, d) => QuestRationsShared },
+                { SimEventType.RationsRanOut, (e, w, d) => QuestRationsRanOut },
                 { SimEventType.PromotionExam, (e, w, d) => e.TryGet("passed", out bool passed) && passed ? "quest.promotion.passed" : "quest.promotion.failed" },
                 { SimEventType.PartyGathered, (e, w, d) => Gathered(e) },
                 { SimEventType.PartyNotGathered, (e, w, d) => e.TryGet("solo", out bool solo) && solo ? PartyNotGatheredSolo : PartyNotGathered },

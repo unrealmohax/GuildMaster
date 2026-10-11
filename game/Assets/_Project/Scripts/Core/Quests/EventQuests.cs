@@ -30,6 +30,7 @@ namespace GuildMaster.Core
                 Place = run.Place,
                 ArrivedAtHours = now,
                 DescriptionAccuracy = 1f,
+                TravelHours = run.TravelHours,
                 Status = OrderStatus.AwaitingPlayer,
                 AnswerDueAtHours = now + ctx.Calendar.DaysToHours(balance.PlayerResponseDays),
             };

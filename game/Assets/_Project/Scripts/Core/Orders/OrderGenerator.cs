@@ -7,7 +7,8 @@ namespace GuildMaster.Core
     /// <summary>
     /// Новый заказ. Порядок бросков: ранг по смеси для репутации → «сложный не по времени» (всегда один бросок) → тип по весам
     /// → расстояние → профиль (<see cref="BuildProfile"/>) → награда → срок на доске → заказчик, место, враг, груз → шаблон
-    /// описания → число намёков и сами намёки → точность описания. Порядок не менять без причины: сдвинутся все заказы.
+    /// описания → число намёков и сами намёки → точность описания → длительность пути (далеко — бросок, близко — без броска).
+    /// Порядок не менять без причины: сдвинутся все заказы.
     /// </summary>
     internal static class OrderGenerator
     {
@@ -61,8 +62,16 @@ namespace GuildMaster.Core
 
             Describe(rng, data, type, order, errors);
             order.DescriptionAccuracy = rng.Range(balance.DescriptionAccuracy.Min, balance.DescriptionAccuracy.Max);
+            order.TravelHours = TravelHours(rng, data.Balance.Travel, distance);
             return order;
         }
+
+        /// <summary>
+        /// Путь в одну сторону, ходовых часов: близко — <c>nearHours</c> (без броска), далеко — бросок <c>farHours</c>. Известен
+        /// с появления заказа и одинаков туда и обратно.
+        /// </summary>
+        public static int TravelHours(Rng rng, TravelBalance travel, OrderDistance distance) =>
+            Math.Max(1, distance == OrderDistance.Far ? rng.RangeInclusive(travel.FarHours.Min, travel.FarHours.Max) : travel.NearHours);
 
         /// <summary>Строка смеси рангов для репутации: последняя, у которой порог не выше репутации.</summary>
         public static RankMixEntry RankMixFor(OrdersBalance balance, float reputation)

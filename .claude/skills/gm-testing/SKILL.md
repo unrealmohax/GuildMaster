@@ -66,3 +66,6 @@ description: Тесты GuildMaster (EditMode, сборка GuildMaster.Tests) �
   в долгом тесте он голодает (стресс, штраф характеристик, истощение −10 довольства в сутки) — держать сытость `LambdaSystem`
   или пополнять кошелёк. Расходы на день — 9 (город), «неделя» — 63. Шаблон «еда не тратит случайных чисел» — сравнить следующее
   число потока `CommandSystem` после `FoodService.Eat/ApplyHour/ApplyDay` и без них.
+- **Пайки** (`RationTests`, `RationDeterminismTests`): `QuestWorld.AddOrder` ставит путь (далеко — `farHours.Min`, близко — `nearHours`);
+  `Start` покупает пайки из кошелька (1000 монет — обычные). Подменить запас — `World.Do(ctx => человек.Rations.Clear()/Add(…))`.
+  Шаблон «пустой случай без бросков» — `Loss_EmptyStock_SpendsNoRandomNumbers`.

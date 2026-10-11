@@ -91,6 +91,13 @@
         Luxury = 2,
     }
 
+    /// <summary>Тип походного пайка: дешёвый и обычный. Порядок — по качеству.</summary>
+    public enum RationTier
+    {
+        Cheap = 0,
+        Regular = 1,
+    }
+
     public static class Vocabulary
     {
         public const int StatCount = 14;
@@ -98,6 +105,7 @@
         public const int RankCount = 5;
         public const int MotiveCount = 6;
         public const int MealTierCount = 3;
+        public const int RationTierCount = 2;
 
         /// <summary>Характеристика (а не навык): для роста «в 3 раза медленнее» и для Калеки.</summary>
         public static bool IsCharacteristic(StatId stat) => stat <= StatId.Cohesion;

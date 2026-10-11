@@ -377,6 +377,7 @@ namespace GuildMaster.ClaudeSandbox
             Set(ambush, "startFeedKey", "quest.event.ambush.start");
             Set(ambush, "successFeedKey", "quest.event.ambush.success");
             Set(ambush, "failFeedKey", "quest.event.ambush.fail");
+            Set(ambush, "losesRations", true);
 
             Encounter(beasts, "Нападение зверей", RankValueSource.SecondaryAxes, new IntRange(0, 0),
                 new List<OutcomeChance>(), travelFailure.ToList(),
@@ -385,6 +386,7 @@ namespace GuildMaster.ClaudeSandbox
             Set(beasts, "startFeedKey", "quest.event.beasts.start");
             Set(beasts, "successFeedKey", "quest.event.beasts.success");
             Set(beasts, "failFeedKey", "quest.event.beasts.fail");
+            Set(beasts, "losesRations", false);
 
             Encounter(cave, "Пещера", RankValueSource.MainAxes, new IntRange(-1, 2),
                 new List<OutcomeChance>
