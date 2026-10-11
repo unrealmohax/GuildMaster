@@ -78,6 +78,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - `[TechSpec-XX]` — технические задания (`TechJob/`), `XX` — номер ТЗ (`[TechSpec-10] Requirement floor`);
     правка сразу нескольких ТЗ — диапазоном (`[TechSpec-01-17] Add GM task numbers and branch names`).
   - `[Refactor]` — правки кода вне задачи ТЗ, без изменения поведения (`[Refactor] Remove spec and doc references from code comments`).
+  - `[Balance]` — правки чисел баланса и данных вне задачи ТЗ, меняющие поведение (`[Balance] Tavern share 15% of price, Warden staff role for the Dormitory`).
 - **Соавторство в коммитах не указывать** — без строки `Co-Authored-By`.
 - Удалённый репозиторий — `origin` = `https://github.com/unrealmohax/GuildMaster.git`. Пуш — только по просьбе.
 
