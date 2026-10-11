@@ -88,7 +88,7 @@ namespace GuildMaster.Tests
             Type[] stateTypes =
             {
                 typeof(WorldState), typeof(IdGenerator), typeof(AutopauseState),
-                typeof(AdventurerRoster), typeof(Adventurer), typeof(AdventurerState), typeof(Condition), typeof(TraitInstance), typeof(Candidate), typeof(RationStock),
+                typeof(AdventurerRoster), typeof(Adventurer), typeof(AdventurerState), typeof(Condition), typeof(TraitInstance), typeof(Candidate), typeof(RationStock), typeof(Family), typeof(FamilyMember),
                 typeof(RelationBook), typeof(Relation),
                 typeof(FeedState), typeof(FeedEntry),
                 typeof(Treasury), typeof(Bankruptcy), typeof(LedgerEntry),

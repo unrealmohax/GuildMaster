@@ -422,6 +422,39 @@ MonoBehaviour:
     greedyNoShareAxis: 50
     shareRelation: 3
     hungryRetreatBonus: 0.5
+  family:
+    parentAliveAtMin: 0.9
+    parentAlivePerYear: 0.02
+    spouseBase: 0.1
+    spousePerYear: 0.03
+    loneSpouseCut: 0.5
+    familySpouseMultiplier: 2
+    maxChildren: 3
+    childBase: 0.2
+    childPerYear: 0.02
+    childMaleChance: 0.5
+    paymentIntervalDays: 7
+    parentCost: 6
+    spouseCost: 10
+    childCost: 6
+    illCostMultiplier: 2
+    familyExtraShare: 0.3
+    needStressPerDay: 1
+    familyNeedMultiplier: 2
+    needContentment: 10
+    needMoneyMultiplier: 1.5
+    illChanceParent: 0.06
+    illChanceSpouse: 0.02
+    illChanceChild: 0.04
+    illWeeks:
+      min: 2
+      max: 6
+    deathChancePaid: 0.03
+    deathChanceUnpaid: 0.12
+    deathStress: 30
+    familyDeathStress: 50
+    mourningDays: 30
+    mourningStressRelief: 0.5
   state:
     startFatigue: 10
     startStress:
@@ -577,7 +610,6 @@ MonoBehaviour:
     braggartRevealPerceivedOverlap: 0.6
     braggartRevealRealOverlap: 0.4
     ironNervesComradeDeathMultiplier: 0.5
-    familySendHomeShare: 0.3
     familyLeaveChanceMultiplier: 1.5
     familyRevealPerceivedOverlap: 0.5
     rivalExperienceMultiplier: 1.2

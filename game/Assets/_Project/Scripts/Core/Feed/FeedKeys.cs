@@ -20,6 +20,9 @@ namespace GuildMaster.Core
         public const string WalletEmptied = "guild.money.walletEmpty";
         public const string HungerStarted = "guild.food.hunger";
         public const string Exhausted = "guild.food.exhausted";
+        public const string FamilyNeed = "guild.family.need";
+        public const string FamilyIll = "guild.family.ill";
+        public const string FamilyDied = "guild.family.died";
         public const string Recovered = "guild.health.recovered";
         public const string WoundComplicated = "guild.health.complication";
         public const string BreakdownBinge = "guild.breakdown.binge";
@@ -112,6 +115,7 @@ namespace GuildMaster.Core
         public static IReadOnlyList<string> Fixed { get; } = new[]
         {
             CandidateArrived, CandidateLeft, AdventurerJoined, ArchetypeChanged, AdventurerLeft, WalletEmptied, HungerStarted, Exhausted,
+            FamilyNeed, FamilyIll, FamilyDied,
             Recovered, WoundComplicated,
             BreakdownBinge, BreakdownBrawl, BreakdownBrawlAlone, BreakdownRefuse, BreakdownCollapse,
             Quarrel,
@@ -164,6 +168,9 @@ namespace GuildMaster.Core
                 { SimEventType.WalletEmptied, (e, w, d) => WalletEmptied },
                 { SimEventType.HungerStarted, (e, w, d) => HungerStarted },
                 { SimEventType.Exhausted, (e, w, d) => Exhausted },
+                { SimEventType.FamilyNeedStarted, (e, w, d) => FamilyNeed },
+                { SimEventType.FamilyMemberIll, (e, w, d) => FamilyIll },
+                { SimEventType.FamilyMemberDied, (e, w, d) => FamilyDied },
                 { SimEventType.WoundHealed, Healed },
                 { SimEventType.WoundComplicated, (e, w, d) => WoundComplicated },
                 { SimEventType.Quarrel, (e, w, d) => Quarrel },

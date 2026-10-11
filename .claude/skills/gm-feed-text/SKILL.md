@@ -94,3 +94,6 @@ description: Лента событий и тексты GuildMaster — FeedSyste
 - Пайки: `quest.rations.bought|enough|short` (по `kind` события `RationsBought`, `{число}` — дни еды), `quest.rations.shared`
   (`{имя}` отдал, `{напарник}` получил), `quest.rations.ranOut`, `quest.loss.rations` (вид `rations` у `QuestLoss`). Голодный приём в пути
   (`QuestMealMissed`) строки не даёт.
+- Семья: ключи `guild.family.need` [З], `guild.family.ill` [З], `guild.family.died` [В] в `FeedKeys.Fixed`; метка `{родной}` — родной
+  первого участника по номеру `relative` в данных события, слово из `NameList.relatives` (род есть: в `TextPlaceholders` — и `Other`,
+  и `Gendered`), скобка рода к ней — только с привязкой и тремя формами `[|ла|ло]@родной`; причина `reason.familyNeed`.

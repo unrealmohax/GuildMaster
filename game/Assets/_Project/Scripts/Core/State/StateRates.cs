@@ -6,7 +6,8 @@ namespace GuildMaster.Core
     /// Эффекты осей и особых черт на скорость показателей состояния (<see cref="EffectKind.StateRate"/>) и чувствительность
     /// довольства к комиссии (<see cref="EffectKind.PayContentmentSensitivity"/>). Какие у кого эффекты — в данных:
     /// трус набирает стресс быстрее, Кошмары — усталость × 1,3, Потерявший товарища снимает стресс × 0,5,
-    /// Преданный и Наёмник — лояльность. Скрытые черты действуют так же, как раскрытые.
+    /// Преданный и Наёмник — лояльность. Скрытые черты действуют так же, как раскрытые. Траур по родному (состояние, не черта) —
+    /// снятие стресса × <c>mourningStressRelief</c>.
     /// <para>
     /// У осей сила — по формуле оси (<see cref="AxisMath.ArrowMultiplier"/>): от центра к полюсу. У особых черт — полная:
     /// стрелка (<see cref="DecisionsBalance.ArrowMultiplier"/>) или явный множитель эффекта.
@@ -45,6 +46,9 @@ namespace GuildMaster.Core
                     product *= effect.Arrow != Arrow.None ? decisions.ArrowMultiplier(effect.Arrow) : effect.Value;
                 }
             }
+
+            if (stat == StateStat.Stress && direction == RateDirection.Decay && adventurer.State.IsMourning)
+                product *= data.Balance.Family.MourningStressRelief;
             return product;
         }
 

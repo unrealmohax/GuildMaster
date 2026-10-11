@@ -14,6 +14,7 @@ namespace GuildMaster.Core
     /// <item>Разнообразие: пока на каком-то крайнем полюсе больше двух человек — оси последнего из них заново.</item>
     /// <item>Черт 2–3 на всех, включая черты готовых пар; 1–2 пары: старые друзья, соперники или влюблённые.
     /// Пара с чертой, которая не влезает в итог, становится старыми друзьями. Остаток — по черте «от рождения» другим.</item>
+    /// <item>Семья каждого — последними бросками, по порядку состава: черты (Семейный, Влюблённый) уже известны.</item>
     /// </list>
     /// </summary>
     public static class StartScenario
@@ -64,6 +65,8 @@ namespace GuildMaster.Core
                 free.Remove(adventurer);
                 if (AdventurerGenerator.AddBirthTrait(rng, data, world, adventurer, now, allowPartner: false)) traitsGiven++;
             }
+
+            foreach (Adventurer adventurer in people) FamilyGenerator.Generate(rng, data, adventurer);
 
             foreach (GeneratedAdventurer generated in lineup)
             {

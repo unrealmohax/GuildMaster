@@ -1,6 +1,6 @@
 ---
 name: gm-state-health
-description: Состояние и здоровье авантюристов GuildMaster — AdventurerState (усталость, стресс, довольство, лояльность, кошелёк, долг, флаги), занятия Activity и ActivitySystem, суточные сдвиги и срывы StateSystem/StateService, множители черт StateRates, чистые правила StateRules, стресс от событий StressEvents, личные деньги WalletService, раны Condition/HealthService, лечение и Лазарет HealthSystem/IInfirmary, проверка ухода; еда и сытость FoodRules/FoodService (приёмы пищи, бюджет на еду, голод и истощение, расходы на день), походные пайки RationStock/RationRules/RationService (покупка при выходе, еда в пути, делёжка, потери, общий запас постоянной группы, паёк в городе). Использовать при правке показателей состояния, срывов, ран, расходов людей, ухода из гильдии.
+description: Состояние и здоровье авантюристов GuildMaster — AdventurerState (усталость, стресс, довольство, лояльность, кошелёк, долг, флаги), занятия Activity и ActivitySystem, суточные сдвиги и срывы StateSystem/StateService, множители черт StateRates, чистые правила StateRules, стресс от событий StressEvents, личные деньги WalletService, раны Condition/HealthService, лечение и Лазарет HealthSystem/IInfirmary, проверка ухода; еда и сытость FoodRules/FoodService (приёмы пищи, бюджет на еду, голод и истощение, расходы на день), походные пайки RationStock/RationRules/RationService (покупка при выходе, еда в пути, делёжка, потери, общий запас постоянной группы, паёк в городе); семья за кадром Family/FamilyRules/FamilyGenerator/FamilyService/FamilySystem (состав, недельная плата, нужда, болезнь и смерть родных, весть по возвращении, траур). Использовать при правке показателей состояния, срывов, ран, расходов людей, ухода из гильдии.
 ---
 
 # Состояние и здоровье
@@ -63,7 +63,7 @@ description: Состояние и здоровье авантюристов Gui
   Лёгкая — [З], тяжёлая — [В].
 - **Запреты на задания** — `StateRules.CanTakeQuests`: тяжёлая рана, усталость выше `fatigueQuestBanThreshold`, срыв.
 - **Кошелёк** целочисленный: доли вниз (`Share`), цены — `Coins`. Не хватает — платит сколько может, флаг `IsWalletEmpty`,
-  снимается доходом. Семейный отсылает долю домой; из доли **награды** гасится долг гильдии → в казну (`DebtRepayment`).
+  снимается доходом. Доход домой не уходит (семье — раз в неделю, см. «Семья»); из доли **награды** гасится долг гильдии → в казну (`DebtRepayment`).
 - **Лазарета нет** (постройка не готова): коек 0, лечатся медленнее, с броском осложнения. Платы Общежития (в `PayDaily`, жильё
   первым), двора и Лазарета идут в казну. Тесты без построек подменяют Лазарет: `new StateWorld(infirmary: new FakeInfirmary(…))` —
   подмена и в `HealthSystem`, и в `DecisionSystem`.
@@ -154,3 +154,37 @@ GuildMaster → Sandbox → State: `Light Wound First`, `Heavy Wound First`, `St
   Пайки покупаются при `Depart` из кошелька — тесты, считающие кошелёк после выхода, учитывают покупку.
 - Сытость по умолчанию у нового `AdventurerState` — 100; генерация ставит `food.startSatiety`.
 - Сводка: «Сытость», «Приёмов: … %», «Пропущено приёмов», «Дней в голоде/истощении» (часы стадий из `SummaryRecorder`), «Ушли из-за голода».
+
+## Семья
+
+Код — `Core/Family/`; числа — `BalanceSettings.Family` (`FamilyBalance`). Дизайн — `docs/mechanics/family.md`, ТЗ — `TechJob/20-family.md`.
+
+| Файл | Что |
+|---|---|
+| `Family.cs` | `Adventurer.Family` (`Members`, `LivingCount`, `HasLiving`, `HasLivingSpouse`, `TryGetIll`); `FamilyMember` (роль, пол, имя, `Health` + `IllSinceHours`/`IllUntilHours`, `Alive` + `DiedAtHours`, `PendingNews`); `FamilyRole`, `FamilyHealth`, `FamilyNews` |
+| `FamilyRules.cs` | чистые: шансы состава (`ParentAliveChance`, `SpouseChance` — Одиночка, Семейный × 2, Влюблённый 0, `ChildChance`), `MemberCost`/`Norm`, `Payment` (обычный — сверх `FoodRules.Reserve`, Семейный — ⌈норма × 1,3⌉ из всего кошелька), `IllChance`, `DeathChance`, `DeathStress`, `RelativeValue` (метка `{родной}`); `RelativeTextSource` |
+| `FamilyGenerator.cs` | internal `Generate(rng, данные, человек)` — броски состава; `FitToTraits` — Влюблённому убрать супруга (без бросков) |
+| `FamilyService.cs` | `PayWeek` (→ `WalletService.SendHome`, нужда, события), `WeekOfIllness` (бросок `family-death`, выздоровление), `RollIllness` (`family-ill`), `FallIll`, `Die`, `DeliverNews`, `ApplyDay` (стресс нужды, конец траура) |
+| `FamilySystem.cs` | шаг 6, **перед** `StateSystem`, свой поток: каждый час — вести вернувшимся; 00:00 — день платы (`IsPayday`: каждые 7 суток от дня начала), начало месяца — болезни, сутки — `ApplyDay` |
+
+- **Состояние**: `AdventurerState.FamilyInNeed` (заплачено меньше нормы; снимает полная плата), `IsMourning` + `MourningEndsAtHours`.
+- **Эффекты в других системах**: цель довольства −10 (`StateRules.ContentmentTarget`); снятие стресса × 0,5 в трауре (`StateRates.Multiplier`);
+  `StateFactor.FamilyNeed` — Деньги × 1,5 (`Motives`, в логе `family need`); `LeaveCause.FamilyNeed` (`reason.familyNeed`, денежная —
+  раскрывает Наёмника, проверяется раньше голода); повод «Просьбы в долг» (скилл `gm-dilemmas`).
+- **Весть**: человек на задании (`IsOnQuest`) получает `PendingNews`; в первый час вне задания — `FamilyMemberIll` [З] / `FamilyMemberDied`
+  [В] (автопауза `AutopauseKind.FamilyDeath`, стресс +30/+50 × черты, траур 30 дней). Поправился до возвращения — болезнь не сообщается.
+- **События**: `FamilyMoneySent` (`amount`, `norm`; уровень `Debug` — сводка не видит событий `Trace`), `FamilyNeedStarted`, `FamilyMemberIll`,
+  `FamilyMemberDied` (`relative` — номер родного в семье, `role`). Лог `Debug`: `family pay #3 Имя norm=22 sent=22 (wallet … -> …)`,
+  `family #3 Имя: Spouse Ида ill for 4 weeks / recovered / died`, `need over`, `mourning over`; суточная строка — `familyNeed`, `mourning`.
+- **Интерфейс**: карточка — блок «Семья» (`CardModel.Family/FamilyNorm/FamilyInNeed/Mourning`, слова родства — `UiStrings.RelativeWords`,
+  «†» есть в шрифте); отладка — `DebugEventKind.FamilyIllness/FamilyDeath`; отчёт месяца — `report.people.familyIll/familyDied` (только
+  то, о чём человек уже знает).
+- **Сводка**: «Людей с семьёй, %», «Членов семьи в среднем», «Отправлено домой», «Недель в нужде», «В нужде», «Болезней», «Смертей в семье»,
+  «Ушли из-за нужды семьи».
+
+### Ловушки семьи
+
+- `StateWorld.Add` создаёт людей **без семьи** — `FamilySystem` у них ничего не делает; тесту семьи — добавить родных
+  (`adventurer.Family.Add(new FamilyMember(роль, пол, имя))`, `FamilyTests.WithFamily`: жена и двое детей = 22 в неделю).
+- Плата идёт и с задания; нужда держит стресс (+1/сутки) — у новичков в месяцы 4–7 совпадает с голодом.
+- `Debug`-лог прогона вырос на строку `family pay` на человека в неделю.

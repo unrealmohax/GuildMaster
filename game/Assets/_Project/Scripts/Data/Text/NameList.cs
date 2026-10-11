@@ -5,7 +5,7 @@ namespace GuildMaster.Data
 {
     /// <summary>
     /// Имена людей и части названий постоянных групп: «{прилагательное} {существительное}» — «Серые волки».
-    /// Название группы в тексты идёт в кавычках и не склоняется: «группа «Серые волки»».
+    /// Название группы в тексты идёт в кавычках и не склоняется: «группа «Серые волки»». Слова родства — для строк о семье.
     /// </summary>
     [CreateAssetMenu(menuName = "GuildMaster/Name List", fileName = "NameList")]
     public sealed class NameList : ScriptableObject
@@ -19,9 +19,18 @@ namespace GuildMaster.Data
         [Tooltip("Существительные во множественном числе: «волки»")]
         [SerializeField] private List<string> groupNouns = new List<string>();
 
+        [Tooltip("Родные по порядку: отец, мать, муж, жена, сын, дочь — все шесть падежей и род")]
+        [SerializeField] private List<NounForms> relatives = new List<NounForms>();
+
         public IReadOnlyList<NounForms> MaleNames => maleNames;
         public IReadOnlyList<NounForms> FemaleNames => femaleNames;
         public IReadOnlyList<string> GroupAdjectives => groupAdjectives;
         public IReadOnlyList<string> GroupNouns => groupNouns;
+
+        /// <summary>Слова родства по порядку: отец, мать, муж, жена, сын, дочь (<see cref="RelativesCount"/>).</summary>
+        public IReadOnlyList<NounForms> Relatives => relatives;
+
+        /// <summary>Сколько слов родства должно быть: три роли × два пола.</summary>
+        public const int RelativesCount = 6;
     }
 }

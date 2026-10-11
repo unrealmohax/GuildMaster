@@ -35,5 +35,8 @@
 
         /// <summary>Истощение от голода: человек вот-вот уйдёт.</summary>
         Exhausted,
+
+        /// <summary>Смерть родного у авантюриста.</summary>
+        FamilyDeath,
     }
 }

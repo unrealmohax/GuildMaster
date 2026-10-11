@@ -26,7 +26,7 @@
         BraggartReputation = 4,
         /// <summary>Железные нервы: стресс от гибели товарищей слабее.</summary>
         IronNervesComradeDeath = 5,
-        /// <summary>Семейный: часть дохода — домой.</summary>
+        /// <summary>Семейный: платит семье первым и сверх нормы.</summary>
         FamilySendsMoneyHome = 6,
         /// <summary>Семейный: выше шанс ухода при ежемесячной проверке.</summary>
         FamilyLeaveChance = 7,
@@ -172,6 +172,17 @@
         WoundedWantsQuest = 4,
         LoversSameParty = 10,
         TavernFeast = 13,
+    }
+
+    /// <summary>Когда звучит причина просьбы: кроме черты (<c>requiresTrait</c>), ещё и по семье человека.</summary>
+    public enum DilemmaReasonCondition
+    {
+        /// <summary>Без условия по семье.</summary>
+        None = 0,
+        /// <summary>Семья в нужде: плата семье неполная.</summary>
+        FamilyInNeed = 1,
+        /// <summary>Кто-то из родных болеет; в тексте — метка <c>{родной}</c>.</summary>
+        FamilyMemberIll = 2,
     }
 
     /// <summary>Кого касается эффект дилеммы.</summary>

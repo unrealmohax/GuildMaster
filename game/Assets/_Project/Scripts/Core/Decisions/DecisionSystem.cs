@@ -314,6 +314,7 @@ namespace GuildMaster.Core
                 case StateFactor.Fatigue: return "fatigue";
                 case StateFactor.Stress: return "stress";
                 case StateFactor.Hunger: return "satiety";
+                case StateFactor.FamilyNeed: return "family need";
                 default: return "light wound";
             }
         }

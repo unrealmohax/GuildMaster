@@ -94,17 +94,14 @@ namespace GuildMaster.Tests
         }
 
         [Test]
-        public void Income_FamilySendsThirtyPercentHome_RoundedDown()
+        public void Income_FamilialKeepsWholeIncome_FamilyIsPaidWeekly()
         {
             Adventurer family = world.Add("Family");
-            Adventurer single = world.Add();
             family.State.Wallet = 0;
-            single.State.Wallet = 0;
 
-            Assert.AreEqual(11, world.Do(ctx => WalletService.ReceiveIncome(ctx, family, 15, IncomeKind.Loot)), "15 − ⌊4,5⌋");
-            Assert.AreEqual(70, world.Do(ctx => WalletService.ReceiveIncome(ctx, family, 100, IncomeKind.Reward)));
-            Assert.AreEqual(15, world.Do(ctx => WalletService.ReceiveIncome(ctx, single, 15, IncomeKind.Loot)));
-            Assert.AreEqual(81, family.State.Wallet);
+            Assert.AreEqual(15, world.Do(ctx => WalletService.ReceiveIncome(ctx, family, 15, IncomeKind.Loot)), "с дохода домой ничего не уходит");
+            Assert.AreEqual(100, world.Do(ctx => WalletService.ReceiveIncome(ctx, family, 100, IncomeKind.Reward)));
+            Assert.AreEqual(115, family.State.Wallet);
         }
 
         [Test]
@@ -126,7 +123,7 @@ namespace GuildMaster.Tests
 
             Adventurer family = world.Add("Family");
             world.Do(ctx => WalletService.TakeLoan(ctx, family, 50));
-            Assert.AreEqual(50, world.Do(ctx => WalletService.ReceiveIncome(ctx, family, 100, IncomeKind.Reward)), "домой 30, долг 20 — от всей доли");
+            Assert.AreEqual(80, world.Do(ctx => WalletService.ReceiveIncome(ctx, family, 100, IncomeKind.Reward)), "у Семейного тоже: долг 20, остальное в кошелёк");
 
             Adventurer gone = world.Add();
             world.Do(ctx => WalletService.TakeLoan(ctx, gone, 40));

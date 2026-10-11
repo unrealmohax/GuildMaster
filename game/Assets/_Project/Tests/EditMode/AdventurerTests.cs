@@ -340,13 +340,26 @@ namespace GuildMaster.Tests
     /// <summary>Состав гильдии строкой — для сравнения прогонов и вывода в тестах.</summary>
     internal static class PeopleDump
     {
-        public static string Of(Simulation simulation)
+        public static string Of(Simulation simulation) => Dump(simulation, withFamily: true);
+
+        /// <summary>То же без семей — сравнить людей, у которых семьи разные.</summary>
+        public static string WithoutFamily(Simulation simulation) => Dump(simulation, withFamily: false);
+
+        /// <summary>Строка человека без семьи.</summary>
+        public static string Line(Adventurer adventurer)
+        {
+            var text = new StringBuilder();
+            Append(text, "candidate", adventurer, withFamily: false);
+            return text.ToString();
+        }
+
+        private static string Dump(Simulation simulation, bool withFamily)
         {
             var text = new StringBuilder();
             AdventurerRoster roster = simulation.World.Adventurers;
-            foreach (Adventurer adventurer in roster.Active) Append(text, "active", adventurer);
-            foreach (Candidate candidate in roster.Candidates) Append(text, "candidate", candidate.Adventurer);
-            foreach (Adventurer adventurer in roster.Archive) Append(text, "archive", adventurer);
+            foreach (Adventurer adventurer in roster.Active) Append(text, "active", adventurer, withFamily);
+            foreach (Candidate candidate in roster.Candidates) Append(text, "candidate", candidate.Adventurer, withFamily);
+            foreach (Adventurer adventurer in roster.Archive) Append(text, "archive", adventurer, withFamily);
             foreach (Relation relation in simulation.World.Relations.All)
             {
                 text.Append(FormattableString.Invariant($"relation {relation.A}-{relation.B} {relation.Value:0.###} x{relation.JointQuests}")).Append('\n');
@@ -354,7 +367,7 @@ namespace GuildMaster.Tests
             return text.ToString();
         }
 
-        private static void Append(StringBuilder text, string list, Adventurer a)
+        private static void Append(StringBuilder text, string list, Adventurer a, bool withFamily)
         {
             text.Append(FormattableString.Invariant(
                 $"{list} #{a.Id} {a.Name} {a.Gender} {a.Age} {a.GuildRank} {a.ArchetypeId} {a.PowerScore:0.##} wallet {a.State.Wallet}"));
@@ -366,6 +379,13 @@ namespace GuildMaster.Tests
                 $" state F{s.Fatigue:0.###} S{s.Stress:0.###} C{s.Contentment:0.###} L{s.Loyalty:0.###} debt {s.DebtToGuild} {s.Activity} {s.Breakdown}{(s.IsWalletEmpty ? " empty" : "")}"));
             text.Append(" wounds ").Append(string.Join(",", s.Conditions.Select(c =>
                 FormattableString.Invariant($"{c.Kind}:{c.RemainingDays:0.###}/{c.Days}{(c.IsComplicated ? "+" : "")}"))));
+            if (withFamily)
+            {
+                text.Append(" family ").Append(string.Join(",", a.Family.Members.Select(m =>
+                    $"{m.Role}:{m.Name}{(m.Alive ? "" : "+")}{(m.IsIll ? "!" : "")}")));
+                if (s.FamilyInNeed) text.Append(" need");
+                if (s.IsMourning) text.Append(" mourning");
+            }
             text.Append('\n');
         }
     }

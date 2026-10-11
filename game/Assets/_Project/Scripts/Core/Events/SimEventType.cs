@@ -398,5 +398,19 @@
 
         /// <summary>Приём пищи на задании (или по пути домой одному) без пайка. Участник — голодный. Без строки.</summary>
         QuestMealMissed,
+
+        // Семья. Участник — человек; <c>relative</c> — номер родного в его семье, <c>role</c> — роль родного.
+
+        /// <summary>Плата семье за неделю: <c>amount</c> — отправлено, <c>norm</c> — норма. Без строки.</summary>
+        FamilyMoneySent,
+
+        /// <summary>Семья в нужде: заплачено меньше нормы (<c>amount</c>, <c>norm</c>). [З].</summary>
+        FamilyNeedStarted,
+
+        /// <summary>Весть из дома: родной заболел. [З].</summary>
+        FamilyMemberIll,
+
+        /// <summary>Весть из дома: родной умер. [В], автопауза <see cref="AutopauseKind.FamilyDeath"/>.</summary>
+        FamilyMemberDied,
     }
 }

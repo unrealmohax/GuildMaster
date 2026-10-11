@@ -29,7 +29,7 @@ namespace GuildMaster.Core
 
         /// <summary>
         /// Новый человек (<see cref="SimLogLevel.Debug"/>): тип и уровень генерации, пол, возраст, архетип, ранг, параметры,
-        /// оси (скрытые — тоже), черты (скрытые помечены), кошелёк и стартовое состояние.
+        /// оси (скрытые — тоже), черты (скрытые помечены), кошелёк, стартовое состояние и семья.
         /// </summary>
         public static void WriteGenerated(SimContext ctx, string what, Adventurer adventurer, ArchetypeDefinition type, AdventurerLevel level)
         {
@@ -74,6 +74,13 @@ namespace GuildMaster.Core
                 .Append(" stress=").Append(Number(state.Stress))
                 .Append(" contentment=").Append(Number(state.Contentment))
                 .Append(" loyalty=").Append(Number(state.Loyalty));
+
+            line.Append(" | family");
+            if (adventurer.Family.Members.Count == 0) line.Append(" -");
+            foreach (FamilyMember member in adventurer.Family.Members)
+            {
+                line.Append(' ').Append(member.Role).Append(member.Gender == Gender.Male ? "(M)" : "(F)").Append(':').Append(member.Name);
+            }
             log.Commit();
         }
 
@@ -100,6 +107,8 @@ namespace GuildMaster.Core
             if (state.IsWalletEmpty) line.Append(" walletEmpty");
             if (state.DebtToGuild > 0) line.Append(" debt=").Append(state.DebtToGuild.ToString(CultureInfo.InvariantCulture));
             if (state.Breakdown != BreakdownKind.None) line.Append(" breakdown=").Append(state.Breakdown);
+            if (state.FamilyInNeed) line.Append(" familyNeed");
+            if (state.IsMourning) line.Append(" mourning");
             foreach (Condition condition in state.Conditions)
             {
                 line.Append(' ').Append(condition.Kind).Append('=').Append(Number(condition.RemainingDays)).Append('d');

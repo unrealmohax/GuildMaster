@@ -47,6 +47,18 @@ namespace GuildMaster.Core
         /// <summary>Долг гильдии, монеты, ≥ 0 (дилемма «Просьба в долг»).</summary>
         public int DebtToGuild { get; internal set; }
 
+        /// <summary>
+        /// Семья в нужде: последняя плата семье меньше нормы; снимается полной платой. Стресс в сутки, цель довольства ниже,
+        /// мотив «Деньги» сильнее (<see cref="FamilyService"/>).
+        /// </summary>
+        public bool FamilyInNeed { get; internal set; }
+
+        /// <summary>Траур по родному: стресс снимается медленнее, до <see cref="MourningEndsAtHours"/>.</summary>
+        public bool IsMourning { get; internal set; }
+
+        /// <summary>Когда кончится траур.</summary>
+        public long MourningEndsAtHours { get; internal set; }
+
         /// <summary>Раны в порядке получения. Увечье — не рана, а черта «Калека».</summary>
         public IReadOnlyList<Condition> Conditions => conditions;
 

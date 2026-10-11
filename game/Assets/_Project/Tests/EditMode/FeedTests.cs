@@ -170,7 +170,7 @@ namespace GuildMaster.Tests
         /// <summary>Склейки, которые дают скобки от мужской формы с беглой гласной: «ушёл[|ла]» → «ушёлла».</summary>
         private static readonly string[] BrokenForms = { "ёлла", "елла", "шелла", "одина", "ёна " };
 
-        private static readonly string[] NounLabels = { "группа", "место", "враг", "заказчик", "груз", "распоряжение", "постройка" };
+        private static readonly string[] NounLabels = { "группа", "место", "враг", "заказчик", "груз", "распоряжение", "постройка", "родной" };
 
         [Test]
         public void AllTemplates_BothGenders_AllNounGenders_RenderWithoutMarkup()

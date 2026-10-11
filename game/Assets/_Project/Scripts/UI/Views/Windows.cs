@@ -132,6 +132,13 @@ namespace GuildMaster.UI
             r.Append($"<color={dim}>{UiStrings.ColLoyalty}</color><pos=26%>{model.Loyalty}\n\n");
             r.Append($"<color={accent}>{UiStrings.Health}</color>\n{model.Health}\n\n");
             r.Append($"<color={accent}>{UiStrings.Money}</color>\n{model.Money}, {model.Meal}\n{model.Rations}\n\n");
+            r.Append($"<color={accent}>{UiStrings.Family}</color>\n{model.Family}");
+            var familyState = new List<string>();
+            if (model.FamilyNorm.Length > 0) familyState.Add(model.FamilyNorm);
+            if (model.FamilyInNeed) familyState.Add($"<color={UiTheme.ToHex(Theme.Danger)}>{UiStrings.FamilyInNeed}</color>");
+            if (model.Mourning) familyState.Add(UiStrings.Mourning);
+            if (familyState.Count > 0) r.Append('\n').Append(string.Join(", ", familyState));
+            r.Append("\n\n");
             r.Append($"<color={accent}>{UiStrings.Relations}</color>\n");
             if (model.Relations.Count == 0) r.Append($"<color={dim}>{UiStrings.NoRelations}</color>");
             for (int i = 0; i < model.Relations.Count; i++)

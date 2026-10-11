@@ -64,8 +64,15 @@ namespace GuildMaster.Data
         [Tooltip("Только если у {имя} есть эта черта (пусто — нейтральная причина)")]
         [SerializeField, OptionalReference] private SpecialTraitDefinition requiresTrait;
 
+        [Tooltip("Только если так с семьёй {имя} (больной родной — метка {родной})")]
+        [SerializeField] private DilemmaReasonCondition condition;
+
         public string Text => text;
         public SpecialTraitDefinition RequiresTrait => requiresTrait;
+        public DilemmaReasonCondition Condition => condition;
+
+        /// <summary>Причина без условий: ни черты, ни семьи.</summary>
+        public bool IsNeutral => requiresTrait == null && condition == DilemmaReasonCondition.None;
     }
 
     [Serializable]
