@@ -88,7 +88,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 |---|---|
 | `docs/` | Дизайн-документация: концепция, механики, мир, стадии, прототип, решения, открытые вопросы |
 | `docs/content/` | Контент прототипа: числа (`numbers.md`), шаблоны ленты событий (`event-feed.md`) |
-| `TechJob/` | ТЗ на прототип (01–21) и сводный список допущений (`README.md`) |
+| `TechJob/` | ТЗ на прототип (01–25) и сводный список допущений (`README.md`) |
 | `game/` | Unity-проект |
 | `game/Assets/_Project/` | **весь код и контент игры**; свой `CLAUDE.md` с архитектурой |
 | `game/Assets/_Project/ClaudeSandbox/` | песочница Claude (см. выше) |
