@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace GuildMaster.Data
 {
@@ -18,6 +18,7 @@ namespace GuildMaster.Data
         [SerializeField] private AdventurersBalance adventurers = new AdventurersBalance();
         [SerializeField] private GrowthBalance growth = new GrowthBalance();
         [SerializeField] private ExpensesBalance expenses = new ExpensesBalance();
+        [SerializeField] private FoodBalance food = new FoodBalance();
         [SerializeField] private StateBalance state = new StateBalance();
         [SerializeField] private HealthBalance health = new HealthBalance();
         [SerializeField] private DecisionsBalance decisions = new DecisionsBalance();
@@ -38,6 +39,7 @@ namespace GuildMaster.Data
         public AdventurersBalance Adventurers => adventurers;
         public GrowthBalance Growth => growth;
         public ExpensesBalance Expenses => expenses;
+        public FoodBalance Food => food;
         public StateBalance State => state;
         public HealthBalance Health => health;
         public DecisionsBalance Decisions => decisions;

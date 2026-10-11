@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -202,6 +202,40 @@ namespace GuildMaster.Debugging
                 EconomyBalance economy = balance.Economy;
                 if (economy.DefaultCommission < economy.CommissionLimits.Min || economy.DefaultCommission > economy.CommissionLimits.Max)
                     report.Error(balance, "economy.defaultCommission", "вне пределов комиссии");
+
+                CheckFood(balance);
+            }
+
+            private void CheckFood(BalanceSettings balance)
+            {
+                FoodBalance food = balance.Food;
+                int[] meals = food.MealHours;
+                if (meals == null || meals.Length == 0) report.Error(balance, "food.mealHours", "нужен хотя бы один приём пищи");
+                else
+                {
+                    if (meals.Any(h => h < 0 || h >= balance.Time.HoursPerDay)) report.Error(balance, "food.mealHours", "час вне суток");
+                    for (int i = 1; i < meals.Length; i++)
+                    {
+                        if (meals[i] <= meals[i - 1]) report.Error(balance, "food.mealHours", "часы — по возрастанию, без повторов");
+                    }
+                }
+                if (!(food.StarvingThreshold > 0f && food.StarvingThreshold < food.HungryThreshold))
+                    report.Error(balance, "food", "нужно: 0 < порог голода (starving) < порог «голоден» (hungry)");
+                if (food.ExhaustionStatMultiplier > food.HungerStatMultiplier)
+                    report.Warning(balance, "food.exhaustionStatMultiplier", "штраф истощения слабее штрафа голода");
+
+                for (int i = 0; i < Vocabulary.MealTierCount; i++)
+                {
+                    var tier = (MealTier)i;
+                    MealBalance meal = food.Meal(tier);
+                    string path = $"food.{char.ToLowerInvariant(tier.ToString()[0])}{tier.ToString().Substring(1)}";
+                    if (meal.SatietyGain <= 0f) report.Error(balance, path, "еда не прибавляет сытости");
+                    if (meal.SatietyCap <= food.HungryThreshold) report.Warning(balance, path, "потолок сытости не выше порога «голоден»");
+                    if (i == 0) continue;
+                    MealBalance worse = food.Meal((MealTier)(i - 1));
+                    if (meal.Price < worse.Price || meal.SatietyCap < worse.SatietyCap || meal.Taste < worse.Taste)
+                        report.Warning(balance, path, "тип лучше предыдущего, а цена, потолок или вкус меньше");
+                }
             }
 
             // ---------- Параметры, оси, черты, архетипы ----------

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using GuildMaster.Data;
@@ -18,6 +18,8 @@ namespace GuildMaster.Core
         public const string ArchetypeChanged = "guild.archetype.changed";
         public const string AdventurerLeft = "guild.adventurer.left";
         public const string WalletEmptied = "guild.money.walletEmpty";
+        public const string HungerStarted = "guild.food.hunger";
+        public const string Exhausted = "guild.food.exhausted";
         public const string Recovered = "guild.health.recovered";
         public const string WoundComplicated = "guild.health.complication";
         public const string BreakdownBinge = "guild.breakdown.binge";
@@ -106,7 +108,7 @@ namespace GuildMaster.Core
         /// <summary>Ключи, которые события дают всегда (не из данных) — их шаблоны обязаны быть в данных.</summary>
         public static IReadOnlyList<string> Fixed { get; } = new[]
         {
-            CandidateArrived, CandidateLeft, AdventurerJoined, ArchetypeChanged, AdventurerLeft, WalletEmptied,
+            CandidateArrived, CandidateLeft, AdventurerJoined, ArchetypeChanged, AdventurerLeft, WalletEmptied, HungerStarted, Exhausted,
             Recovered, WoundComplicated,
             BreakdownBinge, BreakdownBrawl, BreakdownBrawlAlone, BreakdownRefuse, BreakdownCollapse,
             Quarrel,
@@ -156,6 +158,8 @@ namespace GuildMaster.Core
                 { SimEventType.Breakdown, (e, w, d) => Breakdown(e) },
                 { SimEventType.AdventurerLeft, (e, w, d) => AdventurerLeft },
                 { SimEventType.WalletEmptied, (e, w, d) => WalletEmptied },
+                { SimEventType.HungerStarted, (e, w, d) => HungerStarted },
+                { SimEventType.Exhausted, (e, w, d) => Exhausted },
                 { SimEventType.WoundHealed, Healed },
                 { SimEventType.WoundComplicated, (e, w, d) => WoundComplicated },
                 { SimEventType.Quarrel, (e, w, d) => Quarrel },

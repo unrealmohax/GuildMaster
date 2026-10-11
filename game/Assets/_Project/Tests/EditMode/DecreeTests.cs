@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using GuildMaster.Core;
 using GuildMaster.Data;
@@ -139,7 +139,7 @@ namespace GuildMaster.Tests
             IReadOnlyList<LedgerEntry> ledger = world.Simulation.World.Treasury.Ledger;
             LedgerEntry paid = ledger.Single(e => e.Category == LedgerCategories.Decrees);
             Assert.AreEqual(newcomer.Id, paid.RelatedId, "гильдия платит за новичка");
-            Assert.AreEqual(-5, paid.Amount, "5 в день");
+            Assert.AreEqual(-3, paid.Amount, "в 00:00 — жильё в городе, 3 в день (еду гильдия платит в часы приёмов)");
             Assert.AreEqual(Lodging, paid.Comment);
             Assert.AreEqual(newcomerWallet, newcomer.State.Wallet, "новичок сам не платит");
             Assert.Less(veteran.State.Wallet, veteranWallet, "давний платит сам");
@@ -296,11 +296,11 @@ namespace GuildMaster.Tests
             int money = state.Treasury.Money;
             world.Do(ctx =>
             {
-                state.Treasury.TavernFood = 10;
+                state.Treasury.TavernMeals[(int)MealTier.Simple] = 10;
                 state.Treasury.TavernDrinks = 10;
                 TreasuryService.SettleTavern(ctx);
             });
-            Assert.AreEqual(money + 6, state.Treasury.Money, "20 порций × 0,5 × 0,6 = 6");
+            Assert.AreEqual(money + 6, state.Treasury.Money, "10 простых × 0,5 × 0,6 + 10 выпивок × 0,5 × 0,6 = 6");
 
             sober.State.Activity = Activity.Tavern;
             sober.State.Stress = 50f;

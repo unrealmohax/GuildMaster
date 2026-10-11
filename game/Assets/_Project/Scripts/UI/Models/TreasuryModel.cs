@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using GuildMaster.Core;
 using GuildMaster.Data;
@@ -140,23 +140,22 @@ namespace GuildMaster.UI
             }
             if (category == LedgerCategories.Construction || category == LedgerCategories.Upkeep)
                 return data.TryGet(entry.Comment, out BuildingDefinition building) ? building.DisplayName : string.Empty;
-            if (category == LedgerCategories.Tavern) return TavernPortions(entry.Comment);
+            if (category == LedgerCategories.TavernFood)
+                return string.Format(UiStrings.LedgerTavernFoodFormat, Portions(entry.Comment, "cheap"), Portions(entry.Comment, "simple"),
+                    Portions(entry.Comment, "luxury"));
+            if (category == LedgerCategories.TavernDrinks) return string.Format(UiStrings.LedgerTavernDrinksFormat, Portions(entry.Comment, "drinks"));
             return string.Empty;
         }
 
-        /// <summary>«food=2 drinks=1» → «еда 2, выпивка 1».</summary>
-        private static string TavernPortions(string comment)
+        /// <summary>Число порций из комментария записи таверны: «cheap=1 simple=2 luxury=0», «drinks=3».</summary>
+        private static int Portions(string comment, string name)
         {
-            int food = 0;
-            int drinks = 0;
             foreach (string part in comment.Split(' '))
             {
                 string[] pair = part.Split('=');
-                if (pair.Length != 2 || !int.TryParse(pair[1], out int value)) continue;
-                if (pair[0] == "food") food = value;
-                else if (pair[0] == "drinks") drinks = value;
+                if (pair.Length == 2 && pair[0] == name && int.TryParse(pair[1], out int value)) return value;
             }
-            return string.Format(UiStrings.LedgerTavernFormat, food, drinks);
+            return 0;
         }
 
         public static string ReportName(MonthReport report) => string.Format(UiStrings.ReportMonthFormat, report.Month, report.Year);

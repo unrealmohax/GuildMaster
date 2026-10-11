@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using GuildMaster.Data;
 
 namespace GuildMaster.Core
@@ -21,6 +21,7 @@ namespace GuildMaster.Core
     /// цены из <see cref="ExpensesBalance"/> — до целого. Не хватает — платит сколько может, остаток не списывается,
     /// ставится флаг «кошелёк пуст». Сам кошелёк зачисляет в казну погашение долга и плату за Общежитие; долю таверны с еды
     /// и выпивки, плату за Лазарет и тренировку засчитывают системы, которые за них берут плату (<see cref="TreasuryService"/>).
+    /// Еду человек покупает сам в часы приёмов (<see cref="FoodService"/>).
     /// </summary>
     public static class WalletService
     {
@@ -32,13 +33,17 @@ namespace GuildMaster.Core
             AdventurerState state = adventurer.State;
             int paid = Math.Min(state.Wallet, amount);
             state.Wallet -= paid;
-            if (paid < amount && !state.IsWalletEmpty)
-            {
-                state.IsWalletEmpty = true;
-                ctx.Events.Publish(SimEventType.WalletEmptied, EventImportance.Notable, adventurer.Id)
-                    .With("unpaid", amount - paid);
-            }
+            if (paid < amount) MarkUnpaid(ctx, adventurer, amount - paid);
             return paid;
+        }
+
+        /// <summary>Расход не оплачен на <paramref name="unpaid"/>: флаг «кошелёк пуст» (событие — при первом).</summary>
+        internal static void MarkUnpaid(SimContext ctx, Adventurer adventurer, int unpaid)
+        {
+            AdventurerState state = adventurer.State;
+            if (state.IsWalletEmpty) return;
+            state.IsWalletEmpty = true;
+            ctx.Events.Publish(SimEventType.WalletEmptied, EventImportance.Notable, adventurer.Id).With("unpaid", unpaid);
         }
 
         /// <summary>
@@ -99,36 +104,33 @@ namespace GuildMaster.Core
         /// <summary>Цена из баланса в целых монетах.</summary>
         public static int Coins(float price) => (int)Math.Round(price, MidpointRounding.AwayFromZero);
 
-        /// <summary>Суточные расходы на жизнь: еда (в таверне — дороже) и жильё (город или Общежитие).</summary>
-        public static int DailyLivingCost(Adventurer adventurer, bool ateInTavern, ExpensesBalance expenses) =>
-            Coins(ateInTavern ? expenses.TavernFood : expenses.Food)
-            + Coins(adventurer.Housing == Housing.Dorm ? expenses.DormHousing : expenses.CityHousing);
-
         /// <summary>
-        /// «Расходы на неделю»: <c>reserveDays</c> × (обычная еда + жильё). От неё — еда в таверне (кошелёк не меньше)
-        /// и мотив «Деньги» (кошелёк меньше).
+        /// Расходы на жизнь за сутки — для займов, обращений и порога мотива «Деньги»: жильё (город или Общежитие) и приёмы
+        /// пищи в день × цена простой еды.
         /// </summary>
-        public static int WeeklyExpenses(Adventurer adventurer, ExpensesBalance expenses) =>
-            expenses.ReserveDays * DailyLivingCost(adventurer, ateInTavern: false, expenses);
+        public static int DailyLivingCost(Adventurer adventurer, BalanceSettings balance) =>
+            FoodRules.HousingCost(adventurer, balance.Expenses) + balance.Food.MealsPerDay * balance.Food.Simple.Price;
+
+        /// <summary>«Расходы на неделю»: <c>reserveDays</c> × расходы на день. Кошелёк меньше — мотив «Деньги» сильнее.</summary>
+        public static int WeeklyExpenses(Adventurer adventurer, BalanceSettings balance) =>
+            balance.Expenses.ReserveDays * DailyLivingCost(adventurer, balance);
 
         /// <summary>Кошелёк меньше расходов на неделю — мотив «Деньги» × <c>lowWalletMoneyMultiplier</c>.</summary>
-        public static bool IsBelowWeeklyExpenses(Adventurer adventurer, ExpensesBalance expenses) =>
-            adventurer.State.Wallet < WeeklyExpenses(adventurer, expenses);
+        public static bool IsBelowWeeklyExpenses(Adventurer adventurer, BalanceSettings balance) =>
+            adventurer.State.Wallet < WeeklyExpenses(adventurer, balance);
 
         /// <summary>Множитель мотива «Деньги» от кошелька: 2 или 1.</summary>
         public static float MoneyMotiveMultiplier(Adventurer adventurer, BalanceSettings balance) =>
-            IsBelowWeeklyExpenses(adventurer, balance.Expenses) ? balance.State.LowWalletMoneyMultiplier : 1f;
+            IsBelowWeeklyExpenses(adventurer, balance) ? balance.State.LowWalletMoneyMultiplier : 1f;
 
         /// <summary>
-        /// Суточные расходы (00:00): еда за прошедшие сутки и жильё. Жильцы Общежития платят гильдии: сначала жильё — оно в казну
-        /// (<see cref="LedgerCategories.Dormitory"/>), остаток — еда. Возвращает, сколько заплачено.
+        /// Жильё за сутки (00:00). Жильцы Общежития платят гильдии — плата в казну (<see cref="LedgerCategories.Dormitory"/>).
+        /// Возвращает, сколько заплачено.
         /// </summary>
         internal static int PayDaily(SimContext ctx, Adventurer adventurer)
         {
-            ExpensesBalance expenses = ctx.Data.Balance.Expenses;
-            int paid = Pay(ctx, adventurer, DailyLivingCost(adventurer, adventurer.State.AteInTavernToday, expenses));
-            if (adventurer.Housing == Housing.Dorm)
-                TreasuryService.Credit(ctx, LedgerCategories.Dormitory, Math.Min(paid, Coins(expenses.DormHousing)), "dormitory", adventurer.Id);
+            int paid = Pay(ctx, adventurer, FoodRules.HousingCost(adventurer, ctx.Data.Balance.Expenses));
+            if (adventurer.Housing == Housing.Dorm) TreasuryService.Credit(ctx, LedgerCategories.Dormitory, paid, "dormitory", adventurer.Id);
             return paid;
         }
     }

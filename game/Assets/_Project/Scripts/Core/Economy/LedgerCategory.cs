@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace GuildMaster.Core
@@ -58,8 +58,11 @@ namespace GuildMaster.Core
     /// </summary>
     public static class LedgerCategories
     {
-        /// <summary>Таверна: доля гильдии с каждой еды и выпивки.</summary>
-        public static readonly LedgerCategory Tavern = new LedgerCategory("tavern", LedgerFlow.Income);
+        /// <summary>Таверна, еда: доля гильдии с каждой порции, по типу еды. Комментарий — порции по типам.</summary>
+        public static readonly LedgerCategory TavernFood = new LedgerCategory("tavernFood", LedgerFlow.Income);
+
+        /// <summary>Таверна, выпивка: доля гильдии с каждой порции выпивки (и дня запоя).</summary>
+        public static readonly LedgerCategory TavernDrinks = new LedgerCategory("tavernDrinks", LedgerFlow.Income);
 
         /// <summary>Комиссия гильдии с награды выполненного заказа.</summary>
         public static readonly LedgerCategory Commission = new LedgerCategory("commission", LedgerFlow.Income);
@@ -95,7 +98,7 @@ namespace GuildMaster.Core
         public static readonly LedgerCategory Salaries = new LedgerCategory("salaries", LedgerFlow.Expense, ExpenseKind.IfAffordable);
 
         /// <summary>
-        /// Расходы по распоряжениям — даже в минус: еда и жильё новичков, компенсация за ранение. Комментарий — id распоряжения,
+        /// Расходы по распоряжениям — даже в минус: жильё и простая еда новичков, компенсация за ранение. Комментарий — id распоряжения,
         /// связанный объект — человек.
         /// </summary>
         public static readonly LedgerCategory Decrees = new LedgerCategory("decrees", LedgerFlow.Expense, ExpenseKind.Mandatory);
@@ -120,7 +123,7 @@ namespace GuildMaster.Core
 
         public static IReadOnlyList<LedgerCategory> All { get; } = new[]
         {
-            Tavern, Commission, DebtRepayment, Dormitory, Infirmary, TrainingYard,
+            TavernFood, TavernDrinks, Commission, DebtRepayment, Dormitory, Infirmary, TrainingYard,
             Surcharges, EventQuests, Discoveries, Construction, Upkeep, Salaries, Decrees,
             Loans, Dilemmas, Fines, DebugIncome, DebugExpense,
         };

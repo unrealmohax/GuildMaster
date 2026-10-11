@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using GuildMaster.Data;
 
 namespace GuildMaster.Core
@@ -6,11 +6,12 @@ namespace GuildMaster.Core
     /// <summary>
     /// Шаг 6 такта: показатели состояния.
     /// <list type="bullet">
-    /// <item>Каждый час — усталость и стресс по занятию × эффекты черт.</item>
-    /// <item>Раз в сутки (00:00), по каждому в гильдии: расходы на жизнь за прошедшие сутки (еда, жильё; еда в таверне, за которую
-    /// заплачено хоть что-то, — порция в доход таверны; еду и жильё новичка может платить гильдия по распоряжению); довольство —
-    /// к цели (комиссия — текущая комиссия гильдии, распоряжения) на 1; лояльность — к довольству на 0,1 (ось «Верность»)
-    /// и сдвиг от распоряжений; учёт суток сбрасывается; срыв при стрессе выше 80
+    /// <item>Каждый час — усталость и стресс по занятию × эффекты черт; еда и сытость вне задания (<see cref="FoodService"/>:
+    /// приёмы пищи в таверне, убывание, голод).</item>
+    /// <item>Раз в сутки (00:00), по каждому в гильдии: жильё за прошедшие сутки (жильё новичка может платить гильдия
+    /// по распоряжению); довольство — к цели (вкус еды за сутки, комиссия — текущая комиссия гильдии, распоряжения) на 1,
+    /// истощённый теряет довольство разово; лояльность — к довольству на 0,1 (ось «Верность») и сдвиг от распоряжений;
+    /// учёт суток сбрасывается; срыв при стрессе выше 80
     /// (шанс 10%, вид — по чертам); конец спада «Потерявшего товарища».</item>
     /// <item>В начале месяца — проверка ухода: лояльность ниже 25 — шанс 20% (Семейный × 1,5). Уход — [В], автопауза, с причинами
     /// из мотивов и состояния.</item>
@@ -27,6 +28,7 @@ namespace GuildMaster.Core
             foreach (Adventurer adventurer in active)
             {
                 StateService.ApplyHour(ctx, adventurer, adventurer.State.QuestParty); // вне задания — None
+                FoodService.ApplyHour(ctx, adventurer);
             }
 
             GameTime time = ctx.World.Time;
@@ -35,17 +37,11 @@ namespace GuildMaster.Core
             float commission = ctx.World.Treasury.Commission;
             foreach (Adventurer adventurer in new List<Adventurer>(active))
             {
-                if (DecreeRules.GuildPaysLiving(adventurer, ctx.World, ctx.Data))
-                {
-                    DecreeService.PayLiving(ctx, adventurer);
-                    if (adventurer.State.AteInTavernToday) TreasuryService.CountTavernFood(ctx);
-                }
-                else if (WalletService.PayDaily(ctx, adventurer) > 0 && adventurer.State.AteInTavernToday)
-                {
-                    TreasuryService.CountTavernFood(ctx);
-                }
+                if (DecreeRules.GuildPaysLiving(adventurer, ctx.World, ctx.Data)) DecreeService.PayHousing(ctx, adventurer);
+                else WalletService.PayDaily(ctx, adventurer);
                 float target = StateRules.ContentmentTarget(adventurer, commission, ctx.Data, ctx.World);
                 StateService.MoveContentment(ctx, adventurer, target);
+                FoodService.ApplyDay(ctx, adventurer);
                 StateService.MoveLoyalty(ctx, adventurer);
                 float loyalty = DecreeRules.DailyLoyalty(ctx.World, ctx.Data);
                 if (loyalty != 0f) StateService.ChangeLoyalty(ctx, adventurer, loyalty);
@@ -60,7 +56,7 @@ namespace GuildMaster.Core
 
         private static void ResetDay(AdventurerState state)
         {
-            state.AteInTavernToday = false;
+            state.TasteToday = 0f;
             state.DrankToday = false;
             state.PaidInfirmaryToday = false;
         }

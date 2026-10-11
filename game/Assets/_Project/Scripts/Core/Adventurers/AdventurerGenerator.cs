@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using GuildMaster.Data;
 
@@ -76,7 +76,7 @@ namespace GuildMaster.Core
             ArchetypeService.Initialize(adventurer, data);
 
             // 9. Состояние: стресс и лояльность — последними бросками генератора, броски шагов 1–7 не сдвигаются.
-            StateService.InitializeNew(rng, adventurer.State, data.Balance.State);
+            StateService.InitializeNew(rng, adventurer.State, data.Balance);
             return new GeneratedAdventurer(adventurer, type, level.Level);
         }
 

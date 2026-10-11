@@ -1,4 +1,4 @@
-namespace GuildMaster.Data
+﻿namespace GuildMaster.Data
 {
     // Словарь кодовых имён игры. Значения перечислений записаны в ассетах числами:
     // новые значения — только в конец, существующие не менять и не переставлять.
@@ -83,12 +83,21 @@ namespace GuildMaster.Data
         Plural = 4,
     }
 
+    /// <summary>Тип еды в таверне гильдии: от дешёвой к роскошной. Порядок — по качеству.</summary>
+    public enum MealTier
+    {
+        Cheap = 0,
+        Simple = 1,
+        Luxury = 2,
+    }
+
     public static class Vocabulary
     {
         public const int StatCount = 14;
         public const int AxisCount = 6;
         public const int RankCount = 5;
         public const int MotiveCount = 6;
+        public const int MealTierCount = 3;
 
         /// <summary>Характеристика (а не навык): для роста «в 3 раза медленнее» и для Калеки.</summary>
         public static bool IsCharacteristic(StatId stat) => stat <= StatId.Cohesion;

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -86,7 +86,6 @@ namespace GuildMaster.Data
         [SerializeField, Min(0f)] private float contentmentDailyStep = 1f;
         [SerializeField] private float cityHousingContentment = -10f;
         [SerializeField] private float dormHousingContentment = 0f;
-        [SerializeField] private float tavernFoodContentment = 5f;
         [SerializeField] private float emptyWalletContentment = -15f;
 
         [Tooltip("Комиссия выше — штраф")]
@@ -161,7 +160,6 @@ namespace GuildMaster.Data
         public float ContentmentDailyStep => contentmentDailyStep;
         public float CityHousingContentment => cityHousingContentment;
         public float DormHousingContentment => dormHousingContentment;
-        public float TavernFoodContentment => tavernFoodContentment;
         public float EmptyWalletContentment => emptyWalletContentment;
         public float CommissionThreshold => commissionThreshold;
         public float CommissionStep => commissionStep;

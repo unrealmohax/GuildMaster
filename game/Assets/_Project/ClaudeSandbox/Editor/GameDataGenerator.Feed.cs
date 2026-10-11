@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using GuildMaster.Data;
 
@@ -279,6 +279,14 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("guild.money.walletEmpty", Z, None,
                 "У {имя:р} кончились деньги. Спит в общей зале",
                 "{имя} продал[|а] свой второй клинок"));
+            // Новое (GM-18, food.md): голод и истощение.
+            t.Add(Guild("guild.food.hunger", Z, None,
+                "{имя} голодает: в кошельке пусто",
+                "{имя} второй день без нормальной еды. В кошельке пусто",
+                "{имя} просит в таверне хлеба в долг. Не дают"));
+            t.Add(Guild("guild.food.exhausted", V, None,
+                "{имя} истощ[ён|ена]. Ещё немного — и уйдёт",
+                "{имя} еле держится на ногах от голода. Ещё немного — и уйдёт"));
             t.Add(Guild("guild.salary.paid", O, None, "Жалованье выплачено"));
             t.Add(Guild("guild.salary.unpaid", V, None, "Жалованье не выплачено. Персонал недоволен"));
             t.Add(Guild("guild.bankruptcy.started", V, None, "Казна пуста уже месяц. Начинается банкротство"));
@@ -309,6 +317,8 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("reason.hardAfterWound", O, None, "тяжело после ранения"));
             t.Add(Guild("reason.hardAfterBreakdown", O, None, "тяжело после срыва"));
             t.Add(Guild("reason.heavyHeart", O, None, "тяжело на душе"));
+            // Новое (GM-18): голод.
+            t.Add(Guild("reason.hunger", O, None, "не мог[|ла]@имя прокормиться"));
 
             // Причины решений на задании (GM-11, 💡): бегство и отказ от заказа из-за Кошмаров.
             t.Add(Guild("reason.fled", O, None, "не выдержал[|а]@имя"));
@@ -378,7 +388,9 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("report.dilemmas.timedOut", O, None, "Без ответа (по умолчанию)"));
             t.Add(Guild("report.dilemmas.withdrawn", O, None, "Сняты"));
             // Названия статей журнала казны.
-            t.Add(Guild("ledger.tavern", O, None, "Таверна"));
+            // Правка (GM-18): доход таверны — еда и выпивка отдельно.
+            t.Add(Guild("ledger.tavernFood", O, None, "Таверна: еда"));
+            t.Add(Guild("ledger.tavernDrinks", O, None, "Таверна: выпивка"));
             t.Add(Guild("ledger.commission", O, None, "Комиссия"));
             t.Add(Guild("ledger.debtRepayment", O, None, "Возврат долгов"));
             t.Add(Guild("ledger.surcharges", O, None, "Доплаты"));

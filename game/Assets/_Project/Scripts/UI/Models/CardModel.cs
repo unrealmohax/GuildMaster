@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using GuildMaster.Core;
@@ -67,6 +67,15 @@ namespace GuildMaster.UI
         public float Contentment { get; private set; }
         public string Loyalty { get; private set; } = string.Empty;
 
+        public float Satiety { get; private set; }
+        public HungerStage Hunger { get; private set; }
+
+        /// <summary>Стадия словами: «сыт», «голоден», «голод», «истощение».</summary>
+        public string HungerWord { get; private set; } = string.Empty;
+
+        /// <summary>Что ест — по последнему приёму: «ест простую еду» или «ничего не ел: не на что».</summary>
+        public string Meal { get; private set; } = string.Empty;
+
         public string Health { get; private set; } = string.Empty;
         public string Money { get; private set; } = string.Empty;
         public List<RelationRow> Relations { get; } = new List<RelationRow>();
@@ -124,6 +133,10 @@ namespace GuildMaster.UI
             Fatigue = state.Fatigue;
             Stress = state.Stress;
             Contentment = state.Contentment;
+            Satiety = state.Satiety;
+            Hunger = FoodRules.StageOf(state.Satiety, data.Balance.Food);
+            HungerWord = (female ? UiStrings.HungerStagesFemale : UiStrings.HungerStagesMale)[(int)Hunger];
+            Meal = state.LastMealTier.HasValue ? string.Format(UiStrings.MealFormat, UiStrings.MealTiers[(int)state.LastMealTier.Value]) : UiStrings.MealNone;
             Loyalty = PersonText.Loyalty(person, data) + (RevealAll ? $" ({UiFormat.Number(state.Loyalty)})" : string.Empty);
 
             string wounds = PersonText.Wounds(person, data);

@@ -89,3 +89,5 @@ description: Лента событий и тексты GuildMaster — FeedSyste
 - Распоряжения: ключи `guild.decree.*`; ключ Сухого закона зависит от участника (раскрытый Пьяница или нет) — скилл `gm-decrees`.
 - Обращения (скилл `gm-dilemmas`): `guild.dilemma.arrived` (у Трактирщика `{имя}` — из `staff`), ответы — ключи вариантов из данных
   (`feedKey` события). Тексты самих обращений (тело, варианты) рендерит `DilemmaTextSource` (`{сумма}` у варианта — его деньги).
+- Еда: ключи `guild.food.hunger` (`HungerStarted`, [З]) и `guild.food.exhausted` (`Exhausted`, [В]) в `FeedKeys.Fixed`; причина
+  `reason.hunger` («не мог[|ла]@имя прокормиться»); статьи `ledger.tavernFood` / `ledger.tavernDrinks`. Приёмы пищи строк не дают.

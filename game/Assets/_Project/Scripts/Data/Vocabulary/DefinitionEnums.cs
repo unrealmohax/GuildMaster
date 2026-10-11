@@ -1,4 +1,4 @@
-namespace GuildMaster.Data
+﻿namespace GuildMaster.Data
 {
     // Кодовые id правил, которые делает код. Значения записаны в ассетах числами:
     // новые — только в конец своей группы, существующие не менять.
@@ -40,6 +40,8 @@ namespace GuildMaster.Data
         GrievingOutcome = 11,
         /// <summary>Проверенный: разовая прибавка лояльности и Слаженности при появлении.</summary>
         TestedOnAcquire = 12,
+        /// <summary>Семейный: экономит на еде — бюджету на еду нужно больше дней запаса.</summary>
+        FamilySavesOnFood = 13,
     }
 
     /// <summary>Триггер раскрытия полюса оси или черты. Код вызывает раскрытие в своём месте.</summary>

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -811,7 +811,7 @@ namespace GuildMaster.Tests
 
             Assert.AreEqual(GuildRank.F, a.GuildRank);
             Assert.AreEqual(0f, a.RankPoints);
-            Assert.IsFalse(quests.Simulation.World.Treasury.Ledger.Any(e => e.Category != LedgerCategories.Tavern), "ни награды, ни комиссии");
+            Assert.IsFalse(quests.Simulation.World.Treasury.Ledger.Any(e => e.Category != LedgerCategories.TavernFood && e.Category != LedgerCategories.TavernDrinks), "ни награды, ни комиссии");
             Assert.AreEqual(quests.Data.Balance.Guild.StartReputation, quests.Simulation.World.Guild.Reputation, 1e-4);
 
             using var failing = new QuestWorld();

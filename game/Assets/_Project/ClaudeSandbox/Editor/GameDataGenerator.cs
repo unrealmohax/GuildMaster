@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -217,7 +217,7 @@ namespace GuildMaster.ClaudeSandbox
                 new[] { TraitHook.IronNervesComradeDeath },
                 Tension(TensionKind.Panic, -0.3f));
             Trait(t["Family"], "Семейный", "Семейная", TraitCategory.Relation, RevealTrigger.FamilyRefusedDanger, "reveal.trait.family",
-                new[] { TraitHook.FamilySendsMoneyHome, TraitHook.FamilyLeaveChance },
+                new[] { TraitHook.FamilySendsMoneyHome, TraitHook.FamilyLeaveChance, TraitHook.FamilySavesOnFood },
                 Motive(Data.Motive.Safety, Arrow.Up));
             Trait(t["Rival"], "Соперник", "Соперница", TraitCategory.Relation, RevealTrigger.RivalFirstClash, "reveal.trait.rival",
                 new[] { TraitHook.RivalPartner });

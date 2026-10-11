@@ -1,4 +1,5 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using GuildMaster.Data;
 
 namespace GuildMaster.Core
 {
@@ -35,13 +36,16 @@ namespace GuildMaster.Core
 
         public long ClosedAtHours { get; internal set; }
 
-        /// <summary>Порций в таверне (еда и выпивка) с прошлого расчёта дохода таверны.</summary>
-        internal int TavernFood { get; set; }
+        /// <summary>Порций еды в таверне по типам (<see cref="MealTier"/>) с прошлого расчёта дохода таверны.</summary>
+        internal int[] TavernMeals { get; } = new int[Vocabulary.MealTierCount];
 
+        /// <summary>Порций выпивки в таверне с прошлого расчёта дохода таверны.</summary>
         internal int TavernDrinks { get; set; }
 
-        /// <summary>Дробный остаток дохода таверны, ещё не зачисленный в целых монетах.</summary>
-        internal double TavernRemainder { get; set; }
+        /// <summary>Дробные остатки дохода таверны с еды и с выпивки, ещё не зачисленные в целых монетах.</summary>
+        internal double TavernFoodRemainder { get; set; }
+
+        internal double TavernDrinkRemainder { get; set; }
 
         /// <summary>Старт игры: деньги, комиссия; стартовый минус считается с начала игры.</summary>
         internal void Initialize(int startMoney, float commission, long nowHours)

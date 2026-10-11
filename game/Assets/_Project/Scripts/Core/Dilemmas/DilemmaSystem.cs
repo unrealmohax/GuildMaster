@@ -167,7 +167,7 @@ namespace GuildMaster.Core
             {
                 if (!CanOpenMore(ctx)) return;
                 if (!IsFree(ctx, definition, adventurer) || adventurer.State.DebtToGuild > 0) continue;
-                int dailyCost = WalletService.DailyLivingCost(adventurer, ateInTavern: false, balance.Expenses);
+                int dailyCost = WalletService.DailyLivingCost(adventurer, balance);
                 if (adventurer.State.Wallet >= balance.Dilemmas.LoanWalletDays * dailyCost) continue;
 
                 bool family = TraitRules.FindWithHook(adventurer, TraitHook.FamilySendsMoneyHome, ctx.Data) != null;
@@ -210,7 +210,7 @@ namespace GuildMaster.Core
                 if (!CanOpenMore(ctx)) return;
                 AdventurerState state = adventurer.State;
                 if (!state.IsLaidUpByWound() || !IsFree(ctx, definition, adventurer)) continue;
-                int dailyCost = WalletService.DailyLivingCost(adventurer, ateInTavern: false, balance.Expenses);
+                int dailyCost = WalletService.DailyLivingCost(adventurer, balance);
                 bool poor = state.Wallet < balance.Dilemmas.WoundedWalletDays * dailyCost;
                 bool family = TraitRules.FindWithHook(adventurer, TraitHook.FamilySendsMoneyHome, ctx.Data) != null;
                 if (!poor && !family) continue;

@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text;
 using GuildMaster.Data;
 
@@ -79,7 +79,7 @@ namespace GuildMaster.Core
 
         /// <summary>
         /// Показатели за сутки (<see cref="SimLogLevel.Trace"/>): занятие, усталость, стресс, довольство и его цель,
-        /// лояльность, кошелёк, флаги.
+        /// лояльность, сытость, кошелёк, флаги.
         /// </summary>
         public static void WriteDaily(SimContext ctx, Adventurer adventurer, float contentmentTarget)
         {
@@ -95,6 +95,7 @@ namespace GuildMaster.Core
                 .Append(" contentment=").Append(Number(state.Contentment))
                 .Append(" target=").Append(Number(contentmentTarget))
                 .Append(" loyalty=").Append(Number(state.Loyalty))
+                .Append(" satiety=").Append(Number(state.Satiety))
                 .Append(" wallet=").Append(state.Wallet.ToString(CultureInfo.InvariantCulture));
             if (state.IsWalletEmpty) line.Append(" walletEmpty");
             if (state.DebtToGuild > 0) line.Append(" debt=").Append(state.DebtToGuild.ToString(CultureInfo.InvariantCulture));

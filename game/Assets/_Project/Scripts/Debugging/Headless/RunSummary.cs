@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using GuildMaster.Core;
+using GuildMaster.Data;
 
 namespace GuildMaster.Debugging
 {
@@ -28,10 +29,15 @@ namespace GuildMaster.Debugging
         private readonly long personHours;
         private readonly int ledgerFrom;
         private readonly int ledgerTo;
+        private readonly long[] meals;
+        private readonly long[] hungerHours;
 
         internal MonthRecord(int year, int month, int days, ISimulationClient game, Dictionary<SimEventType, int> counts, long[] feedLines,
-            long[] activityHours, long personHours, int ledgerFrom, int ledgerTo, IReadOnlyList<SimEvent> events = null)
+            long[] activityHours, long personHours, int ledgerFrom, int ledgerTo, IReadOnlyList<SimEvent> events = null,
+            long[] meals = null, long[] hungerHours = null)
         {
+            this.meals = meals ?? new long[Vocabulary.MealTierCount];
+            this.hungerHours = hungerHours ?? new long[Enum.GetValues(typeof(HungerStage)).Length];
             this.events = events ?? Array.Empty<SimEvent>();
             this.ledgerFrom = ledgerFrom;
             this.ledgerTo = ledgerTo;
@@ -73,6 +79,20 @@ namespace GuildMaster.Debugging
 
         /// <summary>Сколько строк этой важности добавлено в ленту гильдии за месяц.</summary>
         public long FeedLines(EventImportance importance) => feedLines[(int)importance];
+
+        /// <summary>Сколько приёмов пищи этого типа было за месяц.</summary>
+        public long Meals(MealTier tier) => meals[(int)tier];
+
+        /// <summary>Доля приёмов этого типа среди всех приёмов месяца, %; приёмов не было — 0.</summary>
+        public double MealShare(MealTier tier)
+        {
+            long total = 0;
+            foreach (long count in meals) total += count;
+            return total > 0 ? 100.0 * meals[(int)tier] / total : 0;
+        }
+
+        /// <summary>Человеко-дни месяца (часы / 24) людей в гильдии на этой стадии голода.</summary>
+        public double HungerDays(HungerStage stage, int hoursPerDay) => (double)hungerHours[(int)stage] / hoursPerDay;
 
         /// <summary>Доля часов людей в гильдии за месяц (со сном), проведённых за этим занятием, %; людей не было — 0.</summary>
         public double ActivityShare(Activity activity) =>
@@ -241,6 +261,8 @@ namespace GuildMaster.Debugging
         private long monthTicks;
         private long[] activityHours = new long[Enum.GetValues(typeof(Activity)).Length];
         private long personHours;
+        private long[] meals = new long[Vocabulary.MealTierCount];
+        private long[] hungerHours = new long[Enum.GetValues(typeof(HungerStage)).Length];
         private int ledgerAtMonthStart;
         private List<SimEvent> monthEvents = new List<SimEvent>();
 
@@ -282,13 +304,16 @@ namespace GuildMaster.Debugging
         private void OnTick(IReadOnlyList<SimEvent> events)
         {
             monthTicks++;
+            FoodBalance food = simulation.Data.Balance.Food;
             foreach (Adventurer adventurer in simulation.World.Adventurers.Active)
             {
                 activityHours[(int)adventurer.State.Activity]++;
+                hungerHours[(int)FoodRules.StageOf(adventurer, food)]++;
                 personHours++;
             }
             foreach (SimEvent simEvent in events)
             {
+                if (simEvent.Type == SimEventType.MealEaten && simEvent.TryGet("tier", out MealTier tier)) meals[(int)tier]++;
                 monthCounts.TryGetValue(simEvent.Type, out int count);
                 monthCounts[simEvent.Type] = count + 1;
                 if (EventLogLevels.Of(simEvent.Type) != SimLogLevel.Trace) monthEvents.Add(simEvent);
@@ -318,7 +343,7 @@ namespace GuildMaster.Debugging
             }
             int ledgerCount = simulation.World.Treasury.Ledger.Count;
             var record = new MonthRecord(time.Year, time.Month, days, simulation, monthCounts, feedLines, activityHours, personHours,
-                ledgerAtMonthStart, ledgerCount, monthEvents);
+                ledgerAtMonthStart, ledgerCount, monthEvents, meals, hungerHours);
             ledgerAtMonthStart = ledgerCount;
             var values = new double[monthColumns.Count];
             for (int c = 0; c < values.Length; c++) values[c] = monthColumns[c].Value(record);
@@ -328,6 +353,8 @@ namespace GuildMaster.Debugging
             monthEvents = new List<SimEvent>();
             monthTicks = 0;
             activityHours = new long[activityHours.Length];
+            meals = new long[meals.Length];
+            hungerHours = new long[hungerHours.Length];
             personHours = 0;
         }
     }

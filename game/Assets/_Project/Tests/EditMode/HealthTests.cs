@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using GuildMaster.Core;
@@ -89,7 +89,7 @@ namespace GuildMaster.Tests
             Assert.AreEqual(Activity.Infirmary, patient.State.Activity);
             world.TickToHour(world.Balance.Time.NightHour - 1);
             Assert.AreEqual(Activity.Infirmary, patient.State.Activity, "в таверну не идёт");
-            Assert.AreEqual(95, patient.State.Wallet, "Лазарет — 5 за день");
+            Assert.AreEqual(100 - 5 - 3, patient.State.Wallet, "Лазарет — 5 за день и три приёма дешёвой еды");
         }
 
         [Test]

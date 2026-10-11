@@ -1,4 +1,4 @@
-namespace GuildMaster.Data
+﻿namespace GuildMaster.Data
 {
     // Значения записаны в ассетах числами: новые — только в конец, существующие не менять.
 
@@ -52,6 +52,7 @@ namespace GuildMaster.Data
         Contentment = 1,
         Loyalty = 2,
         Fatigue = 3,
+        Satiety = 4,
     }
 
     public enum RateDirection

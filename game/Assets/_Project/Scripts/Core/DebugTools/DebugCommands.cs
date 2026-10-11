@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using GuildMaster.Data;
 
@@ -153,7 +153,7 @@ namespace GuildMaster.Core
         }
     }
 
-    /// <summary>Задать показатель состояния (0..100): усталость, стресс, довольство, лояльность.</summary>
+    /// <summary>Задать показатель состояния (0..100): усталость, стресс, довольство, лояльность, сытость.</summary>
     public sealed class DebugSetStateCommand : ICommand
     {
         public DebugSetStateCommand(int adventurerId, StateStat stat, float value)
@@ -178,6 +178,7 @@ namespace GuildMaster.Core
                 case StateStat.Stress: state.Stress = value; break;
                 case StateStat.Contentment: state.Contentment = value; break;
                 case StateStat.Loyalty: state.Loyalty = value; break;
+                case StateStat.Satiety: state.Satiety = value; break;
             }
             DebugAction.Publish(ctx, "state", AdventurerId).With("stat", Stat).With("value", value);
         }

@@ -16,7 +16,7 @@ description: Распоряжения GuildMaster — DecreeDefinition (прав
 | `DecreeDefinition` | `Effect` (`DecreeEffect` — какое правило реализует код), `NameForms` (6 падежей + род), `Description`, `PlusText`, `MinusText`, `ScopeKind` (`None`/`Ranks`), `DefaultRanks`, `AllowedDurations`, `IsBenefit` |
 | `DecreeBook.cs` | часть мира `World.Decrees`: `Active` (`ActiveDecree`: `Ranks`, `Duration`, `TermStartedAtHours`, `EndsAtHours` — 0 у бессрочного, `HasRank`), `History` (`DecreeSpan` — включено/выключено), `GetActiveHours(id, от, до]` |
 | `DecreeRules.cs` | чистые правила: `Find(data, effect)`, `IsOn/TryGetOn`, `Days(срок)`, `NormalizeRanks`; эффекты — `GuildPaysLiving`, `CandidateChanceMultiplier`, `CandidateWorkShift`, `IsSoloBanned(order)`, `Compensation(kind, maimed)`, `OrderSafetyMultiplier`, `TavernIncomeMultiplier`, `TavernStressReliefMultiplier`, `DrunkardSkipChance`, `ContentmentTerm`, `DailyLoyalty`, `IsAffectedByBenefit` |
-| `DecreeService.cs` | `Enable`, `Change` (срок — заново, без строки), `Revoke` (игрок; льгота — довольство `benefitCancelContentment` у затронутых), `Expire`, `PayLiving` (5 в день за новичка), `CompensateWound` |
+| `DecreeService.cs` | `Enable`, `Change` (срок — заново, без строки), `Revoke` (игрок; льгота — довольство `benefitCancelContentment` у затронутых), `Expire`, `PayHousing` (жильё новичка в 00:00), `PayMeal` (простая еда новичка), `CompensateWound` |
 | `ToggleDecreeCommand.cs` | `(id, вкл., ранги, срок)`: пустая область у распоряжения с областью или недопустимый срок — ничего; то же самое — без событий |
 | `DecreeSystem.cs` | шаг 14 (после `RecruitSystem`, до `MonthReportSystem`): снять те, у кого `now ≥ EndsAtHours`; бросков нет |
 
@@ -24,7 +24,7 @@ description: Распоряжения GuildMaster — DecreeDefinition (прав
 
 | Распоряжение | Где в коде |
 |---|---|
-| Еда и жильё для новичков | `StateSystem` 00:00 — `GuildPaysLiving` → `DecreeService.PayLiving` вместо `WalletService.PayDaily` (порция таверны засчитывается); `RecruitSystem.CandidateChance(data, world)` × 1,5; `AdventurerGenerator.Generate(…, workAxisShift)` — Труд −20 |
+| Еда и жильё для новичков | `StateSystem` 00:00 — `GuildPaysLiving` → `DecreeService.PayHousing` вместо `WalletService.PayDaily` (город — 3, Общежитие — денег не движется); в часы приёмов — `FoodService.Eat` → `DecreeService.PayMeal` за простую (выбрал бы роскошную — платит сам); `RecruitSystem.CandidateChance(data, world)` × 1,5; `AdventurerGenerator.Generate(…, workAxisShift)` — Труд −20 |
 | Только группой | запрет `"solo forbidden by decree"` в `DecisionBans.Default` (только `TakeOrder`, экзамен — нет); `DecisionSystem.Parties.Gather` — минимум 2, одному не идти, без раскрытия Командного; довольство — `ContentmentTerm` |
 | Компенсация за ранение | `HealthService.Wound` → `CompensateWound` (20 / 100 / увечье 300 вместо 100; доход кошелька `IncomeKind.Compensation`); `DecisionScope.SafetyMultiplier` — в `Evaluate` для `action.IsOrder` и в `PartyLens`/`MeanGroupValue`; `StateSystem` — `DailyLoyalty` после `MoveLoyalty` |
 | Сухой закон | `TreasuryService.SettleTavern` × 0,6; `StateService.ApplyHour` — снятие стресса в таверне × 0,7, Пьянице 0; `ActivitySystem.TrySkipDay` — шанс 0; довольство Пьяницы −10 — `ContentmentTerm` |

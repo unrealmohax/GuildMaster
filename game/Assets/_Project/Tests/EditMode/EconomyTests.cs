@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using GuildMaster.Core;
 using GuildMaster.Data;
@@ -166,26 +166,34 @@ namespace GuildMaster.Tests
     public sealed class TavernIncomeTests
     {
         [Test]
-        public void Servings_PayHalfCoinEach_RemainderCarriesOver()
+        public void Servings_PayGuildSharePerTier_FoodAndDrinksSeparately_RemainderCarriesOver()
         {
             using var data = new TestData();
             var simulation = Simulation.CreateDefault(data.Registry, 1u);
             SimulationRun.Do(simulation, ctx =>
             {
-                TreasuryService.CountTavernFood(ctx);
+                TreasuryService.CountTavernMeal(ctx, MealTier.Simple);
                 TreasuryService.CountTavernDrink(ctx);
                 TreasuryService.CountTavernDrink(ctx);
-                TreasuryService.SettleTavern(ctx); // 1,5 → 1, остаток 0,5
-                TreasuryService.CountTavernFood(ctx);
-                TreasuryService.SettleTavern(ctx); // 0,5 + 0,5 → 1
+                TreasuryService.SettleTavern(ctx); // еда 0,5 → 0, остаток 0,5; выпивка 1,0 → 1
+                TreasuryService.CountTavernMeal(ctx, MealTier.Simple);
+                TreasuryService.SettleTavern(ctx); // еда 0,5 + 0,5 → 1
+                TreasuryService.CountTavernMeal(ctx, MealTier.Luxury);
+                TreasuryService.CountTavernMeal(ctx, MealTier.Cheap);
+                TreasuryService.SettleTavern(ctx); // 1,5 + 0,2 → 1, остаток 0,7
                 TreasuryService.SettleTavern(ctx); // порций нет
             });
 
             Treasury treasury = simulation.World.Treasury;
-            Assert.AreEqual(2, treasury.Ledger.Count);
-            Assert.IsTrue(treasury.Ledger.All(e => e.Category == LedgerCategories.Tavern && e.Amount == 1));
-            Assert.AreEqual("food=1 drinks=2", treasury.Ledger[0].Comment);
-            Assert.AreEqual(2002, treasury.Money);
+            Assert.AreEqual(3, treasury.Ledger.Count);
+            Assert.AreSame(LedgerCategories.TavernDrinks, treasury.Ledger[0].Category);
+            Assert.AreEqual("drinks=2", treasury.Ledger[0].Comment);
+            Assert.AreSame(LedgerCategories.TavernFood, treasury.Ledger[1].Category);
+            Assert.AreEqual("cheap=0 simple=1 luxury=0", treasury.Ledger[1].Comment);
+            Assert.AreEqual("cheap=1 simple=0 luxury=1", treasury.Ledger[2].Comment);
+            Assert.IsTrue(treasury.Ledger.All(e => e.Amount == 1));
+            Assert.AreEqual(2003, treasury.Money);
+            Assert.AreEqual(0.7, treasury.TavernFoodRemainder, 1e-6);
         }
 
         [Test]
@@ -203,11 +211,13 @@ namespace GuildMaster.Tests
             Assert.Greater(treasury.Money, treasury.StartMoney);
             foreach (LedgerEntry entry in treasury.Ledger)
             {
-                Assert.AreSame(LedgerCategories.Tavern, entry.Category);
+                Assert.That(entry.Category, Is.SameAs(LedgerCategories.TavernFood).Or.SameAs(LedgerCategories.TavernDrinks));
                 Assert.AreEqual(0, world.Simulation.Calendar.At(entry.TimeHours).Hour);
             }
-            // 4 еды (2 монеты) и до 2 выпивок в сутки.
-            Assert.IsTrue(treasury.Ledger.Skip(1).All(e => e.Amount >= 2 && e.Amount <= 3));
+            // Денег много — роскошная еда: 4 человека × 3 приёма × 1,5 = 18 в сутки; выпивка — до 2 порций.
+            Assert.AreEqual(10, treasury.Ledger.Count(e => e.Category == LedgerCategories.TavernFood), "еда — каждые сутки");
+            Assert.IsTrue(treasury.Ledger.Where(e => e.Category == LedgerCategories.TavernFood).All(e => e.Amount == 18));
+            Assert.IsTrue(treasury.Ledger.Where(e => e.Category == LedgerCategories.TavernDrinks).All(e => e.Amount == 1));
             TestLedger.AssertLedgerMatchesMoney(treasury);
         }
 
@@ -400,8 +410,9 @@ namespace GuildMaster.Tests
             Assert.AreEqual(report.MoneyAtEnd, report.MoneyAtStart + report.Income - report.Expense);
 
             Assert.IsTrue(report.TryGetSection(MonthReportSections.MoneyTitle, out ReportSection money));
-            Assert.IsTrue(money.TryGetLine(LedgerCategories.Tavern.TextKey, out ReportLine tavern));
-            Assert.AreEqual(income, tavern.Amount);
+            Assert.IsTrue(money.TryGetLine(LedgerCategories.TavernFood.TextKey, out ReportLine food));
+            int drinks = money.TryGetLine(LedgerCategories.TavernDrinks.TextKey, out ReportLine tavernDrinks) ? tavernDrinks.Amount : 0;
+            Assert.AreEqual(income, food.Amount + drinks, "доход таверны — еда и выпивка отдельными строками");
             Assert.IsTrue(money.TryGetLine(TestLedger.Mandatory.TextKey, out ReportLine expense));
             Assert.AreEqual(-70, expense.Amount);
 
@@ -423,7 +434,7 @@ namespace GuildMaster.Tests
             List<string> text = MonthReportText.Lines(report, simulation.World, world.Registry, errors);
             CollectionAssert.Contains(text, "Деньги");
             CollectionAssert.Contains(text, "Казна на начало месяца: 2000");
-            CollectionAssert.Contains(text, "Таверна: +" + income);
+            CollectionAssert.Contains(text, "Таверна: еда: +" + income);
             CollectionAssert.Contains(text, "Люди");
             CollectionAssert.Contains(text, "Ушли: Тест");
             Assert.IsTrue(text.Any(t => t.StartsWith("Раскрылись: Тест — ") && t.EndsWith(": уравновешенность")), string.Join("\n", text));
@@ -595,7 +606,7 @@ namespace GuildMaster.Tests
             List<string> names = summary.MonthColumns.Select(c => c.Name).ToList();
             int money = names.IndexOf("Казна");
             int income = names.IndexOf("Доходы");
-            int tavern = names.IndexOf("Доход: Таверна");
+            int tavern = names.IndexOf("Доход: Таверна: еда");
             Assert.GreaterOrEqual(money, 0);
             Assert.GreaterOrEqual(tavern, 0);
             Assert.GreaterOrEqual(names.IndexOf("Банкротство"), 0);

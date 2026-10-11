@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using GuildMaster.Data;
 
 namespace GuildMaster.Core
@@ -28,6 +28,15 @@ namespace GuildMaster.Core
 
         /// <summary>Лояльность, 0..100. Игрок видит её только словами (<see cref="StateRules.LoyaltyWord"/>).</summary>
         public float Loyalty { get; internal set; }
+
+        /// <summary>
+        /// Сытость, 0..100. Убывает каждый час вне задания, еда в таверне её восполняет (<see cref="FoodRules"/>).
+        /// Новое состояние — сытое; стартовое значение нового человека ставит генерация.
+        /// </summary>
+        public float Satiety { get; internal set; } = StateRules.Limit;
+
+        /// <summary>Тип последнего приёма пищи; <c>null</c> — ещё не ел или последний приём пропущен.</summary>
+        public MealTier? LastMealTier { get; internal set; }
 
         /// <summary>Монеты, ≥ 0.</summary>
         public int Wallet { get; internal set; }
@@ -63,8 +72,8 @@ namespace GuildMaster.Core
 
         // Учёт текущих суток; расходы за них списываются и учёт сбрасывается в 00:00 (StateSystem).
 
-        /// <summary>За текущие сутки хотя бы раз ел в таверне: еда дороже, довольство выше.</summary>
-        public bool AteInTavernToday { get; internal set; }
+        /// <summary>Сумма вкуса приёмов пищи за текущие сутки (пропущенный приём — 0): вкус дня — среднее, вклад в довольство.</summary>
+        public float TasteToday { get; internal set; }
 
         /// <summary>За текущие сутки уже заплатил за выпивку (вечер в таверне или день запоя).</summary>
         public bool DrankToday { get; internal set; }
