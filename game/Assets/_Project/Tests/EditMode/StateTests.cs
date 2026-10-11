@@ -217,7 +217,7 @@ namespace GuildMaster.Tests
         }
 
         [Test]
-        public void Breakdown_Binge_TwoDaysInTavern_DrinksFiveADay_ThenStressMinus30()
+        public void Breakdown_Binge_TwoDaysInTavern_DrinksTwelveMugsADay_ThenStressMinus30()
         {
             world = new StateWorld();
             Adventurer veteran = world.Add("Veteran");
@@ -248,8 +248,8 @@ namespace GuildMaster.Tests
             Assert.AreEqual(BreakdownKind.None, veteran.State.Breakdown);
             Assert.AreEqual(Activity.Sleeping, veteran.State.Activity);
 
-            // Два дня: выпивка 5, жильё 3 и три приёма дешёвой еды по 1 (кошелёк меньше резерва и бюджета на еду получше).
-            Assert.AreEqual(100 - 2 * 5 - 2 * 3 - 2 * 3 * 1, veteran.State.Wallet);
+            // Два дня: 12 кружек по 1, жильё 3 и три приёма дешёвой еды по 1 (кошелёк меньше резерва и бюджета на еду получше).
+            Assert.AreEqual(100 - 2 * 12 - 2 * 3 - 2 * 3 * 1, veteran.State.Wallet);
         }
 
         [Test]

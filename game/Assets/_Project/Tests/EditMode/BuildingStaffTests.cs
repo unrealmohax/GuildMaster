@@ -90,7 +90,7 @@ namespace GuildMaster.Tests
             Building yard = world.Simulation.World.Buildings.Current;
             Assert.IsNotNull(yard);
             Assert.AreEqual(BuildingState.UnderConstruction, yard.State);
-            Assert.AreEqual(money - 600, world.Simulation.World.Treasury.Money);
+            Assert.AreEqual(money - 1200, world.Simulation.World.Treasury.Money);
             Assert.AreEqual(LedgerCategories.Construction, world.Simulation.World.Treasury.Ledger.Last().Category);
             Assert.AreEqual(start + 7 * 24, yard.ConstructionEndsAtHours);
 
@@ -106,10 +106,10 @@ namespace GuildMaster.Tests
         public void Queue_OneAtATime_WaitsForMoney_ReorderAndCancel()
         {
             world = new StateWorld();
-            SetMoney(world, 1000);
+            SetMoney(world, 2000);
             BuildingBook book = world.Simulation.World.Buildings;
 
-            Build(world, "TrainingYard"); // 600 — начинается сразу
+            Build(world, "TrainingYard"); // 1200 — начинается сразу
             List<SimEvent> events = world.Collect(() =>
             {
                 Build(world, "Dormitory");
@@ -117,7 +117,7 @@ namespace GuildMaster.Tests
                 world.Simulation.Tick();
             });
             Assert.AreEqual("TrainingYard", book.Current.DefinitionId);
-            Assert.AreEqual(400, world.Simulation.World.Treasury.Money, "деньги очереди не списаны");
+            Assert.AreEqual(800, world.Simulation.World.Treasury.Money, "деньги очереди не списаны");
             Assert.AreEqual(2, events.Count(e => e.Type == SimEventType.BuildingQueued));
             CollectionAssert.AreEqual(new[] { "Dormitory", "Infirmary" }, book.Queue.Select(b => b.DefinitionId));
 
@@ -133,12 +133,12 @@ namespace GuildMaster.Tests
             while (!book.IsReady("TrainingYard")) world.Simulation.Tick();
             world.Simulation.Tick();
             Assert.IsNull(book.Current, "денег меньше цены — очередь ждёт");
-            Assert.AreEqual(400, world.Simulation.World.Treasury.Money);
+            Assert.AreEqual(800, world.Simulation.World.Treasury.Money);
 
             SetMoney(world, 5000);
             world.Simulation.Tick();
             Assert.AreEqual("Infirmary", book.Current?.DefinitionId, "деньги появились — стройка началась");
-            Assert.AreEqual(4000, world.Simulation.World.Treasury.Money);
+            Assert.AreEqual(2500, world.Simulation.World.Treasury.Money);
 
             Build(world, "Infirmary");
             Build(world, "TrainingYard");
@@ -395,8 +395,8 @@ namespace GuildMaster.Tests
             Assert.AreEqual(0f, StaffRules.AcceptChance(200, 100, 0f, staff));
 
             var healer = data.Registry.Get<StaffRoleDefinition>("Healer");
-            Assert.AreEqual(250 * (0.7f + 0.3f), StaffRules.AskedSalary(healer, 30, staff));
-            Assert.AreEqual(250 * (0.7f + 0.7f), StaffRules.AskedSalary(healer, 70, staff));
+            Assert.AreEqual(400 * (0.7f + 0.3f), StaffRules.AskedSalary(healer, 30, staff));
+            Assert.AreEqual(400 * (0.7f + 0.7f), StaffRules.AskedSalary(healer, 70, staff));
             Assert.AreEqual(1f, StaffRules.LevelEffect(50, staff), 1e-5f);
         }
 
@@ -407,7 +407,7 @@ namespace GuildMaster.Tests
             WorldState state = world.Simulation.World;
             int salaries = StaffRules.MonthlySalaries(state);
             int upkeep = BuildingRules.MonthlyUpkeep(state, world.Registry);
-            Assert.AreEqual(90, upkeep, "Зал 50 + Таверна 40");
+            Assert.AreEqual(250, upkeep, "Зал 150 + Таверна 100");
 
             world.TickToHour(23);
             int ledgerFrom = state.Treasury.Ledger.Count;
@@ -510,7 +510,7 @@ namespace GuildMaster.Tests
             Assert.IsTrue(lines.Any(l => l.StartsWith("Построено:") && l.Contains("Тренировочный двор")));
             Assert.IsTrue(lines.Any(l => l.StartsWith("Персонал")));
             Assert.IsTrue(lines.Any(l => l.StartsWith("Наняты:") && l.Contains("Лекарь гильдии")));
-            CollectionAssert.Contains(lines, "Стройка: -1400", "статья «Стройка» в деньгах");
+            CollectionAssert.Contains(lines, "Стройка: -1200", "статья «Стройка» в деньгах");
         }
 
         [Test]

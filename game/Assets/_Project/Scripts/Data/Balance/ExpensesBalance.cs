@@ -19,10 +19,10 @@ namespace GuildMaster.Data
         [Tooltip("Тренировка на дворе в день (доход гильдии)")]
         [SerializeField, Min(0f)] private float training = 2f;
 
-        [Tooltip("Выпивка за вечер в таверне")]
-        [SerializeField] private IntRange drink = new IntRange(2, 5);
+        [Tooltip("Цена кружки выпивки")]
+        [SerializeField] private IntRange drink = new IntRange(1, 1);
 
-        [Tooltip("Пьёт в таверне, если стресс выше (или Пьяница)")]
+        [Tooltip("Тянет в таверну выпить, если стресс выше (или Пьяница); выше него каждые drinkStressStep — ещё кружка вечером")]
         [SerializeField, Range(0f, 100f)] private float drinkStressThreshold = 30f;
 
         [Tooltip("Ремонт снаряжения разово")]
@@ -30,6 +30,15 @@ namespace GuildMaster.Data
 
         [Tooltip("«Расходы на неделю» для порогов кошелька: дней")]
         [SerializeField, Min(1)] private int reserveDays = 7;
+
+        [Tooltip("Кружек за вечер в городе")]
+        [SerializeField] private IntRange eveningDrinks = new IntRange(3, 4);
+
+        [Tooltip("Кружек за вечер в городе у Пьяницы")]
+        [SerializeField] private IntRange drunkardEveningDrinks = new IntRange(10, 15);
+
+        [Tooltip("Стресс выше drinkStressThreshold: ещё кружка за каждые столько")]
+        [SerializeField, Min(1f)] private float drinkStressStep = 20f;
 
         public float CityHousing => cityHousing;
         public float DormHousing => dormHousing;
@@ -39,5 +48,8 @@ namespace GuildMaster.Data
         public float DrinkStressThreshold => drinkStressThreshold;
         public IntRange GearRepair => gearRepair;
         public int ReserveDays => reserveDays;
+        public IntRange EveningDrinks => eveningDrinks;
+        public IntRange DrunkardEveningDrinks => drunkardEveningDrinks;
+        public float DrinkStressStep => drinkStressStep;
     }
 }

@@ -57,7 +57,7 @@ namespace GuildMaster.Core
         }
 
         /// <summary>Человек выпил в таверне (и в запое): порция засчитывается в доход таверны при суточном расчёте.</summary>
-        internal static void CountTavernDrink(SimContext ctx) => ctx.World.Treasury.TavernDrinks++;
+        internal static void CountTavernDrink(SimContext ctx, int portions = 1) => ctx.World.Treasury.TavernDrinks += portions;
 
         /// <summary>
         /// Доход таверны за прошедшие сутки (× Сухой закон): еда — порции и пайки каждого типа × доля гильдии с порции этого типа,

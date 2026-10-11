@@ -39,8 +39,11 @@ description: Состояние и здоровье авантюристов Gui
    иначе `PlannedActivity` из прошлого часа, иначе прежнее свободное (`IsFreeTime`), после сна/срыва/Лазарета — `Resting`.
    Тренировка — занятие на `trainingHoursPerDay` часов (`ActivitySystem.Train`: плата 2 в казну при начале; конец — `Resting`
    и `WasFreeLastHour = false`, чтобы человек решил снова в этом же часу).
-   Расходы занятия раз в сутки (выпивка, запой, Лазарет — в казну сколько заплачено); выпивка, за которую заплачено, — порция
-   в доход таверны (`TreasuryService.CountTavernDrink`). Еда — не занятие (см. «Еда и сытость»). Утром — бросок пропуска дня Пьяницы.
+   Расходы занятия раз в сутки (запой — `bingeDrinkPerDay` кружек, Лазарет — в казну сколько заплачено). Выпивка — `DrinkEvening`
+   в начале ночи (`NightHour`) у всех в городе (не на задании, не в Лазарете, без запоя в этот день): `eveningDrinks` 3–4 кружки,
+   у Пьяницы `drunkardEveningDrinks` 10–15, +1 за каждые `drinkStressStep` стресса выше `drinkStressThreshold`; обычный — сверх
+   `FoodRules.Reserve`, Пьяница — из всего кошелька; кружка — `expenses.drink` (1); ставит `DrankToday`; оплаченные кружки — в доход
+   таверны (`TreasuryService.CountTavernDrink(ctx, кружек)`, `tavernIncomePerServing` 0,15). Заход в таверну днём сам не платит. Еда — не занятие (см. «Еда и сытость»). Утром — бросок пропуска дня Пьяницы.
 3. `StateSystem` (шаг 6): каждый час `StateService.ApplyHour` — усталость и стресс по таблице занятий × `StateRates`
    (снятие стресса в таверне ещё × эффект Трактирщика, `StaffRules.EffectMultiplier`), затем `FoodService.ApplyHour`.
    В 00:00 по каждому: `WalletService.PayDaily` (только жильё), довольство к `ContentmentTarget` (вкус еды за сутки, комиссия —

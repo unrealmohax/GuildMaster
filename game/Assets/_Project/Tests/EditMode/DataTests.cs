@@ -232,7 +232,7 @@ namespace GuildMaster.Tests
             Assert.AreEqual(45f, registry.Get<ArchetypeDefinition>("Novice").GenerationWeight);
             Assert.AreEqual(TraitCategory.Acquired, registry.Get<SpecialTraitDefinition>("Maimed").Category);
             Assert.AreEqual(6, registry.Get<QuestTypeDefinition>("Delivery").RoundHours);
-            Assert.AreEqual(800, registry.Get<BuildingDefinition>("Dormitory").Cost);
+            Assert.AreEqual(1500, registry.Get<BuildingDefinition>("Dormitory").Cost);
             Assert.AreEqual(GrammaticalGender.Neuter, registry.Get<BuildingDefinition>("Dormitory").NameForms.Gender);
             Assert.AreEqual(14, registry.Get<DecreeDefinition>("Prohibition").LawNumber);
             Assert.AreEqual(DilemmaTrigger.TavernFeast, registry.Get<DilemmaDefinition>("TavernFeast").Trigger);
@@ -285,9 +285,9 @@ namespace GuildMaster.Tests
             var balance = AssetDatabase.LoadAssetAtPath<BalanceSettings>("Assets/_Project/Data/BalanceSettings.asset");
             var registry = new DataRegistry(balance);
 
-            Assert.AreEqual(2000, registry.Balance.Guild.StartMoney);
+            Assert.AreEqual(3000, registry.Balance.Guild.StartMoney);
             Assert.AreEqual(0.2f, registry.Balance.Economy.DefaultCommission);
-            Assert.AreEqual(90, registry.Balance.Ranks.For(GuildRank.D).PointsToNext);
+            Assert.AreEqual(200, registry.Balance.Ranks.For(GuildRank.D).PointsToNext);
             Assert.AreEqual(2f, registry.Balance.Decisions.ArrowMultiplier(Arrow.StrongUp));
             Assert.AreEqual(AdventurerLevel.Medium, registry.Balance.Adventurers.StartMaxLevel);
         }

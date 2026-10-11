@@ -1,4 +1,5 @@
-﻿using GuildMaster.Data;
+﻿using System;
+using GuildMaster.Data;
 
 namespace GuildMaster.Core
 {
@@ -14,9 +15,11 @@ namespace GuildMaster.Core
     /// иначе прежнее свободное занятие (отдых, таверна, тренировка); после сна, срыва, Лазарета — <see cref="Activity.Resting"/>.</item>
     /// </list>
     /// Выбранное решением занятие ставится только здесь, поэтому за час решения показатели считаются по прежнему занятию.
-    /// Расходы занятия — раз в сутки, в первый его час: таверна — выпивка 2–5 (если стресс выше 30 или Пьяница); запой — выпивка <c>bingeDrinkPerDay</c>;
-    /// Лазарет — <c>infirmary</c>, в казну — сколько заплачено (недостача — недополученный доход гильдии). Выпивка в таверне
-    /// и в запое, за которую заплачено хоть что-то, — порция в доход таверны (<see cref="TreasuryService"/>).
+    /// Расходы занятия — раз в сутки, в первый его час: запой — <c>bingeDrinkPerDay</c> кружек; Лазарет — <c>infirmary</c>, в казну —
+    /// сколько заплачено (недостача — недополученный доход гильдии). Вечер в городе (начало ночи, не на задании, не в Лазарете, без
+    /// запоя в этот день) — выпивка: <c>eveningDrinks</c> кружек, у Пьяницы <c>drunkardEveningDrinks</c>, и ещё кружка за каждые
+    /// <c>drinkStressStep</c> стресса выше <c>drinkStressThreshold</c>; обычный пьёт только сверх резерва на еду, Пьяница — из всего
+    /// кошелька. Оплаченные кружки — в доход таверны (<see cref="TreasuryService"/>).
     /// Тренировка — занятие на <c>trainingHoursPerDay</c> часов, плата <c>training</c> в казну при начале; после него человек
     /// решает снова. Утром Пьяница может пропустить день (10%, при стрессе выше 50 — 20%).
     /// </summary>
@@ -30,6 +33,7 @@ namespace GuildMaster.Core
             int hour = ctx.World.Time.Hour;
             DayPhase phase = ctx.Rhythm.PhaseAt(hour);
             bool morning = hour == ctx.Data.Balance.Time.MorningHour;
+            bool night = hour == ctx.Data.Balance.Time.NightHour;
 
             foreach (Adventurer adventurer in ctx.World.Adventurers.Active)
             {
@@ -50,6 +54,34 @@ namespace GuildMaster.Core
                 state.Activity = next;
                 state.PlannedActivity = null;
                 PayForActivity(ctx, adventurer);
+                if (night) DrinkEvening(ctx, adventurer);
+            }
+        }
+
+        /// <summary>Вечер в городе кончился — выпивка (см. описание системы).</summary>
+        private static void DrinkEvening(SimContext ctx, Adventurer adventurer)
+        {
+            AdventurerState state = adventurer.State;
+            if (state.InInfirmary || state.DrankToday) return;
+
+            ExpensesBalance expenses = ctx.Data.Balance.Expenses;
+            bool drunkard = TraitRules.FindWithHook(adventurer, TraitHook.DrunkardSkipsDay, ctx.Data) != null;
+            IntRange range = drunkard ? expenses.DrunkardEveningDrinks : expenses.EveningDrinks;
+            int wanted = ctx.Rng.RangeInclusive(range.Min, range.Max)
+                + (int)Math.Floor(Math.Max(0f, state.Stress - expenses.DrinkStressThreshold) / expenses.DrinkStressStep);
+            int budget = drunkard ? state.Wallet : Math.Max(0, state.Wallet - FoodRules.Reserve(adventurer, ctx.Data.Balance));
+            int price = ctx.Rng.RangeInclusive(expenses.Drink.Min, expenses.Drink.Max);
+            int portions = price > 0 ? Math.Min(wanted, budget / price) : wanted;
+            state.DrankToday = true;
+            if (portions <= 0) return;
+
+            WalletService.Pay(ctx, adventurer, portions * price);
+            TreasuryService.CountTavernDrink(ctx, portions);
+            if (ctx.Log.IsOn(SimLogLevel.Debug))
+            {
+                ctx.Log.Begin(SimLogLevel.Debug).Append("drink #").Append(adventurer.Id).Append(' ').Append(adventurer.Name).Append(": ")
+                    .Append(portions).Append(" of ").Append(wanted).Append(" (wallet=").Append(state.Wallet).Append(')');
+                ctx.Log.Commit();
             }
         }
 
@@ -119,20 +151,18 @@ namespace GuildMaster.Core
 
             switch (state.Activity)
             {
-                case Activity.Tavern:
-                    if (!state.DrankToday && WantsToDrink(adventurer, ctx.Data))
-                    {
-                        state.DrankToday = true;
-                        if (WalletService.Pay(ctx, adventurer, ctx.Rng.RangeInclusive(expenses.Drink.Min, expenses.Drink.Max)) > 0)
-                            TreasuryService.CountTavernDrink(ctx);
-                    }
-                    break;
                 case Activity.Binge:
                     if (!state.DrankToday)
                     {
                         state.DrankToday = true; // запой — в таверне
-                        if (WalletService.Pay(ctx, adventurer, WalletService.Coins(ctx.Data.Balance.State.BingeDrinkPerDay)) > 0)
-                            TreasuryService.CountTavernDrink(ctx);
+                        int price = ctx.Rng.RangeInclusive(expenses.Drink.Min, expenses.Drink.Max);
+                        int wanted = WalletService.Coins(ctx.Data.Balance.State.BingeDrinkPerDay);
+                        int portions = price > 0 ? Math.Min(wanted, state.Wallet / price) : wanted;
+                        if (portions > 0)
+                        {
+                            WalletService.Pay(ctx, adventurer, portions * price);
+                            TreasuryService.CountTavernDrink(ctx, portions);
+                        }
                     }
                     break;
                 case Activity.Infirmary:
@@ -146,7 +176,7 @@ namespace GuildMaster.Core
             }
         }
 
-        /// <summary>Человек в таверне пьёт: стресс выше порога или Пьяница.</summary>
+        /// <summary>Тянет в таверну выпить: стресс выше порога или Пьяница.</summary>
         public static bool WantsToDrink(Adventurer adventurer, DataRegistry data) =>
             adventurer.State.Stress > data.Balance.Expenses.DrinkStressThreshold
             || TraitRules.FindWithHook(adventurer, TraitHook.DrunkardSkipsDay, data) != null;

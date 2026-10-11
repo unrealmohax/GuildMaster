@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: GuildMaster.Data::GuildMaster.Data.StaffRoleDefinition
   id: Warden
   displayName: "\u041A\u043E\u043C\u0435\u043D\u0434\u0430\u043D\u0442"
-  baseSalary: 100
+  baseSalary: 150
   requiredBuilding: {fileID: 11400000, guid: d4005ca432869b34aa5dee276b7f8f64, type: 2}
   levelEffect: 0
   levelEffectDescription: "\u041D\u0435\u0442 \u044D\u0444\u0444\u0435\u043A\u0442\u0430 \u0432 \u043F\u0440\u043E\u0442\u043E\u0442\u0438\u043F\u0435: \u041E\u0431\u0449\u0435\u0436\u0438\u0442\u0438\u0435 \u0440\u0430\u0431\u043E\u0442\u0430\u0435\u0442 \u0438 \u0431\u0435\u0437 \u043D\u0435\u0433\u043E"

@@ -59,6 +59,7 @@ description: Отладка и прогоны GuildMaster без интерфе�
 | Adventurers → Log Roster / Accept/Reject First Candidate / Preview Start Lineups | люди, кандидаты, стартовые шестёрки | Play Mode / без |
 | State → Light/Heavy Wound First / Stress +50 First / Preview 90 Days | раны, стресс, 90 дней | Play Mode / без |
 | Headless → Year Seed 1 Debug / Trace / Year Seeds 1-10 Info / Year Seeds 1-10 Info With Decrees | год в файлы (последний — «Простой» + все четыре распоряжения с первого такта) | без |
+| Balance → 10 Years Seeds 1-3 / 1-5 / Apply Overrides To Assets | замер баланса за 10 лет (годовая сводка по рангам), переопределения чисел в памяти из `Logs/Balance/overrides.txt` | без |
 | Feed → Dump Templates / Year Feed Seed 1 | вычитка текстов | без |
 | Quests → Order Preferences 10 Years | кто какие заказы берёт (~10 с) | без |
 | Parties → Groups 10 Years / Chronicle Year Seed 1 / Trace Counts / Cost Benchmark / Year Time With And Without Parties | группы | без |

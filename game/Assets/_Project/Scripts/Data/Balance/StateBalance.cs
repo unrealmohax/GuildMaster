@@ -66,8 +66,8 @@ namespace GuildMaster.Data
         [Tooltip("Запой: дней")]
         [SerializeField, Min(0)] private int bingeDays = 2;
 
-        [Tooltip("Запой: на выпивку в день")]
-        [SerializeField, Min(0f)] private float bingeDrinkPerDay = 5f;
+        [Tooltip("Запой: кружек выпивки в день")]
+        [SerializeField, Min(0f)] private float bingeDrinkPerDay = 12f;
 
         [Tooltip("Драка: отношения со случайным человеком")]
         [SerializeField] private float brawlRelation = -10f;

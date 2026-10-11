@@ -16,8 +16,8 @@ namespace GuildMaster.Data
         [Tooltip("Пределы комиссии для игрока")]
         [SerializeField] private FloatRange commissionLimits = new FloatRange(0f, 0.5f);
 
-        [Tooltip("Таверна: гильдии с каждой еды или выпивки")]
-        [SerializeField, Min(0f)] private float tavernIncomePerServing = 0.525f;
+        [Tooltip("Таверна: гильдии с каждой кружки выпивки")]
+        [SerializeField, Min(0f)] private float tavernIncomePerServing = 0.15f;
 
         [Tooltip("Банкротство начинается после стольких дней с отрицательной казной подряд")]
         [SerializeField, Min(1)] private int bankruptcyStartDays = 30;

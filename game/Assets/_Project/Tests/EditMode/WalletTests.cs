@@ -34,30 +34,51 @@ namespace GuildMaster.Tests
         }
 
         [Test]
-        public void Drinks_WhenStressAbove30_OrDrunkard_TwoToFiveAnEvening()
+        public void Drinks_EveningInTown_ThreeToFour_Drunkard_TenToFifteen_StressAddsMugs()
         {
             world.Data.Set("traits.drunkardSkipChance", 0f);
             world.Data.Set("traits.drunkardSkipChanceStressed", 0f);
-            world.Data.Set("decisions.bestChoiceChance", 1f); // вечером — всегда в таверну (лучший вариант)
             Adventurer calm = world.Add();
             Adventurer stressed = world.Add();
             Adventurer drunkard = world.Add("Drunkard");
             var spent = new Dictionary<Adventurer, List<int>> { [calm] = new List<int>(), [stressed] = new List<int>(), [drunkard] = new List<int>() };
+            int tavernDrinks = 0;
 
-            for (int day = 0; day < 200; day++)
+            for (int day = 0; day < 100; day++)
             {
-                world.TickToHour(world.Balance.Time.MorningHour - 1); // Пьяница может выпить и днём — считаем с утра
+                world.TickToHour(world.Balance.Time.MorningHour - 1);
                 foreach (Adventurer adventurer in spent.Keys) adventurer.State.Wallet = 1000;
                 world.TickToHour(world.Balance.Time.EveningHour - 1);
-                foreach (Adventurer adventurer in spent.Keys) adventurer.State.Stress = adventurer == stressed ? 31f : 10f;
+                foreach (Adventurer adventurer in spent.Keys) adventurer.State.Stress = adventurer == stressed ? 75f : 10f;
+                int before = world.Simulation.World.Treasury.TavernDrinks;
                 world.TickToHour(world.Balance.Time.NightHour);
+                tavernDrinks += world.Simulation.World.Treasury.TavernDrinks - before;
                 foreach (Adventurer adventurer in spent.Keys) spent[adventurer].Add(1000 - adventurer.State.Wallet);
             }
 
             int meals = world.Balance.Food.MealsPerDay * world.Balance.Food.Luxury.Price; // денег много — роскошная еда
-            Assert.IsTrue(spent[calm].All(x => x == meals));
-            CollectionAssert.AreEquivalent(new[] { 2, 3, 4, 5 }, spent[stressed].Select(x => x - meals).Distinct());
-            CollectionAssert.AreEquivalent(new[] { 2, 3, 4, 5 }, spent[drunkard].Select(x => x - meals).Distinct());
+            CollectionAssert.AreEquivalent(new[] { 3, 4 }, spent[calm].Select(x => x - meals).Distinct(), "кружка — 1 монета, 3–4 за вечер");
+            CollectionAssert.AreEquivalent(new[] { 5, 6 }, spent[stressed].Select(x => x - meals).Distinct(), "стресс ~70: ещё 2 кружки");
+            CollectionAssert.AreEquivalent(Enumerable.Range(10, 6), spent[drunkard].Select(x => x - meals).Distinct());
+            Assert.AreEqual(spent.Values.Sum(list => list.Sum()) - 3 * 100 * meals, tavernDrinks, "все кружки — в доход таверны");
+        }
+
+        [Test]
+        public void Drinks_OrdinaryKeepsFoodReserve_DrunkardDrinksEverything()
+        {
+            world.Data.Set("traits.drunkardSkipChance", 0f);
+            world.Data.Set("traits.drunkardSkipChanceStressed", 0f);
+            Adventurer ordinary = world.Add();
+            Adventurer drunkard = world.Add("Drunkard");
+            world.TickToHour(world.Balance.Time.NightHour - 1);
+            int reserve = FoodRules.Reserve(ordinary, world.Balance);
+            ordinary.State.Wallet = reserve + 2;
+            drunkard.State.Wallet = 5;
+            world.Simulation.Tick();
+
+            Assert.AreEqual(reserve, ordinary.State.Wallet, "обычный — только сверх резерва на еду");
+            Assert.AreEqual(0, drunkard.State.Wallet, "Пьяница — из всего кошелька");
+            Assert.IsTrue(ordinary.State.DrankToday);
         }
 
         [Test]

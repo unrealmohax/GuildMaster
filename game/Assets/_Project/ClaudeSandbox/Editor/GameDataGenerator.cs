@@ -435,11 +435,11 @@ namespace GuildMaster.ClaudeSandbox
 
         private static void FillBuildings(Dictionary<string, BuildingDefinition> b, Dictionary<string, StaffRoleDefinition> s)
         {
-            Building(b["GuildHall"], BuildingFunction.Hall, "Зал гильдии", M, cost: 0, days: 0, upkeep: 50, capacity: 0, atStart: true, s["Registrar"]);
-            Building(b["Tavern"], BuildingFunction.Tavern, "Таверна", F, cost: 0, days: 0, upkeep: 40, capacity: 0, atStart: true, s["Innkeeper"]);
-            Building(b["Dormitory"], BuildingFunction.Dormitory, "Общежитие", N, cost: 800, days: 10, upkeep: 40, capacity: 10, atStart: false, s["Warden"]);
-            Building(b["Infirmary"], BuildingFunction.Infirmary, "Лазарет", M, cost: 1000, days: 14, upkeep: 60, capacity: 4, atStart: false, s["Healer"]);
-            Building(b["TrainingYard"], BuildingFunction.TrainingYard, "Тренировочный двор", M, cost: 600, days: 7, upkeep: 30, capacity: 6, atStart: false, null);
+            Building(b["GuildHall"], BuildingFunction.Hall, "Зал гильдии", M, cost: 0, days: 0, upkeep: 150, capacity: 0, atStart: true, s["Registrar"]);
+            Building(b["Tavern"], BuildingFunction.Tavern, "Таверна", F, cost: 0, days: 0, upkeep: 100, capacity: 0, atStart: true, s["Innkeeper"]);
+            Building(b["Dormitory"], BuildingFunction.Dormitory, "Общежитие", N, cost: 1500, days: 10, upkeep: 120, capacity: 10, atStart: false, s["Warden"]);
+            Building(b["Infirmary"], BuildingFunction.Infirmary, "Лазарет", M, cost: 2500, days: 14, upkeep: 150, capacity: 4, atStart: false, s["Healer"]);
+            Building(b["TrainingYard"], BuildingFunction.TrainingYard, "Тренировочный двор", M, cost: 1200, days: 7, upkeep: 80, capacity: 6, atStart: false, null);
         }
 
         private static void Building(BuildingDefinition asset, BuildingFunction function, string name, GrammaticalGender gender, int cost, int days, int upkeep, int capacity, bool atStart, StaffRoleDefinition role)
@@ -459,13 +459,13 @@ namespace GuildMaster.ClaudeSandbox
 
         private static void FillStaff(Dictionary<string, StaffRoleDefinition> s, Dictionary<string, BuildingDefinition> b)
         {
-            StaffRole(s["Registrar"], "Регистратор", 150, b["GuildHall"], StaffLevelEffect.None,
+            StaffRole(s["Registrar"], "Регистратор", 250, b["GuildHall"], StaffLevelEffect.None,
                 "Нет эффекта в прототипе: работает по правилам игрока", atStart: true);
-            StaffRole(s["Innkeeper"], "Трактирщик", 120, b["Tavern"], StaffLevelEffect.TavernStressRelief,
+            StaffRole(s["Innkeeper"], "Трактирщик", 200, b["Tavern"], StaffLevelEffect.TavernStressRelief,
                 "Снятие стресса в таверне × (0,8 + уровень / 250)", atStart: true);
-            StaffRole(s["Healer"], "Лекарь гильдии", 250, b["Infirmary"], StaffLevelEffect.HealingSpeed,
+            StaffRole(s["Healer"], "Лекарь гильдии", 400, b["Infirmary"], StaffLevelEffect.HealingSpeed,
                 "Скорость лечения × (0,8 + уровень / 250); без Лекаря Лазарет не лечит", atStart: false);
-            StaffRole(s["Warden"], "Комендант", 100, b["Dormitory"], StaffLevelEffect.None,
+            StaffRole(s["Warden"], "Комендант", 150, b["Dormitory"], StaffLevelEffect.None,
                 "Нет эффекта в прототипе: Общежитие работает и без него", atStart: false);
         }
 

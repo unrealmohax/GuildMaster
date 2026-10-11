@@ -173,9 +173,9 @@ namespace GuildMaster.Tests
             SimulationRun.Do(simulation, ctx =>
             {
                 TreasuryService.CountTavernMeal(ctx, MealTier.Simple);
-                TreasuryService.CountTavernDrink(ctx);
-                TreasuryService.CountTavernDrink(ctx);
-                TreasuryService.SettleTavern(ctx); // еда 0,3 → 0, остаток 0,3; выпивка 1,05 → 1
+                TreasuryService.CountTavernDrink(ctx, 3);
+                TreasuryService.CountTavernDrink(ctx, 4);
+                TreasuryService.SettleTavern(ctx); // еда 0,3 → 0, остаток 0,3; выпивка 7 × 0,15 = 1,05 → 1
                 TreasuryService.CountTavernMeal(ctx, MealTier.Luxury);
                 TreasuryService.SettleTavern(ctx); // еда 0,3 + 0,75 → 1, остаток 0,05
                 TreasuryService.CountTavernMeal(ctx, MealTier.Luxury);
@@ -188,7 +188,7 @@ namespace GuildMaster.Tests
             Treasury treasury = simulation.World.Treasury;
             Assert.AreEqual(3, treasury.Ledger.Count);
             Assert.AreSame(LedgerCategories.TavernDrinks, treasury.Ledger[0].Category);
-            Assert.AreEqual("drinks=2", treasury.Ledger[0].Comment);
+            Assert.AreEqual("drinks=7", treasury.Ledger[0].Comment);
             Assert.AreSame(LedgerCategories.TavernFood, treasury.Ledger[1].Category);
             Assert.AreEqual("cheap=0 simple=0 luxury=1", treasury.Ledger[1].Comment);
             Assert.AreEqual("cheap=1 simple=0 luxury=2", treasury.Ledger[2].Comment);
@@ -203,7 +203,7 @@ namespace GuildMaster.Tests
             using var world = new StateWorld(4u);
             world.Data.Set("decisions.bestChoiceChance", 1f); // вечером всегда таверна
             List<Adventurer> people = world.AddMany(4);
-            foreach (Adventurer adventurer in people.Take(2)) adventurer.State.Stress = 50f; // эти ещё и пьют
+            foreach (Adventurer adventurer in people.Take(2)) adventurer.State.Stress = 50f; // эти пьют больше
 
             world.Days(10);
 
@@ -215,10 +215,11 @@ namespace GuildMaster.Tests
                 Assert.That(entry.Category, Is.SameAs(LedgerCategories.TavernFood).Or.SameAs(LedgerCategories.TavernDrinks));
                 Assert.AreEqual(0, world.Simulation.Calendar.At(entry.TimeHours).Hour);
             }
-            // Денег много — роскошная еда: 4 человека × 3 приёма × 0,75 = 9 в сутки; выпивка — до 2 порций.
+            // Денег много — роскошная еда: 4 человека × 3 приёма × 0,75 = 9 в сутки; выпивка — каждый вечер 3–4 кружки и больше.
             Assert.AreEqual(10, treasury.Ledger.Count(e => e.Category == LedgerCategories.TavernFood), "еда — каждые сутки");
             Assert.IsTrue(treasury.Ledger.Where(e => e.Category == LedgerCategories.TavernFood).All(e => e.Amount == 9));
-            Assert.IsTrue(treasury.Ledger.Where(e => e.Category == LedgerCategories.TavernDrinks).All(e => e.Amount == 1));
+            Assert.GreaterOrEqual(treasury.Ledger.Count(e => e.Category == LedgerCategories.TavernDrinks), 9, "выпивка — почти каждые сутки (остаток копится)");
+            Assert.IsTrue(treasury.Ledger.Where(e => e.Category == LedgerCategories.TavernDrinks).All(e => e.Amount >= 1 && e.Amount <= 4));
             TestLedger.AssertLedgerMatchesMoney(treasury);
         }
 
@@ -406,7 +407,7 @@ namespace GuildMaster.Tests
             Assert.AreEqual(income, report.Income);
             // 1-го числа — ещё содержание построек и зарплаты стартового персонала.
             int guildCosts = -treasury.Ledger.Where(e => e.Category == LedgerCategories.Upkeep || e.Category == LedgerCategories.Salaries).Sum(e => e.Amount);
-            Assert.AreEqual(90 + StaffRules.MonthlySalaries(simulation.World), guildCosts);
+            Assert.AreEqual(BuildingRules.MonthlyUpkeep(simulation.World, world.Registry) + StaffRules.MonthlySalaries(simulation.World), guildCosts);
             Assert.AreEqual(70 + guildCosts, report.Expense);
             Assert.AreEqual(report.MoneyAtEnd, report.MoneyAtStart + report.Income - report.Expense);
 
@@ -435,7 +436,7 @@ namespace GuildMaster.Tests
             List<string> text = MonthReportText.Lines(report, simulation.World, world.Registry, errors);
             CollectionAssert.Contains(text, "Деньги");
             CollectionAssert.Contains(text, "Казна на начало месяца: 2000");
-            CollectionAssert.Contains(text, "Таверна: еда: +" + income);
+            CollectionAssert.Contains(text, "Таверна: еда: +" + food.Amount);
             CollectionAssert.Contains(text, "Люди");
             CollectionAssert.Contains(text, "Ушли: Тест");
             Assert.IsTrue(text.Any(t => t.StartsWith("Раскрылись: Тест — ") && t.EndsWith(": уравновешенность")), string.Join("\n", text));

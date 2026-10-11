@@ -22,9 +22,9 @@ MonoBehaviour:
     instrumental: 
     prepositional: 
     gender: 1
-  cost: 600
+  cost: 1200
   buildDays: 7
-  upkeepPerMonth: 30
+  upkeepPerMonth: 80
   capacity: 6
   builtAtStart: 0
   function: 5

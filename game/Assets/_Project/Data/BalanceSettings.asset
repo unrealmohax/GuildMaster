@@ -28,8 +28,8 @@ MonoBehaviour:
     debugSpeedMultiplier: 50
     maxTicksPerFrame: 10
   orders:
-    baseOrdersPerDay: 1
-    reputationPerExtraOrder: 10
+    baseOrdersPerDay: 3
+    reputationPerExtraOrder: 33
     boardDays:
       min: 3
       max: 7
@@ -79,8 +79,8 @@ MonoBehaviour:
       min: 1
       max: 2
     descriptionAccuracy:
-      min: 0.9
-      max: 1.1
+      min: 0.8
+      max: 1.2
     importantRewardThreshold: 250
     playerResponseDays: 2
     startOrders: 3
@@ -90,66 +90,66 @@ MonoBehaviour:
     ranks:
     - rank: 0
       mainAxes:
-        min: 20
-        max: 30
+        min: 22
+        max: 34
       secondaryAxes:
-        min: 10
-        max: 15
+        min: 12
+        max: 18
       reward:
         min: 30
         max: 60
       rankPoints: 1
-      pointsToNext: 10
+      pointsToNext: 20
     - rank: 1
       mainAxes:
-        min: 30
-        max: 45
-      secondaryAxes:
-        min: 15
-        max: 25
-      reward:
-        min: 70
-        max: 130
-      rankPoints: 2
-      pointsToNext: 25
-    - rank: 2
-      mainAxes:
-        min: 45
-        max: 65
-      secondaryAxes:
-        min: 25
-        max: 35
-      reward:
-        min: 140
-        max: 260
-      rankPoints: 3
-      pointsToNext: 50
-    - rank: 3
-      mainAxes:
-        min: 65
-        max: 90
-      secondaryAxes:
         min: 35
         max: 50
+      secondaryAxes:
+        min: 18
+        max: 28
       reward:
-        min: 280
-        max: 520
+        min: 50
+        max: 85
+      rankPoints: 2
+      pointsToNext: 50
+    - rank: 2
+      mainAxes:
+        min: 52
+        max: 75
+      secondaryAxes:
+        min: 30
+        max: 42
+      reward:
+        min: 80
+        max: 130
+      rankPoints: 3
+      pointsToNext: 110
+    - rank: 3
+      mainAxes:
+        min: 80
+        max: 110
+      secondaryAxes:
+        min: 45
+        max: 60
+      reward:
+        min: 110
+        max: 170
       rankPoints: 4
-      pointsToNext: 90
+      pointsToNext: 200
     - rank: 4
       mainAxes:
-        min: 90
-        max: 130
+        min: 130
+        max: 180
       secondaryAxes:
-        min: 50
-        max: 70
+        min: 70
+        max: 95
       reward:
-        min: 550
-        max: 1000
+        min: 150
+        max: 240
       rankPoints: 5
       pointsToNext: 0
     promotionRetryDays: 30
-    brilliantPointsMultiplier: 2
+    brilliantPointsMultiplier: 1.5
     partialPointsMultiplier: 0.5
   rounds:
     maxPartySize: 6
@@ -344,28 +344,35 @@ MonoBehaviour:
     skimCaughtChance: 0.3
     honestNoSkimDays: 60
   growth:
-    trainSkillPerDay: 0.3
+    trainSkillPerDay: 0.2
     characteristicSlowdown: 3
     above99Multiplier: 0.1
     trainingHoursPerDay: 8
-    questExperienceSuccess: 0.5
-    questExperienceFailure: 0.3
+    questExperienceSuccess: 0.25
+    questExperienceFailure: 0.15
     composurePerHardQuest: 0.3
-    cohesionPerGroupQuest: 0.5
-    cohesionPerPermanentPartyQuest: 1
+    cohesionPerGroupQuest: 0.25
+    cohesionPerPermanentPartyQuest: 0.5
   expenses:
     cityHousing: 3
     dormHousing: 1
     infirmary: 5
     training: 2
     drink:
-      min: 2
-      max: 5
+      min: 1
+      max: 1
     drinkStressThreshold: 30
     gearRepair:
       min: 10
       max: 40
     reserveDays: 7
+    eveningDrinks:
+      min: 3
+      max: 4
+    drunkardEveningDrinks:
+      min: 10
+      max: 15
+    drinkStressStep: 20
   food:
     startSatiety: 100
     satietyDecayPerHour: 2
@@ -389,7 +396,7 @@ MonoBehaviour:
       taste: 10
       guildShare: 0.75
     reserveDays: 7
-    budgetDays: 10
+    budgetDays: 45
     greedyBudgetBonus: 1
     familyBudgetMultiplier: 1.5
     hungryThreshold: 30
@@ -492,7 +499,7 @@ MonoBehaviour:
     stressAfterBreakdown: -30
     breakdownAxisThreshold: 30
     bingeDays: 2
-    bingeDrinkPerDay: 5
+    bingeDrinkPerDay: 12
     brawlRelation: -10
     brawlWoundChance: 0.2
     refuseQuestsDays: 3
@@ -606,7 +613,7 @@ MonoBehaviour:
     drunkardSkipChance: 0.1
     drunkardSkipChanceStressed: 0.2
     drunkardStressThreshold: 50
-    braggartReputationPerSuccess: 1
+    braggartReputationPerSuccess: 0.1
     braggartRevealPerceivedOverlap: 0.6
     braggartRevealRealOverlap: 0.4
     ironNervesComradeDeathMultiplier: 0.5
@@ -625,14 +632,14 @@ MonoBehaviour:
     testedLoyaltyBonus: 10
     testedCohesionBonus: 5
   guild:
-    startMoney: 2000
+    startMoney: 3000
     startReputation: 5
     maxReputation: 100
-    successReputationPerRank: 0.2
-    failureReputationPerRank: -0.2
+    successReputationPerRank: 0.012
+    failureReputationPerRank: -0.15
     deathReputation: -2
-    influxBaseChance: 0.03
-    influxChancePerReputation: 0.003
+    influxBaseChance: 0.02
+    influxChancePerReputation: 0.0025
     maxAdventurers: 30
   staff:
     candidateLevel:
@@ -653,7 +660,7 @@ MonoBehaviour:
     commissionLimits:
       min: 0
       max: 0.5
-    tavernIncomePerServing: 0.525
+    tavernIncomePerServing: 0.15
     bankruptcyStartDays: 30
     bankruptcyMonths: 4
     closedBestPeople: 3

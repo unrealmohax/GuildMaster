@@ -300,7 +300,7 @@ namespace GuildMaster.Tests
                 state.Treasury.TavernDrinks = 10;
                 TreasuryService.SettleTavern(ctx);
             });
-            Assert.AreEqual(money + 4, state.Treasury.Money, "10 простых × 0,3 × 0,6 = 1,8 → 1; 10 выпивок × 0,525 × 0,6 = 3,15 → 3");
+            Assert.AreEqual(money + 1, state.Treasury.Money, "10 простых × 0,3 × 0,6 = 1,8 → 1; 10 кружек × 0,15 × 0,6 = 0,9 → 0");
 
             sober.State.Activity = Activity.Tavern;
             sober.State.Stress = 50f;

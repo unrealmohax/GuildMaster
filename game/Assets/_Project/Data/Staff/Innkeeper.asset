@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: GuildMaster.Data::GuildMaster.Data.StaffRoleDefinition
   id: Innkeeper
   displayName: "\u0422\u0440\u0430\u043A\u0442\u0438\u0440\u0449\u0438\u043A"
-  baseSalary: 120
+  baseSalary: 200
   requiredBuilding: {fileID: 11400000, guid: 1280228e1e37a564cad8208066ba40b3, type: 2}
   levelEffect: 1
   levelEffectDescription: "\u0421\u043D\u044F\u0442\u0438\u0435 \u0441\u0442\u0440\u0435\u0441\u0441\u0430 \u0432 \u0442\u0430\u0432\u0435\u0440\u043D\u0435 \xD7 (0,8 + \u0443\u0440\u043E\u0432\u0435\u043D\u044C / 250)"

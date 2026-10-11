@@ -32,7 +32,7 @@ namespace GuildMaster.Tests
             poor.State.Wallet = 60;
             broke.State.Wallet = 0;
 
-            List<SimEvent> events = world.Collect(() => world.TickToHour(23));
+            List<SimEvent> events = world.Collect(() => world.TickToHour(world.Balance.Time.NightHour - 1)); // приёмы прошли, вечерней выпивки ещё нет
 
             Assert.IsTrue(MealsOf(events, rich, SimEventType.MealEaten).All(e => e.TryGet("tier", out MealTier t) && t == MealTier.Luxury));
             Assert.AreEqual(3, MealsOf(events, rich, SimEventType.MealEaten).Count, "три приёма в день");

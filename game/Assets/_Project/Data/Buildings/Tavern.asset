@@ -24,7 +24,7 @@ MonoBehaviour:
     gender: 2
   cost: 0
   buildDays: 0
-  upkeepPerMonth: 40
+  upkeepPerMonth: 100
   capacity: 0
   builtAtStart: 1
   function: 2

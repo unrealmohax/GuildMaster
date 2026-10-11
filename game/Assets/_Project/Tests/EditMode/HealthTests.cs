@@ -52,6 +52,7 @@ namespace GuildMaster.Tests
         {
             world = new StateWorld();
             world.Data.Set("health.complicationChance", 0f);
+            world.Do(ctx => ctx.World.Treasury.Money = 100000); // долгий тест: гильдия без доходов не должна закрыться
             for (int i = 0; i < 30; i++)
             {
                 Adventurer adventurer = world.Add();
