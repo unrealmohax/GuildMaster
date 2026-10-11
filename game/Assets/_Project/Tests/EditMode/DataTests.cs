@@ -237,6 +237,8 @@ namespace GuildMaster.Tests
             Assert.AreEqual(14, registry.Get<DecreeDefinition>("Prohibition").LawNumber);
             Assert.AreEqual(DilemmaTrigger.TavernFeast, registry.Get<DilemmaDefinition>("TavernFeast").Trigger);
             Assert.AreSame(registry.Get<BuildingDefinition>("Infirmary"), registry.Get<StaffRoleDefinition>("Healer").RequiredBuilding);
+            Assert.AreSame(registry.Get<StaffRoleDefinition>("Warden"), registry.Get<BuildingDefinition>("Dormitory").StaffRole);
+            Assert.AreEqual(StaffLevelEffect.None, registry.Get<StaffRoleDefinition>("Warden").LevelEffect);
         }
 
         [Test]

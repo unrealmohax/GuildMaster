@@ -431,13 +431,13 @@ namespace GuildMaster.ClaudeSandbox
         // ---------- Постройки и персонал ----------
 
         private static readonly string[] BuildingIds = { "GuildHall", "Tavern", "Dormitory", "Infirmary", "TrainingYard" };
-        private static readonly string[] StaffIds = { "Registrar", "Innkeeper", "Healer" };
+        private static readonly string[] StaffIds = { "Registrar", "Innkeeper", "Healer", "Warden" };
 
         private static void FillBuildings(Dictionary<string, BuildingDefinition> b, Dictionary<string, StaffRoleDefinition> s)
         {
             Building(b["GuildHall"], BuildingFunction.Hall, "Зал гильдии", M, cost: 0, days: 0, upkeep: 50, capacity: 0, atStart: true, s["Registrar"]);
             Building(b["Tavern"], BuildingFunction.Tavern, "Таверна", F, cost: 0, days: 0, upkeep: 40, capacity: 0, atStart: true, s["Innkeeper"]);
-            Building(b["Dormitory"], BuildingFunction.Dormitory, "Общежитие", N, cost: 800, days: 10, upkeep: 40, capacity: 10, atStart: false, null);
+            Building(b["Dormitory"], BuildingFunction.Dormitory, "Общежитие", N, cost: 800, days: 10, upkeep: 40, capacity: 10, atStart: false, s["Warden"]);
             Building(b["Infirmary"], BuildingFunction.Infirmary, "Лазарет", M, cost: 1000, days: 14, upkeep: 60, capacity: 4, atStart: false, s["Healer"]);
             Building(b["TrainingYard"], BuildingFunction.TrainingYard, "Тренировочный двор", M, cost: 600, days: 7, upkeep: 30, capacity: 6, atStart: false, null);
         }
@@ -465,6 +465,8 @@ namespace GuildMaster.ClaudeSandbox
                 "Снятие стресса в таверне × (0,8 + уровень / 250)", atStart: true);
             StaffRole(s["Healer"], "Лекарь гильдии", 250, b["Infirmary"], StaffLevelEffect.HealingSpeed,
                 "Скорость лечения × (0,8 + уровень / 250); без Лекаря Лазарет не лечит", atStart: false);
+            StaffRole(s["Warden"], "Комендант", 100, b["Dormitory"], StaffLevelEffect.None,
+                "Нет эффекта в прототипе: Общежитие работает и без него", atStart: false);
         }
 
         private static void StaffRole(StaffRoleDefinition asset, string name, int salary, BuildingDefinition building, StaffLevelEffect effect, string description, bool atStart)

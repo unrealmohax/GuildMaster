@@ -59,9 +59,9 @@ namespace GuildMaster.Data
         [SerializeField] private int[] mealHours = { 7, 13, 19 };
 
         [Header("Типы еды")]
-        [SerializeField] private MealBalance cheap = new MealBalance(1, 25f, 60f, -5f, 0.2f);
-        [SerializeField] private MealBalance simple = new MealBalance(2, 35f, 85f, 3f, 0.5f);
-        [SerializeField] private MealBalance luxury = new MealBalance(5, 50f, 100f, 10f, 1.5f);
+        [SerializeField] private MealBalance cheap = new MealBalance(1, 25f, 60f, -5f, 0.15f);
+        [SerializeField] private MealBalance simple = new MealBalance(2, 35f, 85f, 3f, 0.3f);
+        [SerializeField] private MealBalance luxury = new MealBalance(5, 50f, 100f, 10f, 0.75f);
 
         [Header("Бюджет на еду")]
         [Tooltip("Резерв: столько дней жилья и дешёвой еды человек не тратит на еду получше")]
@@ -102,8 +102,8 @@ namespace GuildMaster.Data
         [SerializeField, Min(0f)] private float hungerSafetyMultiplier = 0.7f;
 
         [Header("Походные пайки")]
-        [SerializeField] private MealBalance rationCheap = new MealBalance(1, 25f, 60f, -5f, 0.2f);
-        [SerializeField] private MealBalance rationRegular = new MealBalance(2, 35f, 85f, 0f, 0.5f);
+        [SerializeField] private MealBalance rationCheap = new MealBalance(1, 25f, 60f, -5f, 0.15f);
+        [SerializeField] private MealBalance rationRegular = new MealBalance(2, 35f, 85f, 0f, 0.3f);
 
         [Tooltip("Запас на задержки: сверх приёмов пищи ожидаемого задания, приёмов")]
         [SerializeField, Min(0)] private int rationReserveMeals = 3;

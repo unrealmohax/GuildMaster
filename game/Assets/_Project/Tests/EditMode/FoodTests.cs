@@ -53,7 +53,7 @@ namespace GuildMaster.Tests
             world.TickToHour(0);
             LedgerEntry food = world.Simulation.World.Treasury.Ledger.Single(e => e.Category == LedgerCategories.TavernFood);
             Assert.AreEqual("cheap=3 simple=3 luxury=3", food.Comment);
-            Assert.AreEqual(6, food.Amount, "3 × 0,2 + 3 × 0,5 + 3 × 1,5 = 6,6 → 6, остаток — на завтра");
+            Assert.AreEqual(3, food.Amount, "3 × 0,15 + 3 × 0,3 + 3 × 0,75 = 3,6 → 3, остаток — на завтра");
         }
 
         [Test]

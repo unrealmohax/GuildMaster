@@ -175,12 +175,13 @@ namespace GuildMaster.Tests
                 TreasuryService.CountTavernMeal(ctx, MealTier.Simple);
                 TreasuryService.CountTavernDrink(ctx);
                 TreasuryService.CountTavernDrink(ctx);
-                TreasuryService.SettleTavern(ctx); // еда 0,5 → 0, остаток 0,5; выпивка 1,0 → 1
-                TreasuryService.CountTavernMeal(ctx, MealTier.Simple);
-                TreasuryService.SettleTavern(ctx); // еда 0,5 + 0,5 → 1
+                TreasuryService.SettleTavern(ctx); // еда 0,3 → 0, остаток 0,3; выпивка 1,05 → 1
+                TreasuryService.CountTavernMeal(ctx, MealTier.Luxury);
+                TreasuryService.SettleTavern(ctx); // еда 0,3 + 0,75 → 1, остаток 0,05
+                TreasuryService.CountTavernMeal(ctx, MealTier.Luxury);
                 TreasuryService.CountTavernMeal(ctx, MealTier.Luxury);
                 TreasuryService.CountTavernMeal(ctx, MealTier.Cheap);
-                TreasuryService.SettleTavern(ctx); // 1,5 + 0,2 → 1, остаток 0,7
+                TreasuryService.SettleTavern(ctx); // 0,05 + 1,5 + 0,15 → 1, остаток 0,7
                 TreasuryService.SettleTavern(ctx); // порций нет
             });
 
@@ -189,8 +190,8 @@ namespace GuildMaster.Tests
             Assert.AreSame(LedgerCategories.TavernDrinks, treasury.Ledger[0].Category);
             Assert.AreEqual("drinks=2", treasury.Ledger[0].Comment);
             Assert.AreSame(LedgerCategories.TavernFood, treasury.Ledger[1].Category);
-            Assert.AreEqual("cheap=0 simple=1 luxury=0", treasury.Ledger[1].Comment);
-            Assert.AreEqual("cheap=1 simple=0 luxury=1", treasury.Ledger[2].Comment);
+            Assert.AreEqual("cheap=0 simple=0 luxury=1", treasury.Ledger[1].Comment);
+            Assert.AreEqual("cheap=1 simple=0 luxury=2", treasury.Ledger[2].Comment);
             Assert.IsTrue(treasury.Ledger.All(e => e.Amount == 1));
             Assert.AreEqual(2003, treasury.Money);
             Assert.AreEqual(0.7, treasury.TavernFoodRemainder, 1e-6);
@@ -214,9 +215,9 @@ namespace GuildMaster.Tests
                 Assert.That(entry.Category, Is.SameAs(LedgerCategories.TavernFood).Or.SameAs(LedgerCategories.TavernDrinks));
                 Assert.AreEqual(0, world.Simulation.Calendar.At(entry.TimeHours).Hour);
             }
-            // Денег много — роскошная еда: 4 человека × 3 приёма × 1,5 = 18 в сутки; выпивка — до 2 порций.
+            // Денег много — роскошная еда: 4 человека × 3 приёма × 0,75 = 9 в сутки; выпивка — до 2 порций.
             Assert.AreEqual(10, treasury.Ledger.Count(e => e.Category == LedgerCategories.TavernFood), "еда — каждые сутки");
-            Assert.IsTrue(treasury.Ledger.Where(e => e.Category == LedgerCategories.TavernFood).All(e => e.Amount == 18));
+            Assert.IsTrue(treasury.Ledger.Where(e => e.Category == LedgerCategories.TavernFood).All(e => e.Amount == 9));
             Assert.IsTrue(treasury.Ledger.Where(e => e.Category == LedgerCategories.TavernDrinks).All(e => e.Amount == 1));
             TestLedger.AssertLedgerMatchesMoney(treasury);
         }

@@ -29,7 +29,7 @@ namespace GuildMaster.Debugging
             [typeof(RandomEventDefinition)] = 2,
             [typeof(DiscoveryDefinition)] = 1,
             [typeof(BuildingDefinition)] = 5,
-            [typeof(StaffRoleDefinition)] = 3,
+            [typeof(StaffRoleDefinition)] = 4,
             [typeof(DecreeDefinition)] = 4,
             [typeof(DilemmaDefinition)] = 6,
         };

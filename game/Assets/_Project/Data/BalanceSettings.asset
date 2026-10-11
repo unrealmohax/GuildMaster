@@ -375,19 +375,19 @@ MonoBehaviour:
       satietyGain: 25
       satietyCap: 60
       taste: -5
-      guildShare: 0.2
+      guildShare: 0.15
     simple:
       price: 2
       satietyGain: 35
       satietyCap: 85
       taste: 3
-      guildShare: 0.5
+      guildShare: 0.3
     luxury:
       price: 5
       satietyGain: 50
       satietyCap: 100
       taste: 10
-      guildShare: 1.5
+      guildShare: 0.75
     reserveDays: 7
     budgetDays: 10
     greedyBudgetBonus: 1
@@ -405,13 +405,13 @@ MonoBehaviour:
       satietyGain: 25
       satietyCap: 60
       taste: -5
-      guildShare: 0.2
+      guildShare: 0.15
     rationRegular:
       price: 2
       satietyGain: 35
       satietyCap: 85
       taste: 0
-      guildShare: 0.5
+      guildShare: 0.3
     rationReserveMeals: 3
     cautiousExtraMeals: 3
     rationLossChance: 0.3
@@ -653,7 +653,7 @@ MonoBehaviour:
     commissionLimits:
       min: 0
       max: 0.5
-    tavernIncomePerServing: 0.5
+    tavernIncomePerServing: 0.525
     bankruptcyStartDays: 30
     bankruptcyMonths: 4
     closedBestPeople: 3
