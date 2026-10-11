@@ -20,6 +20,9 @@ namespace GuildMaster.Core
 
         /// <summary>Голоден (сытость ниже порога): Деньги сильнее, Безопасность слабее.</summary>
         Hunger,
+
+        /// <summary>Семья в нужде: Деньги сильнее.</summary>
+        FamilyNeed,
     }
 
     /// <summary>Веса шести мотивов и факторы состояния, которые их усилили.</summary>
@@ -69,7 +72,8 @@ namespace GuildMaster.Core
     /// Утешение Пьяницы (<see cref="TraitHook.DrunkardComfortOnlyInTavern"/>) действует только на таверну.</item>
     /// <item>Состояние: кошелёк меньше расходов на неделю — Деньги × 2; усталость выше 50 — Отдых × (1 + (усталость − 50) / 25);
     /// стресс выше 40 — Утешение × (1 + (стресс − 40) / 30) и Безопасность × 1,3; лёгкая рана — Безопасность × 1,3;
-    /// голоден (сытость ниже 30) — Деньги × 1,5 и Безопасность × 0,7: ищет прибыльный заказ, риск не отпугивает.</item>
+    /// голоден (сытость ниже 30) — Деньги × 1,5 и Безопасность × 0,7: ищет прибыльный заказ, риск не отпугивает; семья в нужде —
+    /// Деньги × 1,5.</item>
     /// </list>
     /// </summary>
     public static class Motives
@@ -147,6 +151,11 @@ namespace GuildMaster.Core
                 weights.Multiply(Motive.Safety, balance.Food.HungerSafetyMultiplier);
                 weights.AddFactor(StateFactor.Hunger, Motive.Money, state.Satiety);
                 weights.AddFactor(StateFactor.Hunger, Motive.Safety, state.Satiety);
+            }
+            if (state.FamilyInNeed)
+            {
+                weights.Multiply(Motive.Money, balance.Family.NeedMoneyMultiplier);
+                weights.AddFactor(StateFactor.FamilyNeed, Motive.Money, 1f);
             }
         }
 

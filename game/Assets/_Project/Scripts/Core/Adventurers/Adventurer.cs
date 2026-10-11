@@ -87,6 +87,9 @@ namespace GuildMaster.Core
         /// <summary>Личный запас походных пайков (у члена постоянной группы обычно пуст: запас общий).</summary>
         public RationStock Rations { get; } = new RationStock();
 
+        /// <summary>Семья за кадром: родители, супруг, дети (<see cref="FamilyService"/>).</summary>
+        public Family Family { get; } = new Family();
+
         public Housing Housing { get; internal set; }
 
         /// <summary>Когда вступил в гильдию; у кандидата — когда пришёл.</summary>

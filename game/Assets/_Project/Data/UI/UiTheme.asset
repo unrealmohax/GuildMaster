@@ -35,3 +35,4 @@ MonoBehaviour:
   topBarRefreshPerSecond: 10
   screenRefreshPerSecond: 4
   feedLinesShown: 150
+  ledgerRowsShown: 300

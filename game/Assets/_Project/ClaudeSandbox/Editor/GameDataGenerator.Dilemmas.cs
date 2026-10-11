@@ -38,6 +38,9 @@ namespace GuildMaster.ClaudeSandbox
                 Reason("Говорит, что нужно на снаряжение."),
                 Reason("Обещает вернуть с первой же награды."),
                 Reason("Дома ждут, а платить нечем.", traits["Family"]),
+                // Новое (GM-20, family.md): причины по семье.
+                Reason("Говорит, что дома нужны деньги.", condition: DilemmaReasonCondition.FamilyInNeed),
+                Reason("Говорит, что дома болеет {родной}.", condition: DilemmaReasonCondition.FamilyMemberIll),
             });
             // Семейный раскрывается, когда звучит его причина: раскрытие срабатывает, только если черта есть.
             Set(d["LoanRequest"], "arrivalEffects", new List<DilemmaEffect> { RevealTrait(traits["Family"], DilemmaTarget.Subject) });
@@ -173,7 +176,8 @@ namespace GuildMaster.ClaudeSandbox
         private static DilemmaEffect RevealTrait(SpecialTraitDefinition trait, DilemmaTarget target) =>
             Make<DilemmaEffect>(("kind", DilemmaEffectKind.RevealTrait), ("target", target), ("trait", trait));
 
-        private static DilemmaReason Reason(string text, SpecialTraitDefinition requiresTrait = null) =>
-            Make<DilemmaReason>(("text", text), ("requiresTrait", requiresTrait));
+        private static DilemmaReason Reason(string text, SpecialTraitDefinition requiresTrait = null,
+            DilemmaReasonCondition condition = DilemmaReasonCondition.None) =>
+            Make<DilemmaReason>(("text", text), ("requiresTrait", requiresTrait), ("condition", condition));
     }
 }

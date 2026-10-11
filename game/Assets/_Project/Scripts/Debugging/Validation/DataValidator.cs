@@ -647,6 +647,17 @@ namespace GuildMaster.Debugging
                 CheckNameList(names, "femaleNames", names.FemaleNames);
                 if (names.GroupAdjectives.Count == 0) report.Error(names, "groupAdjectives", "пусто");
                 if (names.GroupNouns.Count == 0) report.Error(names, "groupNouns", "пусто");
+
+                if (names.Relatives.Count != NameList.RelativesCount)
+                    report.Error(names, "relatives", $"слов родства {names.Relatives.Count}, нужно {NameList.RelativesCount}");
+                CheckNouns(names, "relatives", names.Relatives);
+                CheckAllCases(names, "relatives", names.Relatives);
+                for (int i = 0; i < names.Relatives.Count; i++)
+                {
+                    GrammaticalGender expected = i % 2 == 0 ? GrammaticalGender.Masculine : GrammaticalGender.Feminine;
+                    if (names.Relatives[i] != null && names.Relatives[i].Gender != expected)
+                        report.Error(names, $"relatives[{i}]", $"род {names.Relatives[i].Gender}, нужен {expected}");
+                }
             }
 
             private void CheckNameList(NameList names, string path, IReadOnlyList<NounForms> list)

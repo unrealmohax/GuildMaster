@@ -88,7 +88,7 @@ namespace GuildMaster.Sandbox
             var chars = new StringBuilder();
             for (char c = ' '; c <= '~'; c++) chars.Append(c);
             for (char c = 'А'; c <= 'я'; c++) chars.Append(c);
-            chars.Append("Ёё№«»—–…·•×−±°‹›►◄▲▼■□●○♦♥‼ ");
+            chars.Append("Ёё№«»—–…·•×−±°‹›►◄▲▼■□●○♦♥‼† ");
             return chars.ToString();
         }
     }

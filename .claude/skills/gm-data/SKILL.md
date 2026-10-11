@@ -90,3 +90,6 @@ description: Слой данных GuildMaster — ScriptableObject-опреде
 - Пайки: в `FoodBalance` — `rationCheap`/`rationRegular` (`MealBalance`, доступ `Ration(RationTier)`), запас, потери (`rationLossFailures` —
   `IntRange` номеров провала), делёжка, `hungryRetreatBonus`; `RationTier` в `Vocabulary.cs`; флаг `RandomEventDefinition.losesRations`
   (генератор ставит засаде). Валидатор `CheckFood` проверяет и пайки, и что ступени потерь — внутри лестницы провалов.
+- Семья: раздел `Family` (`FamilyBalance`: состав, плата по ролям, нужда, болезнь `illWeeks` — `IntRange`, смерть, траур); `familySendHomeShare`
+  убран из `Traits`. `NameList.relatives` — ровно 6 слов (отец, мать, муж, жена, сын, дочь; чётные — мужской род), валидатор `CheckNames`.
+  `DilemmaReason.condition` (`DilemmaReasonCondition`: `FamilyInNeed`, `FamilyMemberIll`).

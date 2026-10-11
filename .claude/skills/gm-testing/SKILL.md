@@ -69,3 +69,6 @@ description: Тесты GuildMaster (EditMode, сборка GuildMaster.Tests) �
 - **Пайки** (`RationTests`, `RationDeterminismTests`): `QuestWorld.AddOrder` ставит путь (далеко — `farHours.Min`, близко — `nearHours`);
   `Start` покупает пайки из кошелька (1000 монет — обычные). Подменить запас — `World.Do(ctx => человек.Rations.Clear()/Add(…))`.
   Шаблон «пустой случай без бросков» — `Loss_EmptyStock_SpendsNoRandomNumbers`.
+- **Семья** (`FamilyTests`, `FamilyGenerationTests`, `FamilyDeterminismTests`): `StateWorld.Add` — без семьи (система семьи у таких людей
+  ничего не делает); родных добавлять `adventurer.Family.Add(new FamilyMember(…))`. «Броски семьи не сдвигают генерацию» — те же люди
+  с нулевыми шансами семьи (`PeopleDump.WithoutFamily`, `PeopleDump.Line`). `PeopleDump.Of` теперь пишет и семью, нужду и траур.

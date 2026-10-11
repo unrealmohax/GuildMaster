@@ -37,9 +37,6 @@ namespace GuildMaster.Data
         [SerializeField, Range(0f, 1f)] private float ironNervesComradeDeathMultiplier = 0.5f;
 
         [Header("Семейный")]
-        [Tooltip("Доля каждого дохода — домой")]
-        [SerializeField, Range(0f, 1f)] private float familySendHomeShare = 0.3f;
-
         [Tooltip("Ежемесячная проверка ухода: шанс ×")]
         [SerializeField, Min(0f)] private float familyLeaveChanceMultiplier = 1.5f;
 
@@ -88,7 +85,6 @@ namespace GuildMaster.Data
         public float BraggartRevealPerceivedOverlap => braggartRevealPerceivedOverlap;
         public float BraggartRevealRealOverlap => braggartRevealRealOverlap;
         public float IronNervesComradeDeathMultiplier => ironNervesComradeDeathMultiplier;
-        public float FamilySendHomeShare => familySendHomeShare;
         public float FamilyLeaveChanceMultiplier => familyLeaveChanceMultiplier;
         public float FamilyRevealPerceivedOverlap => familyRevealPerceivedOverlap;
         public float RivalExperienceMultiplier => rivalExperienceMultiplier;

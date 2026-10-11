@@ -12,7 +12,8 @@ namespace GuildMaster.Core
     /// SalarySystem (зарплаты в начале месяца — после содержания). Шаг 13 дополнен AdventurerSystem. Шаг 14: DecreeSystem — снятие
     /// распоряжений по сроку; сами эффекты считают системы, которых они касаются. Перед FeedSystem —
     /// MonthReportSystem: отчёт месяца собирается после всех систем, которые меняют мир. Шаг 10: DilemmaSystem — обращения
-    /// (триггеры, срок ответа); ответ игрока — команда.
+    /// (триггеры, срок ответа); ответ игрока — команда. Шаг 6 начинает FamilySystem: семья за кадром (плата, нужда, болезни,
+    /// смерти, вести вернувшимся с задания).
     /// </summary>
     public static class SimulationSystems
     {
@@ -23,6 +24,7 @@ namespace GuildMaster.Core
             new OrderSystem(),
             new QuestSystem(),
             new ActivitySystem(),
+            new FamilySystem(), // перед StateSystem: Семейный платит семье раньше, чем за жильё
             new StateSystem(),
             new HealthSystem(),
             new DecisionSystem(),

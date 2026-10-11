@@ -26,6 +26,7 @@ namespace GuildMaster.Core
                 { SimEventType.StaffQuit, AutopauseKind.MemberLeftGuild },
                 { SimEventType.DilemmaArrived, AutopauseKind.DilemmaReceived },
                 { SimEventType.Exhausted, AutopauseKind.Exhausted },
+                { SimEventType.FamilyMemberDied, AutopauseKind.FamilyDeath },
             };
     }
 }

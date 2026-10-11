@@ -311,6 +311,16 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("guild.food.exhausted", V, None,
                 "{имя} истощ[ён|ена]. Ещё немного — и уйдёт",
                 "{имя} еле держится на ногах от голода. Ещё немного — и уйдёт"));
+            // Новое (GM-20, family.md): семья.
+            t.Add(Guild("guild.family.need", Z, None,
+                "{имя} не смог[|ла] отправить денег домой",
+                "{имя} не смог[|ла] отправить домой всю плату: семья в нужде"));
+            t.Add(Guild("guild.family.ill", Z, None,
+                "{имя}: письмо из дома — {родной} слёг[|ла|ло]@родной",
+                "{имя}: письмо из дома — {родной} болеет"));
+            t.Add(Guild("guild.family.died", V, None,
+                "{имя} получил[|а] весть из дома: умер[|ла|ло]@родной {родной}",
+                "{имя} получил[|а] письмо: {родной} умер[|ла|ло]@родной"));
             t.Add(Guild("guild.salary.paid", O, None, "Жалованье выплачено"));
             t.Add(Guild("guild.salary.unpaid", V, None, "Жалованье не выплачено. Персонал недоволен"));
             t.Add(Guild("guild.bankruptcy.started", V, None, "Казна пуста уже месяц. Начинается банкротство"));
@@ -343,6 +353,9 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("reason.heavyHeart", O, None, "тяжело на душе"));
             // Новое (GM-18): голод.
             t.Add(Guild("reason.hunger", O, None, "не мог[|ла]@имя прокормиться"));
+            // Новое (GM-20): нужда семьи; скрытая черта Семейного не называется.
+            t.Add(Guild("reason.familyNeed", O, None, "дома голодают, а здесь не платят"));
+            t.Add(Guild("reason.familyNeed", O, IfTrait(traits["Family"]), "семья для [него|неё]@имя — всё, а дома голодают"));
 
             // Причины решений на задании (GM-11, 💡): бегство и отказ от заказа из-за Кошмаров.
             t.Add(Guild("reason.fled", O, None, "не выдержал[|а]@имя"));
@@ -388,6 +401,8 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("report.quests.done", O, None, "Выполнено"));
             t.Add(Guild("report.quests.failed", O, None, "Не выполнено"));
             t.Add(Guild("report.people.fled", O, None, "Сбежали с задания"));
+            t.Add(Guild("report.people.familyIll", O, None, "Болезни в семьях"));
+            t.Add(Guild("report.people.familyDied", O, None, "Смерти в семьях"));
             t.Add(Guild("report.reputation", O, None, "Репутация"));
             t.Add(Guild("report.reputation.change", O, None, "За месяц"));
             // Новое (GM-13): разделы отчёта «Постройки» и «Персонал».

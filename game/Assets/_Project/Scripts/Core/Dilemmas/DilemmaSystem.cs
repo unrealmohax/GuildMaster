@@ -155,9 +155,9 @@ namespace GuildMaster.Core
         }
 
         /// <summary>
-        /// Просьба в долг: кошелёк меньше расходов на <c>loanWalletDays</c> дней, долга перед гильдией нет и (Семейный, Пьяница или
-        /// шанс <c>loanWeeklyChance</c> в неделю — бросок раз в сутки). Сумма — расходы на <c>loanSumDays</c> дней. Причина: у Семейного —
-        /// своя (и раскрытие черты), иначе — нейтральная наугад.
+        /// Просьба в долг: долга перед гильдией нет и либо семья в нужде, либо кошелёк меньше расходов на <c>loanWalletDays</c> дней
+        /// и (Семейный, Пьяница или шанс <c>loanWeeklyChance</c> в неделю — бросок раз в сутки). Сумма — расходы на <c>loanSumDays</c>
+        /// дней. Причина — <see cref="PickReason"/>; Семейного обращение раскрывает.
         /// </summary>
         private static void LoanRequests(SimContext ctx, DilemmaDefinition definition)
         {
@@ -167,12 +167,15 @@ namespace GuildMaster.Core
             {
                 if (!CanOpenMore(ctx)) return;
                 if (!IsFree(ctx, definition, adventurer) || adventurer.State.DebtToGuild > 0) continue;
-                int dailyCost = WalletService.DailyLivingCost(adventurer, balance);
-                if (adventurer.State.Wallet >= balance.Dilemmas.LoanWalletDays * dailyCost) continue;
+                if (!adventurer.State.FamilyInNeed)
+                {
+                    int dailyCost = WalletService.DailyLivingCost(adventurer, balance);
+                    if (adventurer.State.Wallet >= balance.Dilemmas.LoanWalletDays * dailyCost) continue;
 
-                bool family = TraitRules.FindWithHook(adventurer, TraitHook.FamilySendsMoneyHome, ctx.Data) != null;
-                bool drunkard = TraitRules.FindWithHook(adventurer, TraitHook.DrunkardSkipsDay, ctx.Data) != null;
-                if (!family && !drunkard && !ctx.RollChance(daily, "loan-request", adventurer, "wallet", adventurer.State.Wallet)) continue;
+                    bool family = TraitRules.FindWithHook(adventurer, TraitHook.FamilySendsMoneyHome, ctx.Data) != null;
+                    bool drunkard = TraitRules.FindWithHook(adventurer, TraitHook.DrunkardSkipsDay, ctx.Data) != null;
+                    if (!family && !drunkard && !ctx.RollChance(daily, "loan-request", adventurer, "wallet", adventurer.State.Wallet)) continue;
+                }
 
                 string reason = PickReason(ctx, definition, adventurer);
                 DilemmaService.Open(ctx, definition, d =>
@@ -184,18 +187,41 @@ namespace GuildMaster.Core
             }
         }
 
-        /// <summary>Причина просьбы: если у человека есть черта одной из причин — она (первая такая), иначе нейтральная наугад.</summary>
+        /// <summary>
+        /// Причина просьбы, первая подходящая по порядку: болеет родной (метка <c>{родной}</c>), черта человека, семья в нужде; иначе
+        /// нейтральная наугад (бросок — только если нейтральных больше одной).
+        /// </summary>
         private static string PickReason(SimContext ctx, DilemmaDefinition definition, Adventurer adventurer)
         {
+            if (adventurer.Family.TryGetIll(out FamilyMember ill))
+            {
+                foreach (DilemmaReason reason in definition.Reasons)
+                {
+                    if (reason != null && reason.Condition == DilemmaReasonCondition.FamilyMemberIll) return IllReason(ctx, reason, adventurer, ill);
+                }
+            }
+            foreach (DilemmaReason reason in definition.Reasons)
+            {
+                if (reason?.RequiresTrait != null && adventurer.HasTrait(reason.RequiresTrait.Id)) return reason.Text;
+            }
             var neutral = new List<string>();
             foreach (DilemmaReason reason in definition.Reasons)
             {
                 if (reason == null) continue;
-                if (reason.RequiresTrait == null) neutral.Add(reason.Text);
-                else if (adventurer.HasTrait(reason.RequiresTrait.Id)) return reason.Text;
+                if (reason.Condition == DilemmaReasonCondition.FamilyInNeed && reason.RequiresTrait == null && adventurer.State.FamilyInNeed) return reason.Text;
+                if (reason.IsNeutral) neutral.Add(reason.Text);
             }
             if (neutral.Count == 0) return string.Empty;
             return neutral.Count == 1 ? neutral[0] : neutral[ctx.Rng.Range(0, neutral.Count)];
+        }
+
+        /// <summary>Причина «болеет родной»: метки <c>{имя}</c> и <c>{родной}</c> подставляются сразу. Ошибки разметки — в лог.</summary>
+        private static string IllReason(SimContext ctx, DilemmaReason reason, Adventurer adventurer, FamilyMember ill)
+        {
+            var errors = new List<string>();
+            string text = TextRenderer.Render(reason.Text, new RelativeTextSource(adventurer, ill, ctx.Data), errors);
+            foreach (string error in errors) ctx.Log.Write(SimLogLevel.Error, "loan reason: {0}", error);
+            return text;
         }
 
         /// <summary>

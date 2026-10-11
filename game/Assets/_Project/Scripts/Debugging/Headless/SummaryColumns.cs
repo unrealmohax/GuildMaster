@@ -13,7 +13,7 @@ namespace GuildMaster.Debugging
     /// </summary>
     public static class SummaryColumns
     {
-        /// <summary>По месяцам: люди, приход и уход, срывы, раны, раскрытия, средние показатели на конец месяца, кошельки,
+        /// <summary>По месяцам: люди, приход и уход, срывы, раны, раскрытия, средние показатели на конец месяца, кошельки, семьи,
         /// строки ленты гильдии по важности, казна на конец месяца, доходы и расходы, банкротство, заказы, репутация на конец месяца,
         /// задания и группы, постройки (готовые, Общежитие, Лазарет, двор), персонал и долги по зарплате.</summary>
         public static readonly IReadOnlyList<MonthColumn> Monthly = new[]
@@ -50,6 +50,15 @@ namespace GuildMaster.Debugging
             new MonthColumn("Голодных приёмов в пути", m => m.Count(SimEventType.QuestMealMissed), SummaryTotal.Sum, "0"),
             new MonthColumn("Припасы кончились", m => m.Count(SimEventType.RationsRanOut), SummaryTotal.Sum, "0"),
             new MonthColumn("Отступлений из-за еды", m => m.Count(SimEventType.PartyRetreated, e => e.TryGet("food", out bool food) && food),
+                SummaryTotal.Sum, "0"),
+            new MonthColumn("Людей с семьёй, %", m => Average(m, a => a.Family.HasLiving ? 100 : 0), SummaryTotal.Mean, "0.#"),
+            new MonthColumn("Членов семьи в среднем", m => Average(m, a => a.Family.LivingCount), SummaryTotal.Mean),
+            new MonthColumn("Отправлено домой", m => SumOf(m, SimEventType.FamilyMoneySent, "amount"), SummaryTotal.Sum, "0"),
+            new MonthColumn("Недель в нужде", m => m.Count(SimEventType.FamilyMoneySent, IsUnderpaid), SummaryTotal.Sum, "0"),
+            new MonthColumn("В нужде", m => CountActive(m, a => a.State.FamilyInNeed), SummaryTotal.Last, "0"),
+            new MonthColumn("Болезней", m => m.Count(SimEventType.FamilyMemberIll), SummaryTotal.Sum, "0"),
+            new MonthColumn("Смертей в семье", m => m.Count(SimEventType.FamilyMemberDied), SummaryTotal.Sum, "0"),
+            new MonthColumn("Ушли из-за нужды семьи", m => m.Count(SimEventType.AdventurerLeft, e => e.TryGet("cause", out LeaveCause cause) && cause == LeaveCause.FamilyNeed),
                 SummaryTotal.Sum, "0"),
             new MonthColumn("Лента [О]", m => m.FeedLines(EventImportance.Normal), SummaryTotal.Sum, "0"),
             new MonthColumn("Лента [З]", m => m.FeedLines(EventImportance.Notable), SummaryTotal.Sum, "0"),
@@ -133,6 +142,10 @@ namespace GuildMaster.Debugging
             }
             return sum;
         }
+
+        /// <summary>Плата семье меньше нормы.</summary>
+        private static bool IsUnderpaid(SimEvent simEvent) =>
+            simEvent.TryGet("amount", out int amount) && simEvent.TryGet("norm", out int norm) && amount < norm;
 
         private static bool IsResult(SimEvent simEvent, string kind) => simEvent.TryGet("kind", out string value) && value == kind;
 

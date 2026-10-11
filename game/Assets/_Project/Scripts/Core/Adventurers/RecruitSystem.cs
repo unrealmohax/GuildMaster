@@ -114,9 +114,14 @@ namespace GuildMaster.Core
 
                 SpecialTraitDefinition definition = ctx.Data.Get<SpecialTraitDefinition>(trait.TraitId);
                 if (ctx.World.Adventurers.TryGetActive(trait.PartnerId, out Adventurer partner) && TraitRules.CanAdd(partner, definition, ctx.Data))
+                {
                     TraitService.AddAtGeneration(partner, definition, ctx.World.Time.TotalHours, adventurer.Id);
+                    FamilyGenerator.FitToTraits(ctx, partner);
+                }
                 else
+                {
                     adventurer.RemoveTrait(trait);
+                }
             }
         }
     }

@@ -105,6 +105,8 @@ namespace GuildMaster.Core
         public const string PeopleExpelled = "report.people.expelled";
         public const string PeopleRevealed = "report.people.revealed";
         public const string PeopleFled = "report.people.fled";
+        public const string PeopleFamilyIll = "report.people.familyIll";
+        public const string PeopleFamilyDied = "report.people.familyDied";
 
         public const string OrdersTitle = "report.orders";
         public const string OrdersArrived = "report.orders.arrived";
@@ -158,7 +160,8 @@ namespace GuildMaster.Core
         {
             new MonthReportSection(MoneyTitle, new[] { MoneyStart, MoneyIncome, MoneyExpense, MoneyEnd }, BuildMoney),
             new MonthReportSection(PeopleTitle,
-                new[] { PeopleJoined, PeopleLeft, PeopleDied, PeopleDisappeared, PeopleExpelled, PeopleFled, PeopleRevealed, AxisBalanced }, BuildPeople),
+                new[] { PeopleJoined, PeopleLeft, PeopleDied, PeopleDisappeared, PeopleExpelled, PeopleFled, PeopleRevealed, AxisBalanced, PeopleFamilyIll, PeopleFamilyDied },
+                BuildPeople),
             new MonthReportSection(OrdersTitle,
                 new[] { OrdersArrived, OrdersPosted, OrdersDeclinedByRegistrar, OrdersDeclinedByPlayer, OrdersExpired }, BuildOrders),
             new MonthReportSection(QuestsTitle, new[] { QuestsTaken, QuestsDone, QuestsFailed }, BuildQuests),
@@ -236,7 +239,33 @@ namespace GuildMaster.Core
             AddLeft(lines, period, PeopleExpelled, LeaveReason.Expelled);
             AddPeople(lines, PeopleFled, Pick(period, PeopleFled, everyone, a => a.LastFledAtHours > 0 && period.Contains(a.LastFledAtHours), a => a.LastFledAtHours));
             AddPeople(lines, PeopleRevealed, Revealed(period, everyone));
+            AddPeople(lines, PeopleFamilyIll, InFamily(period, everyone, m => m.IllSinceHours));
+            AddPeople(lines, PeopleFamilyDied, InFamily(period, everyone, m => m.DiedAtHours));
             return lines;
+        }
+
+        /// <summary>
+        /// У кого за период в семье случилось это (болезнь, смерть) и человек уже знает — весть не ждёт его с задания; по времени
+        /// первого такого случая.
+        /// </summary>
+        private static List<ReportItem> InFamily(ReportPeriod period, IReadOnlyList<Adventurer> people, Func<FamilyMember, long> time)
+        {
+            var picked = new List<(Adventurer Person, long At)>();
+            foreach (Adventurer adventurer in people)
+            {
+                long first = long.MaxValue;
+                foreach (FamilyMember member in adventurer.Family.Members)
+                {
+                    long at = time(member);
+                    if (at >= 0 && period.Contains(at) && member.PendingNews == FamilyNews.None && at < first) first = at;
+                }
+                if (first != long.MaxValue) picked.Add((adventurer, first));
+            }
+            picked.Sort((a, b) => a.At != b.At ? a.At.CompareTo(b.At) : a.Person.Id.CompareTo(b.Person.Id));
+
+            var items = new List<ReportItem>(picked.Count);
+            foreach ((Adventurer person, long _) in picked) items.Add(new ReportItem(person.Id));
+            return items;
         }
 
         private static List<ReportLine> BuildOrders(ReportPeriod period)

@@ -21,7 +21,8 @@ namespace GuildMaster.Core
 
     /// <summary>
     /// Генерация авантюриста: пол, имя, возраст → тип → уровень → параметры →
-    /// оси → черты → кошелёк, ранг, жильё → архетип → стартовое состояние. Случайность — только переданный поток
+    /// оси → черты → кошелёк, ранг, жильё → архетип → стартовое состояние → семья (у стартовых — в конце сценария старта,
+    /// после черт). Случайность — только переданный поток
     /// той системы, что генерирует (<see cref="RecruitSystem"/>, <see cref="StartScenario"/>). Порядок бросков не менять без причины — сдвинутся составы.
     /// </summary>
     internal static class AdventurerGenerator
@@ -77,6 +78,10 @@ namespace GuildMaster.Core
 
             // 9. Состояние: стресс и лояльность — последними бросками генератора, броски шагов 1–7 не сдвигаются.
             StateService.InitializeNew(rng, adventurer.State, data.Balance);
+
+            // 10. Семья — самыми последними бросками: по возрасту, оси Люди и чертам. Стартовым черты раздаёт сценарий старта —
+            // их семью он бросает сам, после черт.
+            if (!atStart) FamilyGenerator.Generate(rng, data, adventurer);
             return new GeneratedAdventurer(adventurer, type, level.Level);
         }
 

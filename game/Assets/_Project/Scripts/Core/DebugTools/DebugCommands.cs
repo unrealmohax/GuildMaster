@@ -225,11 +225,18 @@ namespace GuildMaster.Core
 
         /// <summary>Срыв человека — вид по его чертам.</summary>
         Breakdown,
+
+        /// <summary>Болезнь в семье: первый живой здоровый родной заболевает.</summary>
+        FamilyIllness,
+
+        /// <summary>Смерть в семье: умирает первый больной родной, нет больных — первый живой.</summary>
+        FamilyDeath,
     }
 
     /// <summary>
     /// Вызвать событие: засаду и находку — на задании (<see cref="TargetId"/> — id задания; событие случится в ближайший ходовой
-    /// час обычным ходом задания), срыв — у человека (<see cref="TargetId"/> — id человека, сразу).
+    /// час обычным ходом задания), срыв, болезнь и смерть в семье — у человека (<see cref="TargetId"/> — id человека, сразу; человек
+    /// на задании узнает о родных по возвращении).
     /// </summary>
     public sealed class DebugEventCommand : ICommand
     {
@@ -274,7 +281,34 @@ namespace GuildMaster.Core
                     DebugAction.Publish(ctx, "breakdown", adventurer.Id);
                     break;
                 }
+                case DebugEventKind.FamilyIllness:
+                {
+                    if (!ctx.World.Adventurers.TryGetActive(TargetId, out Adventurer adventurer)) return;
+                    FamilyMember member = FirstMember(adventurer, m => m.Alive && !m.IsIll);
+                    if (member == null) return;
+                    FamilyService.FallIll(ctx, adventurer, member);
+                    DebugAction.Publish(ctx, "family illness", adventurer.Id);
+                    break;
+                }
+                case DebugEventKind.FamilyDeath:
+                {
+                    if (!ctx.World.Adventurers.TryGetActive(TargetId, out Adventurer adventurer)) return;
+                    FamilyMember member = FirstMember(adventurer, m => m.IsIll) ?? FirstMember(adventurer, m => m.Alive);
+                    if (member == null) return;
+                    FamilyService.Die(ctx, adventurer, member);
+                    DebugAction.Publish(ctx, "family death", adventurer.Id);
+                    break;
+                }
             }
+        }
+
+        private static FamilyMember FirstMember(Adventurer adventurer, Func<FamilyMember, bool> fits)
+        {
+            foreach (FamilyMember member in adventurer.Family.Members)
+            {
+                if (fits(member)) return member;
+            }
+            return null;
         }
     }
 

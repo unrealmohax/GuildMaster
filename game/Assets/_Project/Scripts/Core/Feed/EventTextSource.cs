@@ -18,6 +18,7 @@ namespace GuildMaster.Core
     /// <item><c>{причина}</c> — текст причин ухода, строка в данных события под ключом <c>reason</c>.</item>
     /// <item><c>{архетип}</c> — название архетипа в роде первого участника: id из данных события (<c>to</c>, <c>archetype</c>)
     /// или текущий архетип человека.</item>
+    /// <item><c>{родной}</c> — родной первого участника (номер в семье — <c>relative</c>): отец, мать, муж, жена, сын, дочь.</item>
     /// </list>
     /// Ссылки (<see cref="TextValue.Link"/>): люди — на человека, <c>{имя}</c> сотрудника — на сотрудника (<c>staffId</c>),
     /// место, враг, заказчик, груз — на задание (<c>quest</c>), а без него — на заказ (<c>order</c>); постройка — на постройку
@@ -49,6 +50,7 @@ namespace GuildMaster.Core
                 ["архетип"] = s => s.Archetype(),
                 ["причина"] = s => s.NounFromPayload("reason"),
                 ["название"] = s => s.PartyNoun("title"),
+                ["родной"] = s => s.Relative(),
             };
 
         private readonly SimEvent simEvent;
@@ -126,6 +128,15 @@ namespace GuildMaster.Core
                     return value.WithLink(new TextLink(TextLinkKind.Building, building.Id));
             }
             return value;
+        }
+
+        /// <summary>Родной первого участника: номер в его семье — <c>relative</c>; слово родства с падежами и родом.</summary>
+        private TextValue Relative()
+        {
+            if (simEvent.Participants.Count == 0 || !simEvent.TryGet("relative", out int index)) return null;
+            Adventurer adventurer = FindPerson(world, simEvent.Participants[0]);
+            if (adventurer == null || index < 0 || index >= adventurer.Family.Members.Count) return null;
+            return FamilyRules.RelativeValue(adventurer.Family.Members[index], data);
         }
 
         private TextValue NounFromPayload(string key)

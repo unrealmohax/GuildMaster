@@ -100,6 +100,7 @@ namespace GuildMaster.UI
             { AutopauseKind.DilemmaReceived, "Обращение" },
             { AutopauseKind.ImportantOrder, "Важный заказ" },
             { AutopauseKind.Exhausted, "Истощение от голода" },
+            { AutopauseKind.FamilyDeath, "Смерть в семье" },
         };
 
         public static string AutopauseKindName(AutopauseKind kind) => AutopauseKinds.TryGetValue(kind, out string name) ? name : kind.ToString();
@@ -117,6 +118,8 @@ namespace GuildMaster.UI
         public const string ColSatiety = "Сытость";
         public const string DebugSatietyEmpty = "Сытость 0";
         public const string DebugSatietyFull = "Сытость 100";
+        public const string DebugFamilyIllness = "Болезнь в семье";
+        public const string DebugFamilyDeath = "Смерть в семье";
         public const string ColWallet = "Кошелёк";
         public const string FilterAll = "Все";
         public const string FilterOnQuest = "На заданиях";
@@ -220,6 +223,18 @@ namespace GuildMaster.UI
         public const string RationsFormat = "Пайки: {0} (дешёвых {1})";
         public const string PartyRationsFormat = "; общий запас группы: {0}";
         public const string HungerIcon = " ●";
+        public const string Family = "Семья";
+        public const string NoFamily = "семьи нет";
+
+        /// <summary>Слова родства по роли и полу: отец, мать, муж, жена, сын, дочь.</summary>
+        public static readonly string[] RelativeWords = { "отец", "мать", "муж", "жена", "сын", "дочь" };
+
+        public const string RelativeFormat = "{0} {1}";
+        public const string RelativeIll = " (болеет)";
+        public const string RelativeDead = " †";
+        public const string FamilyNormFormat = "Норма: {0} в неделю";
+        public const string FamilyInNeed = "В нужде";
+        public const string Mourning = "в трауре";
         public const string DebtFormat = "долг гильдии {0}";
         public const string HousingCity = "живёт в городе";
         public const string HousingDormitory = "живёт в Общежитии";

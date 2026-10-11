@@ -80,6 +80,15 @@ namespace GuildMaster.UI
         public string Rations { get; private set; } = string.Empty;
 
         public string Health { get; private set; } = string.Empty;
+
+        /// <summary>Семья: «мать Мара, жена Ида (болеет), сын Вит †»; нет семьи — «семьи нет».</summary>
+        public string Family { get; private set; } = string.Empty;
+
+        /// <summary>Норма платы семье в неделю; нет живых родных — пусто.</summary>
+        public string FamilyNorm { get; private set; } = string.Empty;
+
+        public bool FamilyInNeed { get; private set; }
+        public bool Mourning { get; private set; }
         public string Money { get; private set; } = string.Empty;
         public List<RelationRow> Relations { get; } = new List<RelationRow>();
         public string Now { get; private set; } = string.Empty;
@@ -155,6 +164,7 @@ namespace GuildMaster.UI
                     + $"{string.Format(UiStrings.DebtFormat, UiFormat.Money(state.DebtToGuild))}, "
                     + (person.Housing == Housing.Dorm ? UiStrings.HousingDormitory : UiStrings.HousingCity);
 
+            FillFamily(person, data);
             FillRelations(person, world, data);
             Now = NowText(person, client);
             History = string.Format(UiStrings.QuestsDoneFormat, person.QuestsCompleted, person.QuestsFailed);
@@ -164,6 +174,26 @@ namespace GuildMaster.UI
             {
                 if (Mentions(feed[i], person.Id)) LastLines.Add(feed[i]);
             }
+        }
+
+        private void FillFamily(Adventurer person, DataRegistry data)
+        {
+            var parts = new List<string>();
+            foreach (FamilyMember member in person.Family.Members)
+            {
+                string word = UiStrings.RelativeWords[(int)member.Role * 2 + (member.Gender == Gender.Female ? 1 : 0)];
+                string part = string.Format(UiStrings.RelativeFormat, word, member.Name);
+                if (!member.Alive) part += UiStrings.RelativeDead;
+                else if (member.IsIll) part += UiStrings.RelativeIll;
+                parts.Add(part);
+            }
+            Family = parts.Count == 0 ? UiStrings.NoFamily : string.Join(", ", parts);
+            if (Family.Length > 0) Family = char.ToUpperInvariant(Family[0]) + Family.Substring(1);
+
+            int norm = FamilyRules.Norm(person, data.Balance.Family);
+            FamilyNorm = norm > 0 ? string.Format(UiStrings.FamilyNormFormat, UiFormat.Money(norm)) : string.Empty;
+            FamilyInNeed = person.State.FamilyInNeed;
+            Mourning = person.State.IsMourning;
         }
 
         private void FillRoles(Adventurer person, DataRegistry data)

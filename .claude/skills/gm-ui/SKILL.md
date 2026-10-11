@@ -122,3 +122,6 @@ description: Интерфейс GuildMaster (uGUI + TMP, сборка GuildMaste
 - Пайки: доска — столбец «Путь» = расстояние + `UiFormat.Travel` («далеко, ≈ 2,5 дн.», при выходе утром по `TravelPlan`), то же в фактах
   выбранного заказа; карточка — `CardModel.Rations` («Пайки: N (дешёвых M); общий запас группы: K») под строкой денег, `MealRation`
   («ест пайки…») при `LastMealWasRation`; журнал казны — пайки в записи «Таверна: еда».
+- Семья (скилл `gm-state-health` → «Семья»): карточка — блок «Семья» после денег (`CardModel.Family`, `FamilyNorm`, `FamilyInNeed` красным,
+  `Mourning`; слова — `UiStrings.RelativeWords`, «†» добавлен в символы шрифта `UiSetup`); отладочная панель — кнопки «Болезнь в семье» и
+  «Смерть в семье» (`DebugEventCommand`); автопауза «Смерть в семье» (`AutopauseKind.FamilyDeath`).

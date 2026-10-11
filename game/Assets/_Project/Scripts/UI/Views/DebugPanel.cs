@@ -116,6 +116,11 @@ namespace GuildMaster.UI
                 fontSize: Theme.FontSizeSmall);
             Factory.Button(eventsRow, UiStrings.DebugSatietyFull, () => WithPerson(id => new DebugSetStateCommand(id, StateStat.Satiety, 100f)), 150,
                 fontSize: Theme.FontSizeSmall);
+            RectTransform familyRow = Row();
+            Factory.Button(familyRow, UiStrings.DebugFamilyIllness,
+                () => WithPerson(id => new DebugEventCommand(DebugEventKind.FamilyIllness, id)), 200, fontSize: Theme.FontSizeSmall);
+            Factory.Button(familyRow, UiStrings.DebugFamilyDeath,
+                () => WithPerson(id => new DebugEventCommand(DebugEventKind.FamilyDeath, id)), 200, fontSize: Theme.FontSizeSmall);
             RectTransform dilemmaRow = Row(UiStrings.DebugDilemma);
             dilemma = new CycleSelector(Factory, dilemmaRow, 250);
             dilemma.SetValues(Ids<DilemmaDefinition>(), id => Client.Data.TryGet(id, out DilemmaDefinition d) ? d.Title : id);

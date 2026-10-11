@@ -62,7 +62,8 @@ description: Авантюристы GuildMaster — модель Adventurer и A
 
 **Генерация** (`AdventurerGenerator.Generate`): пол → имя (без повторов по возможности) → возраст → тип по
 `ArchetypeDefinition.generationWeight` → уровень → параметры → оси → черты «от рождения» (с партнёром — только если в гильдии есть
-подходящий) → кошелёк, ранг G, город → архетип → стартовое состояние (последние броски). **Порядок бросков не менять.**
+подходящий) → кошелёк, ранг G, город → архетип → стартовое состояние → семья (`FamilyGenerator`, самые последние броски;
+у стартовых — в конце `StartScenario.Apply`, после черт). **Порядок бросков не менять.**
 
 **Кандидаты.** Утром раз в сутки шанс `CandidateChance(данные, репутация)`, если `HeadCount < maxAdventurers`; ждут
 `candidateWaitDays`. Принять — `AcceptCandidateCommand` (партнёрская черта появляется у партнёра, если он может её взять,
@@ -89,3 +90,9 @@ description: Авантюристы GuildMaster — модель Adventurer и A
   `AdventurerGenerator.Generate(…, workAxisShift)` — сдвиг Труда до обрезки, бросков не меняет («халявщики», скилл `gm-decrees`).
 - Память человека — `Adventurer.Memory` (`AdventurerMemory`, флаги `MemoryFlag` для цепочек обращений, скилл `gm-dilemmas`).
   Раскрытие самой дилеммой — `RevealService.TryRevealAxisByDilemma`/`TryRevealTraitByDilemma` (в обход триггера из данных).
+- **Семья** (скилл `gm-state-health` → «Семья»): `Adventurer.Family`. Генерация кандидата бросает семью последней в `Generate`
+  (`atStart: false`); стартовой шестёрке — `StartScenario` после черт (иначе семья не видела бы Семейного/Влюблённых, а броски внутри
+  `Generate` сдвинули бы составы). Партнёр Влюблённого, получивший черту при `AcceptCandidateCommand`, теряет супруга
+  (`FamilyGenerator.FitToTraits`). `DebugSpawnAdventurerCommand` с чертами — семья по чертам из генерации, не по заданным. Лог генерации —
+  `| family Parent(M):Имя Spouse(F):Имя …`. Хук `FamilySendsMoneyHome` теперь значит «платит семье первым и сверх нормы»; доли дохода
+  домой больше нет.

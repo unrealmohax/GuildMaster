@@ -39,6 +39,7 @@ namespace GuildMaster.Core
             { SimEventType.RationsBought, SimLogLevel.Debug },
             { SimEventType.RationsShared, SimLogLevel.Debug },
             { SimEventType.QuestMealMissed, SimLogLevel.Trace },
+            { SimEventType.FamilyMoneySent, SimLogLevel.Debug },
         };
 
         public static SimLogLevel Of(SimEventType type) => Levels.TryGetValue(type, out SimLogLevel level) ? level : SimLogLevel.Info;

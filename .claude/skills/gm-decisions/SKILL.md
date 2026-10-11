@@ -97,3 +97,5 @@ description: Модель решений GuildMaster — DecisionSystem (шаг 
 - Пайки (скилл `gm-state-health` → «Походные пайки»): в оценке заказа Деньги = (доля − `RationRules.OrderCost`) / расходы, не ниже 0
   (`QuestChoices.OrderScores(…, ownRations)`, `MoneyScore`); свой запас — `RationRules.OwnStock(человек, ctx.World.Parties)`. Далёкий
   заказ без запаса «весит» меньше на цену пайков; отдельного минуса за длину пути нет.
+- Семья (скилл `gm-state-health` → «Семья»): `StateFactor.FamilyNeed` — Деньги × 1,5 при `FamilyInNeed` (в логе `family need`);
+  `LeaveCause.FamilyNeed` (`reason.familyNeed`) — первой для мотива «Деньги», раньше голода; денежная (`IsMoney`).

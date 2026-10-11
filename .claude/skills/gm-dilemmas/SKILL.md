@@ -97,3 +97,8 @@ description: Обращения и дилеммы GuildMaster — DilemmaDefinit
 - Генератор: `AllowSameParty`/`ForbidSameParty` ставят флаги сами — отдельный `Flag(LoversTogether)` после них затёр бы число (0,5).
 - `Dilemma`, `AdventurerMemory`, `MemoryEntry` — части мира: публичные методы только `Is/Has/Get/TryGet…` (`ArchitectureTests`).
 - «Ссора из-за добычи» в серии года почти не возникает: в группах редко бывают пары с отношениями ниже 0.
+- **Семья** (скилл `gm-state-health` → «Семья»): «Просьба в долг» срабатывает и у того, чья семья в нужде (`FamilyInNeed`) — без условия на
+  кошелёк и без броска (долга нет, общие условия `IsFree`/`CanOpenMore` — как всегда). Причина (`PickReason`): болеет родной (причина
+  с `DilemmaReasonCondition.FamilyMemberIll`, `{родной}` и `{имя}` подставляются сразу через `RelativeTextSource`) → черта → нужда
+  (`FamilyInNeed`) → нейтральная наугад. Условие причины — поле `DilemmaReason.condition`; `IsNeutral` — ни черты, ни условия. В прогоне года
+  просьб в долг ~35 вместо ~13.
