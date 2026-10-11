@@ -27,6 +27,7 @@ GuildMaster/   ← git-репозиторий (всё вместе)
 | [mechanics/decision-model.md](mechanics/decision-model.md) | Модель решений авантюриста: мотивы, запреты, влияние игрока |
 | [mechanics/state.md](mechanics/state.md) | Состояние человека: здоровье, усталость, стресс, довольство, лояльность, кошелёк |
 | [mechanics/food.md](mechanics/food.md) | Питание и припасы: сытость, типы еды, пайки в поход |
+| [mechanics/family.md](mechanics/family.md) | Семья авантюриста: состав, траты, болезнь и смерть родных |
 | [mechanics/traits.md](mechanics/traits.md) | Черты характера: оси, особые черты, скрытые черты |
 | [mechanics/quests.md](mechanics/quests.md) | Задания: как видны игроку, источники, рычаги, типы |
 | [mechanics/staff.md](mechanics/staff.md) | Персонал гильдии: должности, прямое управление |
