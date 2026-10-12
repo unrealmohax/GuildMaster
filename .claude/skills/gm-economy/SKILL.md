@@ -35,6 +35,12 @@ description: Экономика гильдии GuildMaster — казна Treasu
 - **1-е число, 00:00**: `EconomySystem` (трудные времена) → `StaffSystem` (долги по зарплате, уход) → `BuildingSystem` (содержание) →
   `SalarySystem` (зарплаты) → `MonthReportSystem` — всё это в отчёте прошедшего месяца.
 
+## Закрытие гильдии
+
+Общий путь — `GuildClosure.Close(ctx, ClosedCause)`: банкротство (`EconomySystem`) и покинутое поселение (`SettlementSystem`, скилл
+`gm-settlement`). Пишет `IsClosed`, `ClosedAtHours`, `ClosedCause`, событие `GuildClosed` (+ `cause`, `settlement`); строка ленты —
+`guild.closed` или `guild.closed.settlement`; итоги поражения — `DefeatModel` (`Cause`). `BestPeople` — тоже в `GuildClosure`.
+
 ## Банкротство (каждый час, `EconomySystem`)
 
 Казна в минусе `bankruptcyStartDays` суток подряд → `BankruptcyStarted` [В] с автопаузой, срок `bankruptcyMonths` месяцев.
@@ -75,6 +81,9 @@ description: Экономика гильдии GuildMaster — казна Treasu
 - Комиссия действует на награды, выплаченные после смены, и на цель довольства со следующего расчёта (00:00).
 - Отладочные статьи `DebugIncome` / `DebugExpense` (кнопки денег отладочной панели) — в `LedgerCategory.All`, подписи `ledger.debug*`;
   в обычной игре не появляются.
+- Поселение (скилл `gm-settlement`): статьи `TavernLocals` («Таверна: жители», доход в 00:00 из `SettlementSystem`, × Сухой закон)
+  и `AttackDamage` («Ущерб от нападений», обязательный); раздел отчёта `report.settlement` (снимок `MonthReport.SettlementAtEnd`,
+  в `ReportPeriod` — `SettlementAtStart/AtEnd`) — перед «Репутацией».
 - Распоряжения (скилл `gm-decrees`): статья `Decrees` (обязательный расход, комментарий — id распоряжения), раздел отчёта
   `report.decrees` (`ReportItem.Days/Amount`), Сухой закон умножает долю таверны с порции в `SettleTavern`.
 - Обращения (скилл `gm-dilemmas`): статьи `Loans` («Займы авантюристам», только если хватает), `Dilemmas` («Обращения», только если

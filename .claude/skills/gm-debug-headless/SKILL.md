@@ -98,3 +98,9 @@ description: Отладка и прогоны GuildMaster без интерфе�
   «Припасы кончились», «Отступлений из-за еды» (`SummaryColumns.SumOf` — сумма числа из данных событий). Лог `Debug` — `rations quest #N …`
   (покупка), `ration #id Имя Cheap [from …]` (еда в пути и паёк в городе), бросок `ration-loss`; `RationsBought`/`RationsShared` — `Debug`,
   `QuestMealMissed` — `Trace`; решение отступить «из-за еды» — `because food 0.5, …`.
+- Поселение (скилл `gm-settlement`): столбцы «Безопасность», «Население», «Уровень» (код: 0 спокойно … 3 осада), «Угроз выполнено»,
+  «Угроз упущено» (разница `SettlementTotals` с началом месяца — `MonthRecord.SettlementFrom`: события `SecurityChanged` на Trace, сводка
+  их не хранит), «Нападений»; статьи «Таверна: жители», «Ущерб от нападений» — сами. Итог прогона — причина закрытия (`ClosedCause`)
+  в логе и в окне Run Headless. Зонд Balance: `10 Years Seeds 1-5 Passive Bot`, в `done.txt` — закрытие и поселение, в `yearly_*.csv` —
+  Безопасность, минимум, худший уровень, население, нападения, угрозы по годам. Лог `Debug` — `security 61.5 -> 60.0 expired #42 Hunt E`,
+  `population 80 -> 82 month`, бросок `settlement-attack`.

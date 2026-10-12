@@ -93,3 +93,6 @@ description: Слой данных GuildMaster — ScriptableObject-опреде
 - Семья: раздел `Family` (`FamilyBalance`: состав, плата по ролям, нужда, болезнь `illWeeks` — `IntRange`, смерть, траур); `familySendHomeShare`
   убран из `Traits`. `NameList.relatives` — ровно 6 слов (отец, мать, муж, жена, сын, дочь; чётные — мужской род), валидатор `CheckNames`.
   `DilemmaReason.condition` (`DilemmaReasonCondition`: `FamilyInNeed`, `FamilyMemberIll`).
+- Поселение (скилл `gm-settlement`): раздел `Settlement` (`SettlementBalance`), `Orders.populationPerOrder`; флаг `QuestTypeDefinition.isThreat`
+  (генератор: Охота, Истребление); `NameList.settlementNames` — все 6 падежей и род (валидатор `CheckNames`); `CheckBalance` проверяет
+  порядок порогов уровней. Значения по умолчанию в коде для потока заказов приведены к ассету: 1 + население / 40 + репутация / 33.

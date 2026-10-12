@@ -11,8 +11,11 @@ namespace GuildMaster.Data
         [Tooltip("Заказов в день: база")]
         [SerializeField, Min(0f)] private float baseOrdersPerDay = 1f;
 
-        [Tooltip("Заказов в день: + репутация / это число (дробная часть — шанс ещё одного)")]
-        [SerializeField, Min(1f)] private float reputationPerExtraOrder = 10f;
+        [Tooltip("Заказов в день: + население поселения / это число")]
+        [SerializeField, Min(1f)] private float populationPerOrder = 40f;
+
+        [Tooltip("Заказов в день: + репутация / это число (дробная часть суммы — шанс ещё одного)")]
+        [SerializeField, Min(1f)] private float reputationPerExtraOrder = 33f;
 
         [Tooltip("Срок на доске, дней")]
         [SerializeField] private IntRange boardDays = new IntRange(3, 7);
@@ -75,6 +78,7 @@ namespace GuildMaster.Data
         [SerializeField, Min(1)] private int closedOrdersLimit = 200;
 
         public float BaseOrdersPerDay => baseOrdersPerDay;
+        public float PopulationPerOrder => populationPerOrder;
         public float ReputationPerExtraOrder => reputationPerExtraOrder;
         public IntRange BoardDays => boardDays;
         public float HardEarlyChance => hardEarlyChance;

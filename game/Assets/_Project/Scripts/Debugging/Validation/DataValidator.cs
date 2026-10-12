@@ -182,6 +182,12 @@ namespace GuildMaster.Debugging
 
                 if (balance.Rounds.FailureLadder.Count != 5) report.Error(balance, "rounds.failureLadder", "нужно 5 ступеней");
 
+                SettlementBalance settlement = balance.Settlement;
+                if (!(settlement.AlarmFrom < settlement.NormalFrom && settlement.NormalFrom < settlement.CalmFrom && settlement.CalmFrom <= settlement.MaxSecurity))
+                    report.Error(balance, "settlement", "пороги уровней: тревога < норма < спокойно ≤ максимум Безопасности");
+                if (settlement.StartSecurity > settlement.MaxSecurity) report.Error(balance, "settlement.startSecurity", "выше максимума Безопасности");
+                if (settlement.AttackKilled.Min < 0 || settlement.AttackDamage.Min < 0) report.Error(balance, "settlement", "потери при нападении не отрицательные");
+
                 AdventurersBalance adventurers = balance.Adventurers;
                 float roleWeights = adventurers.RoleMainWeight + adventurers.RoleSecondaryWeight + adventurers.RoleRestWeight;
                 if (Mathf.Abs(roleWeights - 1f) > ChanceSumTolerance) report.Warning(balance, "adventurers", $"веса оценки роли в сумме {roleWeights}, ожидается 1");
@@ -657,6 +663,16 @@ namespace GuildMaster.Debugging
                     GrammaticalGender expected = i % 2 == 0 ? GrammaticalGender.Masculine : GrammaticalGender.Feminine;
                     if (names.Relatives[i] != null && names.Relatives[i].Gender != expected)
                         report.Error(names, $"relatives[{i}]", $"род {names.Relatives[i].Gender}, нужен {expected}");
+                }
+
+                if (names.SettlementNames.Count == 0) report.Error(names, "settlementNames", "нет названий поселения");
+                CheckNouns(names, "settlementNames", names.SettlementNames);
+                CheckAllCases(names, "settlementNames", names.SettlementNames);
+                for (int i = 0; i < names.SettlementNames.Count; i++)
+                {
+                    NounForms name = names.SettlementNames[i];
+                    if (name != null && name.Gender == GrammaticalGender.Unspecified)
+                        report.Error(names, $"settlementNames[{i}]", $"«{name.Nominative}»: нет рода — строки ленты согласуют с ним глаголы");
                 }
             }
 

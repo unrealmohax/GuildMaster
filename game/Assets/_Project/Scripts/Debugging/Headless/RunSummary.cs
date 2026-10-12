@@ -34,8 +34,9 @@ namespace GuildMaster.Debugging
 
         internal MonthRecord(int year, int month, int days, ISimulationClient game, Dictionary<SimEventType, int> counts, long[] feedLines,
             long[] activityHours, long personHours, int ledgerFrom, int ledgerTo, IReadOnlyList<SimEvent> events = null,
-            long[] meals = null, long[] hungerHours = null)
+            long[] meals = null, long[] hungerHours = null, SettlementTotals settlementFrom = default)
         {
+            SettlementFrom = settlementFrom;
             this.meals = meals ?? new long[Vocabulary.MealTierCount];
             this.hungerHours = hungerHours ?? new long[Enum.GetValues(typeof(HungerStage)).Length];
             this.events = events ?? Array.Empty<SimEvent>();
@@ -53,6 +54,9 @@ namespace GuildMaster.Debugging
 
         public int Year { get; }
         public int Month { get; }
+
+        /// <summary>Счётчики поселения на начало месяца: за месяц — разница с <see cref="SettlementState.Totals"/> мира.</summary>
+        public SettlementTotals SettlementFrom { get; }
 
         /// <summary>Сколько суток месяца попало в прогон.</summary>
         public int Days { get; }
@@ -264,6 +268,7 @@ namespace GuildMaster.Debugging
         private long[] meals = new long[Vocabulary.MealTierCount];
         private long[] hungerHours = new long[Enum.GetValues(typeof(HungerStage)).Length];
         private int ledgerAtMonthStart;
+        private SettlementTotals settlementAtMonthStart;
         private List<SimEvent> monthEvents = new List<SimEvent>();
 
         public SummaryRecorder(Simulation simulation, IReadOnlyList<MonthColumn> monthColumns = null, IReadOnlyList<PersonColumn> personColumns = null)
@@ -273,6 +278,7 @@ namespace GuildMaster.Debugging
             this.personColumns = personColumns ?? SummaryColumns.People;
             for (int i = 0; i < feedAtMonthStart.Length; i++) feedAtMonthStart[i] = simulation.World.Feed.GetAddedCount((EventImportance)i);
             ledgerAtMonthStart = simulation.World.Treasury.Ledger.Count;
+            settlementAtMonthStart = simulation.World.Settlement.Totals;
             simulation.TickCompleted += OnTick;
         }
 
@@ -343,8 +349,9 @@ namespace GuildMaster.Debugging
             }
             int ledgerCount = simulation.World.Treasury.Ledger.Count;
             var record = new MonthRecord(time.Year, time.Month, days, simulation, monthCounts, feedLines, activityHours, personHours,
-                ledgerAtMonthStart, ledgerCount, monthEvents, meals, hungerHours);
+                ledgerAtMonthStart, ledgerCount, monthEvents, meals, hungerHours, settlementAtMonthStart);
             ledgerAtMonthStart = ledgerCount;
+            settlementAtMonthStart = simulation.World.Settlement.Totals;
             var values = new double[monthColumns.Count];
             for (int c = 0; c < values.Length; c++) values[c] = monthColumns[c].Value(record);
 

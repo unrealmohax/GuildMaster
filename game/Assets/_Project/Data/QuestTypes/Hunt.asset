@@ -20,5 +20,6 @@ MonoBehaviour:
   maxPartySizeCeiling: 0
   statCeilings: []
   generationWeight: 0.3
+  isThreat: 1
   roundSuccessFeedKey: quest.round.success.hunt
   roundFailFeedKey: quest.round.fail.hunt

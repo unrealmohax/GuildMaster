@@ -50,13 +50,15 @@ namespace GuildMaster.UI
 
     /// <summary>
     /// Колокольчик верхней панели: что ждёт внимания игрока, по состоянию мира — обращения без ответа, важные заказы и событийные задания без ответа,
-    /// кандидаты в авантюристы и на вакансии, непрочитанный отчёт месяца. Уведомление пропадает само, когда пропал его повод.
+    /// поселение в тревоге, в осаде или покидается (с отсчётом), кандидаты в авантюристы и на вакансии, непрочитанный отчёт месяца.
+    /// Уведомление пропадает само, когда пропал его повод.
     /// </summary>
     public sealed class NotificationsModel
     {
         public static readonly List<INotificationSource> Sources = new List<INotificationSource>
         {
             new Dilemmas(),
+            new Settlement(),
             new ImportantOrders(),
             new AdventurerCandidates(),
             new StaffCandidates(),
@@ -97,6 +99,22 @@ namespace GuildMaster.UI
                         Popup = new Popup(PopupKind.Dilemma, dilemma.Id),
                     });
                 }
+            }
+        }
+
+        private sealed class Settlement : INotificationSource
+        {
+            public void Collect(ISimulationClient client, NotificationsModel model, List<Notification> items)
+            {
+                SettlementState settlement = client.World.Settlement;
+                string name = settlement.Name?.Nominative ?? UiStrings.SettlementDefaultName;
+                int daysLeft = SettlementRules.DaysUntilAbandoned(settlement, client.World.Time.TotalHours, client.Calendar,
+                    client.Data.Balance.Settlement);
+                string text = daysLeft >= 0 ? string.Format(UiStrings.NotifySettlementAbandoningFormat, name, daysLeft)
+                    : settlement.Level == SettlementLevel.Siege ? string.Format(UiStrings.NotifySettlementSiegeFormat, name)
+                    : settlement.Level == SettlementLevel.Alarm ? string.Format(UiStrings.NotifySettlementAlarmFormat, name)
+                    : null;
+                if (text != null) items.Add(new Notification { Text = text, Destination = Destination.ToGuild(GuildTab.Settlement) });
             }
         }
 

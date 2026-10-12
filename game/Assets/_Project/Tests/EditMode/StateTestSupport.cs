@@ -12,19 +12,23 @@ namespace GuildMaster.Tests
     /// стартовые заказы сняты с доски: заданий нет, тест видит только события своих людей. Стартовый персонал (Регистратор,
     /// Трактирщик) остаётся, но с уровнем <see cref="NeutralStaffLevel"/> — эффект должности × 1, снятие стресса в таверне
     /// не зависит от зерна. Обращений по умолчанию нет (система обращений убрана): их ответы по сроку меняли бы довольство,
-    /// кошельки и состав гильдии; тесты обращений включают её — <c>dilemmas: true</c>.
+    /// кошельки и состав гильдии; тесты обращений включают её — <c>dilemmas: true</c>. Поселения тоже нет (его система убрана):
+    /// суточный спад Безопасности без заданий закрыл бы гильдию, а доход таверны от жителей менял бы казну; тесты поселения
+    /// включают её — <c>settlement: true</c>.
     /// </summary>
     internal sealed class StateWorld : IDisposable
     {
         /// <summary>Уровень возможностей, при котором эффект должности — × 1.</summary>
         public const int NeutralStaffLevel = 50;
 
-        public StateWorld(uint seed = 7u, IInfirmary infirmary = null, ISimSystem beforeState = null, SimLogger log = null, bool dilemmas = false)
+        public StateWorld(uint seed = 7u, IInfirmary infirmary = null, ISimSystem beforeState = null, SimLogger log = null, bool dilemmas = false,
+            bool settlement = false)
         {
             Data = new PeopleData();
             List<ISimSystem> systems = SimulationSystems.CreateDefault();
             systems.RemoveAll(s => s is OrderSystem);
             if (!dilemmas) systems.RemoveAll(s => s is DilemmaSystem);
+            if (!settlement) systems.RemoveAll(s => s is SettlementSystem);
             if (infirmary != null)
             {
                 systems[systems.FindIndex(s => s is HealthSystem)] = new HealthSystem(infirmary);

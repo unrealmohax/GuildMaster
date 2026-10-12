@@ -6,7 +6,7 @@ namespace GuildMaster.Core
     /// <summary>
     /// Казна гильдии (часть мира): деньги, журнал операций, комиссия, банкротство. Менять — только
     /// <see cref="TreasuryService"/> (деньги и журнал), командой <see cref="SetCommissionCommand"/> (комиссия)
-    /// и <see cref="EconomySystem"/> (банкротство, закрытие гильдии).
+    /// <see cref="EconomySystem"/> (банкротство) и <see cref="GuildClosure"/> (закрытие гильдии).
     /// Инвариант: <see cref="StartMoney"/> + сумма журнала = <see cref="Money"/>.
     /// </summary>
     public sealed class Treasury
@@ -35,6 +35,9 @@ namespace GuildMaster.Core
         public bool IsClosed { get; internal set; }
 
         public long ClosedAtHours { get; internal set; }
+
+        /// <summary>Почему гильдия закрыта; имеет смысл, только когда <see cref="IsClosed"/>.</summary>
+        public ClosedCause ClosedCause { get; internal set; }
 
         /// <summary>Порций еды в таверне по типам (<see cref="MealTier"/>) с прошлого расчёта дохода таверны.</summary>
         internal int[] TavernMeals { get; } = new int[Vocabulary.MealTierCount];

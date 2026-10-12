@@ -21,6 +21,28 @@ namespace GuildMaster.UI
         public const string Buildings = "Постройки";
         public const string Staff = "Персонал";
         public const string GuildFeed = "Лента гильдии";
+        public const string Settlement = "Поселение";
+
+        // Поселение
+        public const string SettlementDefaultName = "Поселение";
+        public const string SettlementTopFormat = "{0} · {1} · Безопасность {2}";
+        public const string SettlementLeavingFormat = "Уходят через {0} дн.";
+        public const string SettlementAbandonFormat = "Безопасность на нуле: если ничего не изменится, через {0} дн. жители покинут поселение";
+        public const string SettlementPopulationFormat = "Население: {0} ({1} с начала месяца)";
+        public const string SettlementSecurityFormat = "Безопасность {0} — {1}";
+        public const string SettlementChanges = "Последние изменения Безопасности";
+        public const string SettlementNoChanges = "Пока ничего не менялось";
+        public const string SettlementThreatsHint = "Охота и истребление — угрозы поселению: выполненные поднимают Безопасность, упущенные (сняты по сроку или отклонены) — снижают.";
+        public const string NotifySettlementAlarmFormat = "{0}: тревога — жители уезжают";
+        public const string NotifySettlementSiegeFormat = "{0}: осада — по ночам нападения";
+        public const string NotifySettlementAbandoningFormat = "{0}: жители уходят через {1} дн.";
+        public const string Threat = "угроза";
+        public const string RegistrarThreatHint = "Отклонённые угрозы снижают Безопасность поселения.";
+        public const string DefeatSettlementFormat = "Причина: жители покинули поселение «{0}» — гильдии некого больше защищать.";
+        public const string DefeatBankruptcy = "Причина: банкротство — долги так и не отдали.";
+        public const string DebugSecurityUp = "Безопасность +10";
+        public const string DebugSecurityDown = "Безопасность −10";
+        public const string DebugAttack = "Нападение";
 
         // Верхняя панель
         public const string Treasury = "Казна";
@@ -101,6 +123,9 @@ namespace GuildMaster.UI
             { AutopauseKind.ImportantOrder, "Важный заказ" },
             { AutopauseKind.Exhausted, "Истощение от голода" },
             { AutopauseKind.FamilyDeath, "Смерть в семье" },
+            { AutopauseKind.SettlementAlarm, "Тревога в поселении" },
+            { AutopauseKind.SettlementAttack, "Нападение на поселение" },
+            { AutopauseKind.SettlementAbandoning, "Жители покидают поселение" },
         };
 
         public static string AutopauseKindName(AutopauseKind kind) => AutopauseKinds.TryGetValue(kind, out string name) ? name : kind.ToString();

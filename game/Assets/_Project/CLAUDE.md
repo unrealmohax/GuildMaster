@@ -10,7 +10,8 @@
 `12-groups.md` (GM-12, группы), `13-buildings-staff.md` (GM-13, постройки и персонал; им закончился этап 1),
 `14-ui-observation.md` (GM-14, интерфейс наблюдения; им начался этап 2), `15-ui-decisions.md` (GM-15, интерфейс решений; этап 3,
 первая часть), `16-decrees.md` (GM-16, распоряжения), `17-dilemmas.md` (GM-17, обращения и дилеммы), `18-food.md` (GM-18, еда и сытость;
-им начался этап 4), `19-rations.md` (GM-19, походные припасы), `20-family.md` (GM-20, семья).
+им начался этап 4), `19-rations.md` (GM-19, походные припасы), `20-family.md` (GM-20, семья), `21-settlement.md` (GM-21, поселение;
+им начался этап 5 — ставки).
 
 ## Комментарии в коде: без ссылок на документацию
 
@@ -34,7 +35,7 @@ _Project/
 ├── Scripts/
 │   ├── Data/        GuildMaster.Data      — определения и числа (ScriptableObject)
 │   │   ├── GameConfig.cs    корневой ассет: ссылки на всё остальное
-│   │   ├── Balance/         BalanceSettings + 20 разделов (TimeBalance, OrdersBalance, …, FoodBalance, FeedBalance)
+│   │   ├── Balance/         BalanceSettings + 22 раздела (TimeBalance, OrdersBalance, …, FoodBalance, SettlementBalance, FeedBalance)
 │   │   ├── Definitions/     Axis, SpecialTrait (+ TraitEffect), Archetype, QuestType, RandomEvent, Discovery,
 │   │   │                    Building, StaffRole, Decree, Dilemma, StatCatalog
 │   │   ├── Text/            FeedTemplateSet, NameList, OrderTextTemplates, TextPlaceholders (словарь меток)
@@ -55,7 +56,7 @@ _Project/
 │   │   ├── Family/      семья за кадром: Family (состав), FamilyRules, FamilyGenerator, FamilyService (плата, нужда, болезнь, смерть, вести), FamilySystem
 │   │   ├── Health/      раны, лечение, IInfirmary (+ BuildingInfirmary — Лазарет мира)
 │   │   ├── Decisions/   модель решений (+ DecisionSystem.Parties — сбор групп), причины ухода, таверна
-│   │   ├── Economy/     казна, журнал, банкротство, трудные времена, отчёт месяца
+│   │   ├── Economy/     казна, журнал, банкротство, трудные времена, отчёт месяца; GuildClosure — общий путь закрытия гильдии (ClosedCause)
 │   │   ├── Feed/        лента, ключи, условия шаблонов, движок подстановки TextRenderer
 │   │   ├── Guild/       GuildState (репутация), ReputationService
 │   │   ├── Orders/      заказы, доска, генератор, Регистратор
@@ -67,6 +68,8 @@ _Project/
 │   │   │                DecreeService, ToggleDecreeCommand, DecreeSystem (снятие по сроку)
 │   │   ├── Dilemmas/    обращения: DilemmaBook (открытые, закрытые, перезарядки), DilemmaSystem (триггеры, срок ответа),
 │   │   │                DilemmaService (эффекты), DilemmaRules, DilemmaTextSource, AnswerDilemmaCommand
+│   │   ├── Settlement/  поселение: SettlementState (Безопасность, население, уровень, отсчёт покидания, изменения), SettlementRules,
+│   │   │                SettlementService (единственный путь менять), SettlementSystem (итоги заказов, спад, население, нападения, покидание)
 │   │   ├── DebugTools/  отладочные команды (Debug…Command), запросы для интерфейса ObserverQueries и отладки DebugQueries
 │   │   └── World/       WorldState, IdGenerator
 │   ├── UI/          GuildMaster.UI        — интерфейс наблюдения и решений (скилл gm-ui): UiRoot, Theme/UiTheme, Text/ (UiStrings,
@@ -103,7 +106,7 @@ _Project/
 ## Сквозные правила
 
 - **Такт — один игровой час**: системы по порядку `SimulationSystems.CreateDefault()` — `CommandSystem`, `TimeSystem`,
-  `OrderSystem`, `QuestSystem`, `ActivitySystem`, `FamilySystem`, `StateSystem`, `HealthSystem`, `DecisionSystem`, `DilemmaSystem`, `EconomySystem`,
+  `OrderSystem`, `QuestSystem`, `ActivitySystem`, `FamilySystem`, `StateSystem`, `HealthSystem`, `DecisionSystem`, `DilemmaSystem`, `SettlementSystem`, `EconomySystem`,
   `StaffSystem`, `BuildingSystem`, `SalarySystem`, `AdventurerSystem`, `RecruitSystem`, `DecreeSystem`, `MonthReportSystem`, `FeedSystem`,
   `AutopauseSystem` (всегда последняя). Пустые места 16-шагового порядка — в комментарии `SimulationSystems`. Стартовое состояние
   (люди, заказы, постройки, персонал) готовит конструктор `Simulation`, без событий.
@@ -137,6 +140,7 @@ _Project/
 | Постройки и персонал: стройка, Общежитие, Лазарет, двор, найм, зарплаты | `gm-buildings-staff` | GM-13 |
 | Распоряжения: команда, срок и область, эффекты в других системах, отчёт, сводка, экран | `gm-decrees` | GM-16 |
 | Обращения: триггеры, варианты и эффекты, память и цепочки, отчёт, сводка, бот, экран и карточка | `gm-dilemmas` | GM-17 |
+| Поселение: Безопасность, население, угрозы, нападения, покидание, поток заказов от населения, вкладка и верхняя панель | `gm-settlement` | GM-21 |
 | Интерфейс: экраны, навигация, ссылки лент, уведомления, автопауза, отладочная панель, действия игрока, окна решений, казна | `gm-ui` | GM-14, GM-15, GM-16, GM-17 |
 | Тестовые миры и шаблоны тестов | `gm-testing` | — |
 | Как вести задачу по ТЗ | `gm-implement-techspec` | — |
@@ -163,6 +167,8 @@ _Project/
 | GM-19 | путь известен с заказа, пайки сдвигают мир: ~2117 заказов взято, выполнено ~93% (1972), гибелей ~8,1, казна ~77,9 тыс., довольство ~42,4. Пайков куплено ~17 тыс., потеряно ~53, делёжек ~113, голодных приёмов в пути ~290, «припасы кончились» у ~59 заданий (~2,8%), отступлений из-за еды ~1,4; доход таверны с еды ~16,0 тыс. (вместе с пайками); год с логом `Info` — ~2,1 с |
 | GM-20 | семья сдвигает мир: семья у ~93% людей (~2 живых родных); ~2145 заказов взято, выполнено ~93% (2001), гибелей ~7,5, казна ~79,8 тыс., довольство ~43,1, средний кошелёк ~3,8 тыс. Домой ~15 тыс. за год; недель в нужде ~126 на гильдию (~8% человеко-недель, пик — новички в месяцы 4–7, вместе с голодом); болезней ~27, смертей в семьях ~4, ушли из-за нужды ~0,1; просьб в долг ~35 (было ~13); год с логом `Info` — ~2,2 с |
 
+| GM-21 | поселение сдвигает мир (на числах ассетов): заказов ~1190 за год (~3,3 в день, растут с населением), взято ~1107, выполнено ~1063 (96%), гибелей ~2,4, казна ~5,0 тыс., репутация ~11. Безопасность: ~57 → ~48 в месяцы 2–3 (тревога, ~1 нападение на гильдию за год, ущерб ~240) → ~99 к концу года; население 80 → ~95; доход «Таверна: жители» ~1,5 тыс. в год. 10 лет (зонд Balance, 5 зёрен): «Простой» жив во всех (с 4–5-го года — осады, 11–21 нападение), население ~400, казна ~560–590 тыс.; «Пассивный» — поселение покинуто во всех (4 из 5 — за 9–18 мес.) |
+
 Первичный баланс (2026-10-11, ❔) сдвинул все цифры выше; база для сравнения — прогон **10 лет**, 5 зёрен
 (GuildMaster → Sandbox → Balance → `10 Years Seeds 1-5`, таблица до/после — `docs/content/balance-runs.md`): к концу 1-го года казна ~4,2 тыс.,
 репутация ~15, людей ~17, ~1100 заданий (выполнено ~97%), гибелей ~2; к 10-му — казна ~320 тыс., ~2200 заданий в год, кошелёк ~34 тыс.;
@@ -170,5 +176,5 @@ _Project/
 
 ## Тесты
 
-`Tests/EditMode`, 548 тестов. Помощники, тестовые миры и шаблоны тестов — скилл `gm-testing`. Запуск — Test Runner или MCP
+`Tests/EditMode`, 592 теста. Помощники, тестовые миры и шаблоны тестов — скилл `gm-testing`. Запуск — Test Runner или MCP
 `run_tests`.

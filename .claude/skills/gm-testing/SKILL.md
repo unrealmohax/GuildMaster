@@ -72,3 +72,7 @@ description: Тесты GuildMaster (EditMode, сборка GuildMaster.Tests) �
 - **Семья** (`FamilyTests`, `FamilyGenerationTests`, `FamilyDeterminismTests`): `StateWorld.Add` — без семьи (система семьи у таких людей
   ничего не делает); родных добавлять `adventurer.Family.Add(new FamilyMember(…))`. «Броски семьи не сдвигают генерацию» — те же люди
   с нулевыми шансами семьи (`PeopleDump.WithoutFamily`, `PeopleDump.Line`). `PeopleDump.Of` теперь пишет и семью, нужду и траур.
+- **Поселение** (`SettlementTests`, скилл `gm-settlement`): `StateWorld`/`QuestWorld` по умолчанию **без** `SettlementSystem`
+  (`settlement: true` — включить); `PeopleData.NoQuests()` вызывает `NoSettlementPressure()` (спад, сдвиги за заказы, рост, доход от жителей — 0):
+  без заданий поселение иначе покидают за несколько месяцев, гильдия закрывается и прогон встаёт. Тестам, которым нужен целый год
+  с «Простым» ботом на числах по умолчанию, — тоже `NoSettlementPressure()`.

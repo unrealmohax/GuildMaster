@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using GuildMaster.Core;
+using GuildMaster.Data;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,9 +10,10 @@ using UnityEngine.UI;
 namespace GuildMaster.UI
 {
     /// <summary>
-    /// Экран «Гильдия»: вкладки Люди, Группы, Постройки, Персонал и лента гильдии справа (всегда на этом экране). На вкладке
-    /// «Постройки» — заказать стройку, порядок очереди (перетаскиванием или ▲▼), снять из очереди; на «Персонале» — вакансии,
-    /// предложение зарплаты кандидатам, увольнение. Всё — командами.
+    /// Экран «Гильдия»: вкладки Люди, Группы, Постройки, Персонал, Поселение и лента гильдии справа (всегда на этом экране).
+    /// На вкладке «Постройки» — заказать стройку, порядок очереди (перетаскиванием или ▲▼), снять из очереди; на «Персонале» —
+    /// вакансии, предложение зарплаты кандидатам, увольнение. Всё — командами. «Поселение» только показывает: Безопасность
+    /// с порогами уровней, население, что будет дальше, последние изменения со ссылками на заказы.
     /// </summary>
     public sealed class GuildScreen : ScreenView
     {
@@ -51,6 +53,12 @@ namespace GuildMaster.UI
         private TextMeshProUGUI vacancies;
         private RectTransform staffCandidateList;
         private readonly List<StaffCandidateView> staffCandidateViews = new List<StaffCandidateView>();
+        private TextMeshProUGUI settlementTitle;
+        private TextMeshProUGUI settlementPopulation;
+        private TextMeshProUGUI settlementSecurity;
+        private BarView settlementBar;
+        private TextMeshProUGUI settlementNext;
+        private TextMeshProUGUI settlementChanges;
 
         private sealed class StaffCandidateView
         {
@@ -83,6 +91,7 @@ namespace GuildMaster.UI
             AddTab(tabs, GuildTab.Parties, UiStrings.Parties);
             AddTab(tabs, GuildTab.Buildings, UiStrings.Buildings);
             AddTab(tabs, GuildTab.Staff, UiStrings.Staff);
+            AddTab(tabs, GuildTab.Settlement, UiStrings.Settlement);
 
             RectTransform pages = UiFactory.Node(main, "Pages");
             UiFactory.Size(pages, flexWidth: 1, flexHeight: 1);
@@ -90,6 +99,7 @@ namespace GuildMaster.UI
             BuildParties(Page(pages, GuildTab.Parties));
             BuildBuildings(Page(pages, GuildTab.Buildings));
             BuildStaff(Page(pages, GuildTab.Staff));
+            BuildSettlement(Page(pages, GuildTab.Settlement));
 
             RectTransform side = UiFactory.Node(Root, "FeedPanel");
             Factory.Vertical(side, 6);
@@ -128,6 +138,7 @@ namespace GuildMaster.UI
                 case GuildTab.Parties: RefreshParties(); break;
                 case GuildTab.Buildings: RefreshBuildings(); break;
                 case GuildTab.Staff: RefreshStaff(); break;
+                case GuildTab.Settlement: RefreshSettlement(); break;
             }
         }
 
@@ -297,6 +308,71 @@ namespace GuildMaster.UI
                 builder.Append($"\n<color={dim}>{row.Stats}</color>");
                 partyLabels[i].text = builder.ToString();
             }
+        }
+
+        // ---------- Поселение ----------
+
+        private void BuildSettlement(RectTransform page)
+        {
+            settlementTitle = Factory.Title(page, string.Empty);
+            settlementPopulation = Factory.Label(page, string.Empty, Theme.FontSize);
+            settlementSecurity = Factory.Label(page, string.Empty, Theme.FontSizeLarge);
+            UiFactory.Size(settlementSecurity, height: Theme.FontSizeLarge + 10);
+
+            settlementBar = new BarView(Factory, page, height: Theme.RowHeight);
+            SettlementBalance balance = Client.Data.Balance.Settlement;
+            foreach (float threshold in new[] { balance.CalmFrom, balance.NormalFrom, balance.AlarmFrom })
+            {
+                Image mark = Factory.Panel(settlementBar.Root, "Threshold", Theme.Text);
+                float x = threshold / balance.MaxSecurity;
+                mark.rectTransform.anchorMin = new Vector2(x, 0);
+                mark.rectTransform.anchorMax = new Vector2(x, 1);
+                mark.rectTransform.offsetMin = new Vector2(-1, 0);
+                mark.rectTransform.offsetMax = new Vector2(1, 0);
+            }
+
+            settlementNext = Factory.Label(page, string.Empty, Theme.FontSize, wrap: true);
+            Factory.Label(page, UiStrings.SettlementThreatsHint, Theme.FontSizeSmall, Theme.TextDim, wrap: true);
+
+            Factory.Heading(page, UiStrings.SettlementChanges);
+            RectTransform content = Factory.Scroll(page, "SettlementChanges", out ScrollRect scroll, 4);
+            UiFactory.Size(scroll, flexWidth: 1, flexHeight: 1);
+            settlementChanges = Factory.LinkLabel(content, Context.OnLink);
+        }
+
+        private void RefreshSettlement()
+        {
+            SettlementModel model = SettlementModel.Build(Client);
+            Color level = TopBarView.LevelColor(Theme, model.Level);
+            string dim = UiTheme.ToHex(Theme.TextDim);
+
+            settlementTitle.text = model.Name;
+            string change = model.PopulationChange > 0 ? "+" + model.PopulationChange : model.PopulationChange < 0 ? "−" + (-model.PopulationChange) : "0";
+            settlementPopulation.text = string.Format(UiStrings.SettlementPopulationFormat, model.Population, change);
+            settlementSecurity.text = string.Format(UiStrings.SettlementSecurityFormat, UiFormat.Number(model.Security), model.LevelName);
+            settlementSecurity.color = level;
+            settlementBar.Set(model.Security / model.MaxSecurity, string.Empty, level == Theme.Text ? Theme.Accent : level);
+            settlementNext.text = model.Next;
+            settlementNext.color = model.DaysLeft >= 0 || model.Level >= SettlementLevel.Alarm ? Theme.Danger : Theme.Text;
+
+            if (model.Changes.Count == 0)
+            {
+                settlementChanges.text = $"<color={dim}>{UiStrings.SettlementNoChanges}</color>";
+                return;
+            }
+            string good = UiTheme.ToHex(Theme.Good);
+            string bad = UiTheme.ToHex(Theme.Danger);
+            string text = UiTheme.ToHex(Theme.Text);
+            var builder = new StringBuilder();
+            foreach (SettlementChangeRow row in model.Changes)
+            {
+                if (builder.Length > 0) builder.Append('\n');
+                builder.Append($"<color={dim}>{row.Time}</color>  <color={(row.Delta >= 0 ? good : bad)}>{SettlementModel.Delta(row.Delta)}</color>  ");
+                builder.Append(row.OrderId != 0
+                    ? LinkCodec.Wrap(row.Text, new TextLink(TextLinkKind.Order, row.OrderId), text)
+                    : LinkCodec.Escape(row.Text));
+            }
+            settlementChanges.text = builder.ToString();
         }
 
         // ---------- Постройки ----------

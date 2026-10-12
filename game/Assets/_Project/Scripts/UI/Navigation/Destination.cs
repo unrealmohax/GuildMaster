@@ -20,6 +20,7 @@ namespace GuildMaster.UI
         Parties,
         Buildings,
         Staff,
+        Settlement,
     }
 
     /// <summary>Куда ведёт переход: карточка человека поверх экрана или экран (вкладка) с выбранным объектом.</summary>
@@ -61,7 +62,7 @@ namespace GuildMaster.UI
     /// <summary>
     /// Куда ведёт ссылка из текста: человек → карточка (и ушедший, и кандидат); задание → «Задания»; заказ на доске → «Доска»,
     /// взятый — его задание (пока оно хранится); постройка → «Постройки»; сотрудник → «Персонал»; постоянная группа → «Группы»,
-    /// группа под задание — её задание. Объекта больше нет — перехода нет.
+    /// группа под задание — её задание; поселение → «Поселение». Объекта больше нет — перехода нет.
     /// </summary>
     public static class LinkRouter
     {
@@ -99,6 +100,9 @@ namespace GuildMaster.UI
                         if (run.PartyId == link.Id) return Destination.ToScreen(ScreenId.Quests, run.Id);
                     }
                     return Destination.None;
+
+                case TextLinkKind.Settlement:
+                    return Destination.ToGuild(GuildTab.Settlement);
 
                 default:
                     return Destination.None;

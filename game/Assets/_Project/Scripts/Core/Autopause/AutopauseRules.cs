@@ -27,6 +27,9 @@ namespace GuildMaster.Core
                 { SimEventType.DilemmaArrived, AutopauseKind.DilemmaReceived },
                 { SimEventType.Exhausted, AutopauseKind.Exhausted },
                 { SimEventType.FamilyMemberDied, AutopauseKind.FamilyDeath },
+                { SimEventType.SettlementLevelDropped, AutopauseKind.SettlementAlarm },
+                { SimEventType.SettlementAttacked, AutopauseKind.SettlementAttack },
+                { SimEventType.SettlementAbandoning, AutopauseKind.SettlementAbandoning },
             };
     }
 }

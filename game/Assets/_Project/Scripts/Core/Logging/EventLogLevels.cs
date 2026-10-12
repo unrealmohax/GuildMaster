@@ -11,6 +11,8 @@ namespace GuildMaster.Core
     /// Будни построек (лёг в Лазарет, начал тренировку, переселился в Общежитие) — тоже <see cref="SimLogLevel.Debug"/>.
     /// Приёмы пищи — <see cref="SimLogLevel.Trace"/>: на Debug их и так пишет своя строка «meal …» / «ration …». Покупка пайков
     /// и делёжка — <see cref="SimLogLevel.Debug"/>, как мелкие шаги задания.
+    /// Изменения Безопасности и населения поселения — <see cref="SimLogLevel.Trace"/>: на Debug их пишет своя строка
+    /// «security …» / «population …».
     /// Новое частое событие — одна строка в таблице.
     /// </summary>
     public static class EventLogLevels
@@ -40,6 +42,8 @@ namespace GuildMaster.Core
             { SimEventType.RationsShared, SimLogLevel.Debug },
             { SimEventType.QuestMealMissed, SimLogLevel.Trace },
             { SimEventType.FamilyMoneySent, SimLogLevel.Debug },
+            { SimEventType.SecurityChanged, SimLogLevel.Trace },
+            { SimEventType.PopulationChanged, SimLogLevel.Trace },
         };
 
         public static SimLogLevel Of(SimEventType type) => Levels.TryGetValue(type, out SimLogLevel level) ? level : SimLogLevel.Info;

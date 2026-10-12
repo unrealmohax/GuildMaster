@@ -346,6 +346,9 @@ namespace GuildMaster.ClaudeSandbox
                 new[] { StatId.Perception, StatId.Composure, StatId.Strength, StatId.Endurance });
         }
 
+        // Угрозы поселению (stakes.md → «Безопасность», TechJob/21-settlement.md): Охота и Истребление.
+        private static readonly HashSet<string> ThreatQuestTypes = new HashSet<string> { "Hunt", "Extermination" };
+
         private static void QuestType(QuestTypeDefinition asset, string name, int roundHours, float weight, string feedSuffix, StatId[] main, params StatId[] secondary)
         {
             Def(asset, asset.name, name);
@@ -355,6 +358,7 @@ namespace GuildMaster.ClaudeSandbox
             Set(asset, "maxPartySizeCeiling", 0);
             Set(asset, "statCeilings", new List<StatCeiling>());
             Set(asset, "generationWeight", weight);
+            Set(asset, "isThreat", ThreatQuestTypes.Contains(asset.name));
             Set(asset, "roundSuccessFeedKey", "quest.round.success." + feedSuffix);
             Set(asset, "roundFailFeedKey", "quest.round.fail." + feedSuffix);
         }

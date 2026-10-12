@@ -58,7 +58,8 @@ namespace GuildMaster.Core
 
             GameTime reported = calendar.At(period.ToHours - 1);
             return new MonthReport(reported.Year, reported.Month, period.FromHours, period.ToHours, period.MoneyAtStart, period.MoneyAtEnd,
-                period.LedgerFrom, period.LedgerTo, income, expense, period.ReputationAtEnd, period.OrdersAtEnd, sections);
+                period.LedgerFrom, period.LedgerTo, income, expense, period.ReputationAtEnd, period.OrdersAtEnd,
+                period.SettlementAtEnd, sections);
         }
     }
 }

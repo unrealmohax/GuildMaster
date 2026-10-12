@@ -98,8 +98,9 @@ namespace GuildMaster.UI
             commissionLabel = Factory.Label(limitsRow, string.Empty, Theme.FontSize);
             UiFactory.Size(commissionLabel, 70);
             commission.onValueChanged.AddListener(value => commissionLabel.text = Mathf.RoundToInt(value) + "%");
-            TextMeshProUGUI note = Factory.Label(rules.transform, UiStrings.RulesNote, Theme.FontSizeSmall, Theme.TextDim, wrap: true);
-            UiFactory.Size(note, height: Theme.FontSizeSmall + 8);
+            TextMeshProUGUI note = Factory.Label(rules.transform, UiStrings.RulesNote + " " + UiStrings.RegistrarThreatHint, Theme.FontSizeSmall,
+                Theme.TextDim, wrap: true);
+            UiFactory.Size(note, height: (Theme.FontSizeSmall + 6) * 2);
 
             // Ждут решения.
             awaitingBlock = UiFactory.Node(main, "Awaiting");
@@ -174,6 +175,7 @@ namespace GuildMaster.UI
                 OrderRow row = model.Rows[i];
                 table.SetRowId(i, row.Id);
                 string marks = string.IsNullOrEmpty(row.Marks) ? string.Empty : $" <color={UiTheme.ToHex(Theme.Accent)}>♦</color>";
+                if (row.IsThreat) marks += $" <size=80%><color={UiTheme.ToHex(Theme.Danger)}>{UiStrings.Threat}</color></size>";
                 table.SetText(i, 0, row.Type + marks, row.InWork ? Theme.TextDim : (Color?)null);
                 table.SetText(i, 1, UiFormat.Rank(row.Rank));
                 table.SetText(i, 2, row.Client);

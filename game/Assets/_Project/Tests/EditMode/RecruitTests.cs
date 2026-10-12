@@ -214,6 +214,7 @@ namespace GuildMaster.Tests
         [Test]
         public void HeadlessYear_WithPeople_RunsUnderOneMinute()
         {
+            data.NoSettlementPressure(); // год должен дойти до конца: поселение не закрывает гильдию раньше
             Simulation simulation = Simulation.CreateDefault(data.Registry, 360u);
             Stopwatch stopwatch = Stopwatch.StartNew();
             for (int day = 0; day < 360; day++)

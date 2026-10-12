@@ -13,7 +13,8 @@ namespace GuildMaster.Core
     /// распоряжений по сроку; сами эффекты считают системы, которых они касаются. Перед FeedSystem —
     /// MonthReportSystem: отчёт месяца собирается после всех систем, которые меняют мир. Шаг 10: DilemmaSystem — обращения
     /// (триггеры, срок ответа); ответ игрока — команда. Шаг 6 начинает FamilySystem: семья за кадром (плата, нужда, болезни,
-    /// смерти, вести вернувшимся с задания).
+    /// смерти, вести вернувшимся с задания). Между шагами 10 и 11 — SettlementSystem: поселение (Безопасность по итогам заказов
+    /// такта, спад, население, нападения, покидание).
     /// </summary>
     public static class SimulationSystems
     {
@@ -29,6 +30,7 @@ namespace GuildMaster.Core
             new HealthSystem(),
             new DecisionSystem(),
             new DilemmaSystem(),
+            new SettlementSystem(), // перед казной: доход таверны от жителей и ущерб от нападений — в тот же расчёт банкротства
             new EconomySystem(),
             new StaffSystem(),
             new BuildingSystem(),

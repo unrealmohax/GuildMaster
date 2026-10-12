@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using GuildMaster.Core;
 using GuildMaster.Data;
 
@@ -39,6 +40,25 @@ namespace GuildMaster.UI
         public const string BuildingQueued = "ui.building.queued";
         public const string BuildingNotBuilt = "ui.building.notBuilt";
 
+        public const string SettlementCalm = "ui.settlement.level.calm";
+        public const string SettlementNormal = "ui.settlement.level.normal";
+        public const string SettlementAlarm = "ui.settlement.level.alarm";
+        public const string SettlementSiege = "ui.settlement.level.siege";
+        public const string SettlementNextCalm = "ui.settlement.next.calm";
+        public const string SettlementNextNormal = "ui.settlement.next.normal";
+        public const string SettlementNextAlarm = "ui.settlement.next.alarm";
+        public const string SettlementNextSiege = "ui.settlement.next.siege";
+
+        /// <summary>Подпись причины изменения Безопасности: префикс + <see cref="SettlementReasons"/>.</summary>
+        public const string SettlementReasonPrefix = "ui.settlement.reason.";
+
+        private static readonly string[] SettlementReasonKeys =
+        {
+            SettlementReasons.Night, SettlementReasons.ThreatDone, SettlementReasons.OtherDone, SettlementReasons.Failed,
+            SettlementReasons.PartyLost, SettlementReasons.Expired, SettlementReasons.DeclinedByRegistrar,
+            SettlementReasons.DeclinedByPlayer, SettlementReasons.NoAnswer, SettlementReasons.Debug,
+        };
+
         public static IReadOnlyList<string> All { get; } = new[]
         {
             ActivityResting, ActivitySleeping, ActivityTavern, ActivityTraining, ActivityInfirmary, ActivityBinge,
@@ -47,7 +67,9 @@ namespace GuildMaster.UI
             PhaseTravelOut, PhaseAtSite, PhaseTravelBack, PhaseReturned,
             WoundLight, WoundHeavy,
             BuildingReady, BuildingConstruction, BuildingQueued, BuildingNotBuilt,
-        };
+            SettlementCalm, SettlementNormal, SettlementAlarm, SettlementSiege,
+            SettlementNextCalm, SettlementNextNormal, SettlementNextAlarm, SettlementNextSiege,
+        }.Concat(SettlementReasonKeys.Select(reason => SettlementReasonPrefix + reason)).ToArray();
     }
 
     /// <summary>

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using GuildMaster.Core;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,7 +8,8 @@ namespace GuildMaster.UI
 {
     /// <summary>
     /// Верхняя панель (видна всегда): дата и фаза дня (клик — окно «Время»), скорость ⏸ ×1 ×2 ×4, казна (красным при минусе;
-    /// клик — экран «Казна»), репутация, люди, таймер банкротства (клик — «Казна»; гильдия закрыта — окно итогов), уведомления
+    /// клик — экран «Казна»), репутация, люди, поселение (цвет по уровню, отсчёт покидания красным; клик — вкладка «Поселение»),
+    /// таймер банкротства (клик — «Казна»; гильдия закрыта — окно итогов), уведомления
     /// со счётчиком.
     /// </summary>
     public sealed class TopBarView : UiView
@@ -18,6 +20,7 @@ namespace GuildMaster.UI
         private readonly TextMeshProUGUI money;
         private readonly TextMeshProUGUI reputation;
         private readonly TextMeshProUGUI headcount;
+        private readonly TextMeshProUGUI settlement;
         private readonly TextMeshProUGUI bankruptcy;
         private readonly Button notificationsButton;
         private readonly TextMeshProUGUI notificationsLabel;
@@ -56,7 +59,8 @@ namespace GuildMaster.UI
             money = ClickableStat(bar.transform, "Treasury", 230, () => Context.Navigator.ShowScreen(ScreenId.Treasury));
             reputation = Stat(bar.transform, 190);
             headcount = Stat(bar.transform, 150);
-            bankruptcy = ClickableStat(bar.transform, "Bankruptcy", -1, OnBankruptcy);
+            settlement = ClickableStat(bar.transform, "Settlement", -1, () => Context.Navigator.Go(Destination.ToGuild(GuildTab.Settlement)));
+            bankruptcy = ClickableStat(bar.transform, "Bankruptcy", 260, OnBankruptcy);
             bankruptcy.color = Theme.Danger;
 
             notificationsButton = Factory.Button(bar.transform, UiStrings.Notifications, () => openNotifications(), 240);
@@ -83,6 +87,18 @@ namespace GuildMaster.UI
             else Context.Navigator.ShowScreen(ScreenId.Treasury);
         }
 
+        /// <summary>Цвет уровня поселения: спокойно — зелёный, норма — обычный, тревога — охра, осада — красный.</summary>
+        public static Color LevelColor(UiTheme theme, SettlementLevel level)
+        {
+            switch (level)
+            {
+                case SettlementLevel.Calm: return theme.Good;
+                case SettlementLevel.Alarm: return theme.Accent;
+                case SettlementLevel.Siege: return theme.Danger;
+                default: return theme.Text;
+            }
+        }
+
         private TextMeshProUGUI Stat(Transform parent, float width)
         {
             TextMeshProUGUI label = Factory.Label(parent, string.Empty, Theme.FontSize);
@@ -103,6 +119,10 @@ namespace GuildMaster.UI
             money.color = model.MoneyNegative ? Theme.Danger : Theme.Text;
             reputation.text = $"<color={dim}>{UiStrings.Reputation}</color> {model.Reputation}";
             headcount.text = $"<color={dim}>{UiStrings.Headcount}</color> {model.Headcount}";
+            settlement.text = string.IsNullOrEmpty(model.SettlementLeaving)
+                ? model.Settlement
+                : $"{model.Settlement}  <color={UiTheme.ToHex(Theme.Danger)}>{model.SettlementLeaving}</color>";
+            settlement.color = LevelColor(Theme, model.SettlementLevel);
 
             string extra = model.DebugSpeed ? $"<color={UiTheme.ToHex(Theme.Accent)}>{UiStrings.DebugSpeed}</color>  " : string.Empty;
             bankruptcy.text = extra + model.Bankruptcy;

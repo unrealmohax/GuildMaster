@@ -125,3 +125,8 @@ description: Интерфейс GuildMaster (uGUI + TMP, сборка GuildMaste
 - Семья (скилл `gm-state-health` → «Семья»): карточка — блок «Семья» после денег (`CardModel.Family`, `FamilyNorm`, `FamilyInNeed` красным,
   `Mourning`; слова — `UiStrings.RelativeWords`, «†» добавлен в символы шрифта `UiSetup`); отладочная панель — кнопки «Болезнь в семье» и
   «Смерть в семье» (`DebugEventCommand`); автопауза «Смерть в семье» (`AutopauseKind.FamilyDeath`).
+- Поселение (скилл `gm-settlement`): верхняя панель — `TopBarModel.Settlement/SettlementLevel/SettlementLeaving` (занимает свободное место,
+  банкротство — 260 px; цвет `TopBarView.LevelColor`, зелёный — новый `UiTheme.good`), вкладка `GuildTab.Settlement` (`SettlementModel`:
+  полоса с отметками порогов, «что дальше», изменения со ссылками на заказы), ссылка `TextLinkKind.Settlement` (id 1), уведомление
+  (покидание → осада → тревога), пометка «угроза» на доске (`OrderRow.IsThreat`), подсказка в правилах Регистратора, причина
+  в окне поражения (`DefeatModel.Cause`), отладка «Безопасность ±10», «Нападение»; строки `ui.settlement.*`. Зонд — шаг `4b_guild_settlement`.

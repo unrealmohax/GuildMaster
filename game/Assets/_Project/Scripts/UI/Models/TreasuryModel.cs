@@ -200,6 +200,9 @@ namespace GuildMaster.UI
     /// <summary>Итоги закрытой гильдии: сколько продержалась, казна, погибшие и ушедшие, заказы, лучшие люди.</summary>
     public sealed class DefeatModel
     {
+        /// <summary>Почему гильдия закрыта: банкротство или покинутое поселение.</summary>
+        public string Cause { get; private set; } = string.Empty;
+
         public string Days { get; private set; } = string.Empty;
         public string Money { get; private set; } = string.Empty;
         public string People { get; private set; } = string.Empty;
@@ -230,8 +233,11 @@ namespace GuildMaster.UI
                 Money = string.Format(UiStrings.DefeatMoneyFormat, UiFormat.Money(treasury.Money)),
                 People = string.Format(UiStrings.DefeatPeopleFormat, died, left, world.Adventurers.Active.Count),
                 Orders = string.Format(UiStrings.DefeatOrdersFormat, world.Orders.Totals.Done, world.Orders.Totals.Failed),
+                Cause = treasury.ClosedCause == ClosedCause.SettlementAbandoned
+                    ? string.Format(UiStrings.DefeatSettlementFormat, world.Settlement.Name?.Nominative ?? UiStrings.SettlementDefaultName)
+                    : UiStrings.DefeatBankruptcy,
             };
-            foreach (int id in EconomySystem.BestPeople(world.Adventurers, client.Data.Balance.Economy.ClosedBestPeople))
+            foreach (int id in GuildClosure.BestPeople(world.Adventurers, client.Data.Balance.Economy.ClosedBestPeople))
             {
                 if (world.Adventurers.TryGetKnown(id, out Adventurer person)) model.Best.Add((id, person.Name));
             }

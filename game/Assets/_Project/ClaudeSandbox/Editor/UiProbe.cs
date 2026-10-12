@@ -174,6 +174,7 @@ namespace GuildMaster.Sandbox
             Steps.Enqueue(($"{prefix}_2_guild_buildings", () => nav.Go(Destination.ToGuild(GuildTab.Buildings))));
             Steps.Enqueue(($"{prefix}_3_guild_staff", () => nav.Go(Destination.ToGuild(GuildTab.Staff))));
             Steps.Enqueue(($"{prefix}_4_guild_parties", () => nav.Go(Destination.ToGuild(GuildTab.Parties))));
+            Steps.Enqueue(($"{prefix}_4b_guild_settlement", () => nav.Go(Destination.ToGuild(GuildTab.Settlement))));
             Steps.Enqueue(($"{prefix}_5_board", () =>
             {
                 int order = world.Orders.Open.Count > 0 ? world.Orders.Open[0].Id : 0;

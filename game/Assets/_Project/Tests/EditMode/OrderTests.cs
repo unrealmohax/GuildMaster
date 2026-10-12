@@ -293,8 +293,9 @@ namespace GuildMaster.Tests
             Assert.AreEqual(with, PeopleDump.Of(without));
         }
 
-        [TestCase(5f, 1.5f)]
-        [TestCase(35f, 4.5f)]
+        // 1 + 80 жителей / 40 + репутация / 33.
+        [TestCase(5f, 3f + 5f / 33f)]
+        [TestCase(35f, 3f + 35f / 33f)]
         public void Orders_ArriveAtMorning_ExpectedCountPerDay(float reputation, float perDay)
         {
             data.Set("guild.startReputation", reputation);
@@ -608,6 +609,7 @@ namespace GuildMaster.Tests
         public void OrderSystem_DoesNotShiftOtherSystems()
         {
             data.NoQuests(); // без заказов нет и заданий: сравниваем мир, где задания не случаются
+            data.Set("feed.guildFeedLimit", 100_000); // строки доски не вытесняют из ленты строки других систем
             string Run(bool withOrders)
             {
                 List<ISimSystem> systems = SimulationSystems.CreateDefault();

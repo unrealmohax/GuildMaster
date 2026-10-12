@@ -14,7 +14,8 @@ namespace GuildMaster.Core
     /// <item>Разнообразие: пока на каком-то крайнем полюсе больше двух человек — оси последнего из них заново.</item>
     /// <item>Черт 2–3 на всех, включая черты готовых пар; 1–2 пары: старые друзья, соперники или влюблённые.
     /// Пара с чертой, которая не влезает в итог, становится старыми друзьями. Остаток — по черте «от рождения» другим.</item>
-    /// <item>Семья каждого — последними бросками, по порядку состава: черты (Семейный, Влюблённый) уже известны.</item>
+    /// <item>Семья каждого — по порядку состава: черты (Семейный, Влюблённый) уже известны.</item>
+    /// <item>Название поселения — последним броском.</item>
     /// </list>
     /// </summary>
     public static class StartScenario
@@ -67,6 +68,8 @@ namespace GuildMaster.Core
             }
 
             foreach (Adventurer adventurer in people) FamilyGenerator.Generate(rng, data, adventurer);
+
+            SettlementService.ChooseName(ctx);
 
             foreach (GeneratedAdventurer generated in lineup)
             {

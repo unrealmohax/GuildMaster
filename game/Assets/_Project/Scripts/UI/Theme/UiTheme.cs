@@ -25,6 +25,9 @@ namespace GuildMaster.UI
         [SerializeField] private Color accent = Hex(0xD4A24C);
         [Tooltip("Только сигнал: минус в казне, банкротство, тяжёлая рана, гибель")]
         [SerializeField] private Color danger = Hex(0xC8554B);
+
+        [Tooltip("Хорошее состояние: поселение спокойно")]
+        [SerializeField] private Color good = Hex(0x7FA86A);
         [SerializeField] private Color barBack = Hex(0x2E323B);
         [SerializeField] private Color overlayShade = new Color(0f, 0f, 0f, 0.55f);
 
@@ -58,6 +61,7 @@ namespace GuildMaster.UI
         public Color TextDim => textDim;
         public Color Accent => accent;
         public Color Danger => danger;
+        public Color Good => good;
         public Color BarBack => barBack;
         public Color OverlayShade => overlayShade;
         public float FontSize => fontSize;
