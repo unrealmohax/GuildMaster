@@ -260,6 +260,8 @@ namespace GuildMaster.UI
         public const string FamilyNormFormat = "Норма: {0} в неделю";
         public const string FamilyInNeed = "В нужде";
         public const string Mourning = "в трауре";
+        public const string Sulking = "не в духе";
+        public const string SulkingToday = "не в духе, не работает";
         public const string DebtFormat = "долг гильдии {0}";
         public const string HousingCity = "живёт в городе";
         public const string HousingDormitory = "живёт в Общежитии";
@@ -346,11 +348,17 @@ namespace GuildMaster.UI
         public const string LedgerTavernDrinksFormat = "выпивка {0}";
         public const string LedgerSalaryDebt = " (долг)";
         public const string ReportsHistory = "Отчёты месяца";
+        public const string ReputationNowFormat = "Репутация {0} из {1}";
+        public const string ReputationHint = "Растёт за выполненные задания — тем медленнее, чем она выше; остывает в дни без выполненных заданий; падает от провалов, гибели, ухода и бегства людей.";
+        public const string ReputationChanges = "Последние изменения репутации";
+        public const string ReputationNoChanges = "Пока ничего не менялось";
         public const string NoReports = "Отчётов ещё не было";
 
         // Окна решений
         public const string CandidateTitleFormat = "Кандидат: {0}";
         public const string CandidateGone = "Кандидат уже ушёл";
+        public const string CandidateSigningBonusFormat = "Подъёмные: {0} монет";
+        public const string CandidateNoMoney = "в казне не хватает";
         public const string StaffCandidateTitleFormat = "Кандидат на должность «{0}»";
         public const string StaffCandidateLevelFormat = "{0}, уровень возможностей {1}";
         public const string StaffAskedFormat = "Просит {0} в месяц · ждёт ещё {1}";

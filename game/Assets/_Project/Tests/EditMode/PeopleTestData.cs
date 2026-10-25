@@ -32,7 +32,7 @@ namespace GuildMaster.Tests
 
         /// <summary>
         /// Люди не берут заказов: выйти можно только в час начала утра, а решение действует со следующего часа. Для тестов
-        /// механик, которым задания мешают (заказы копятся и снимаются по сроку, репутация не меняется).
+        /// механик, которым задания мешают (заказы копятся и снимаются по сроку, репутация не меняется — <see cref="StableReputation"/>).
         /// Без заданий гильдия не защищает поселение — оно не давит (<see cref="NoSettlementPressure"/>), иначе через несколько
         /// месяцев его покинули бы и симуляция встала.
         /// </summary>
@@ -40,6 +40,18 @@ namespace GuildMaster.Tests
         {
             Set("time.latestDepartureHour", Balance.Time.MorningHour);
             NoSettlementPressure();
+            StableReputation();
+        }
+
+        /// <summary>
+        /// Репутация не меняется сама: нет остывания в дни без заданий и потерь за уход людей. Для тестов, которым нужна
+        /// постоянная репутация (поток заказов, шанс кандидата), — без заданий она иначе остывала бы каждые сутки.
+        /// </summary>
+        public void StableReputation()
+        {
+            Set("guild.reputationDecayPerDay", 0f);
+            Set("guild.leaveReputation", 0f);
+            Set("guild.fleeReputation", 0f);
         }
 
         /// <summary>
@@ -62,6 +74,16 @@ namespace GuildMaster.Tests
         /// за годы без доходов (без заданий гильдия иначе разоряется и закрывается, и симуляция встаёт).
         /// </summary>
         public void NoBankruptcy() => Set("guild.startMoney", 10_000_000);
+
+        /// <summary>
+        /// Молва всегда × 1: шанс кандидата не зависит от довольства людей. Для тестов, где системы состояния, решений или еды
+        /// не должны сдвигать броски притока.
+        /// </summary>
+        public void NeutralRumor()
+        {
+            Set("guild.rumorBase", 1f);
+            Set("guild.rumorDivisor", float.MaxValue);
+        }
 
         public void Dispose()
         {

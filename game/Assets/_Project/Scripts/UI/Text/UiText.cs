@@ -59,6 +59,9 @@ namespace GuildMaster.UI
             SettlementReasons.DeclinedByPlayer, SettlementReasons.NoAnswer, SettlementReasons.Debug,
         };
 
+        /// <summary>Подпись причины изменения репутации: префикс + <see cref="ReputationReasons"/>.</summary>
+        public const string ReputationReasonPrefix = "ui.reputation.reason.";
+
         public static IReadOnlyList<string> All { get; } = new[]
         {
             ActivityResting, ActivitySleeping, ActivityTavern, ActivityTraining, ActivityInfirmary, ActivityBinge,
@@ -69,7 +72,8 @@ namespace GuildMaster.UI
             BuildingReady, BuildingConstruction, BuildingQueued, BuildingNotBuilt,
             SettlementCalm, SettlementNormal, SettlementAlarm, SettlementSiege,
             SettlementNextCalm, SettlementNextNormal, SettlementNextAlarm, SettlementNextSiege,
-        }.Concat(SettlementReasonKeys.Select(reason => SettlementReasonPrefix + reason)).ToArray();
+        }.Concat(SettlementReasonKeys.Select(reason => SettlementReasonPrefix + reason))
+            .Concat(ReputationReasons.All.Select(reason => ReputationReasonPrefix + reason)).ToArray();
     }
 
     /// <summary>

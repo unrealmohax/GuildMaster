@@ -8,7 +8,7 @@ namespace GuildMaster.Core
     /// <list type="bullet">
     /// <item><b>Постоянные</b> модификаторы (Калека −30%) не опускают параметр ниже естественного минимума (10) и входят
     /// в расчёт архетипа.</item>
-    /// <item><b>Временные</b> (лёгкая рана, усталость выше 70, голод — только характеристики, паника) могут опустить ниже 10 и в архетип не входят.</item>
+    /// <item><b>Временные</b> (лёгкая рана, усталость выше 70, голод — только характеристики, паника, «не в духе») могут опустить ниже 10 и в архетип не входят.</item>
     /// </list>
     /// Новый модификатор — одна строка в <see cref="PermanentModifiers"/> или <see cref="TemporaryModifiers"/>.
     /// </summary>
@@ -28,6 +28,7 @@ namespace GuildMaster.Core
             FatigueMultiplier,
             WoundedQuestMultiplier,
             HungerMultiplier,
+            SulkMultiplier,
         };
 
         /// <summary>Базовое × постоянные модификаторы, не ниже естественного минимума. По нему считается архетип.</summary>
@@ -73,6 +74,10 @@ namespace GuildMaster.Core
         /// <summary>Усталость выше <c>fatigueProfileThreshold</c>: весь профиль × <c>fatigueProfileMultiplier</c> (0,8).</summary>
         private static float FatigueMultiplier(Adventurer adventurer, StatId stat, DataRegistry data) =>
             StateRules.IsFatigueLowersProfile(adventurer.State, data.Balance.State) ? data.Balance.State.FatigueProfileMultiplier : 1f;
+
+        /// <summary>Не в духе (довольство ниже <c>sulkContentment</c>): весь профиль × <c>sulkProfileMultiplier</c> (0,9).</summary>
+        private static float SulkMultiplier(Adventurer adventurer, StatId stat, DataRegistry data) =>
+            StateRules.IsSulking(adventurer.State, data.Balance.State) ? data.Balance.State.SulkProfileMultiplier : 1f;
 
         /// <summary>Эффект черты <c>ProfileMultiplier</c> на выбранный при появлении параметр (Калека).</summary>
         private static float TraitProfileMultiplier(Adventurer adventurer, StatId stat, DataRegistry data)

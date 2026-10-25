@@ -731,8 +731,8 @@ namespace GuildMaster.Tests
             Assert.GreaterOrEqual(a.State.Wallet, 80 + trophies - 20, "доля и трофеи (минус суточные расходы)");
             Assert.AreEqual(2f, a.RankPoints, 1e-4, "G = 1, блестящий × 2");
             GuildBalance guild = quests.Data.Balance.Guild;
-            Assert.AreEqual(guild.StartReputation + guild.SuccessReputationPerRank * 1, quests.Simulation.World.Guild.Reputation, 1e-4,
-                "выполнено: + ранг G (1) × множитель");
+            Assert.AreEqual(guild.StartReputation + guild.SuccessReputationPerRank * 1 * (1f - guild.StartReputation / guild.MaxReputation),
+                quests.Simulation.World.Guild.Reputation, 1e-4, "выполнено: + ранг G (1) × множитель × убывающая отдача");
             Assert.Greater(a.GetStat(StatId.Perception), perception, "опыт по осям задания");
             Assert.AreEqual(1, a.QuestsCompleted);
             Assert.AreEqual(OrderStatus.Done, order.Status);

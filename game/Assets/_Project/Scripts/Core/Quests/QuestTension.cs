@@ -226,6 +226,7 @@ namespace GuildMaster.Core
                 .With("returns", returns)
                 .With("days", days);
 
+            ReputationService.Change(ctx, data.Balance.Guild.FleeReputation, ReputationReasons.Fled, fugitive.Id, null);
             if (run.Members.Count == 0) run.Retreated = true;
         }
 

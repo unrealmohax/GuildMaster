@@ -57,7 +57,7 @@ namespace GuildMaster.UI
             }
 
             money = ClickableStat(bar.transform, "Treasury", 230, () => Context.Navigator.ShowScreen(ScreenId.Treasury));
-            reputation = Stat(bar.transform, 190);
+            reputation = ClickableStat(bar.transform, "Reputation", 190, () => Context.Navigator.ShowScreen(ScreenId.Treasury));
             headcount = Stat(bar.transform, 150);
             settlement = ClickableStat(bar.transform, "Settlement", -1, () => Context.Navigator.Go(Destination.ToGuild(GuildTab.Settlement)));
             bankruptcy = ClickableStat(bar.transform, "Bankruptcy", 260, OnBankruptcy);

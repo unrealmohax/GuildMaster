@@ -199,6 +199,19 @@ namespace GuildMaster.Debugging
                 else if (levels.Sum(l => l.Weight) <= 0f)
                     report.Error(balance, "adventurers.levels", "у всех уровней шанс 0");
 
+                IReadOnlyList<LevelMixEntry> levelMix = adventurers.LevelWeightsByReputation;
+                if (levelMix.Count == 0) report.Error(balance, "adventurers.levelWeightsByReputation", "пусто");
+                for (int i = 0; i < levelMix.Count; i++)
+                {
+                    LevelMixEntry entry = levelMix[i];
+                    if (entry == null) continue;
+                    string path = $"adventurers.levelWeightsByReputation[{i}]";
+                    if (i == 0 && entry.FromReputation != 0) report.Error(balance, path, "первая строка — с репутации 0");
+                    if (i > 0 && levelMix[i - 1] != null && entry.FromReputation <= levelMix[i - 1].FromReputation) report.Error(balance, path, "строки — по возрастанию репутации");
+                    if (entry.Weights.Count != 3) report.Error(balance, path, "нужно 3 веса (Weak, Medium, Strong)");
+                    else if (entry.Weights.Any(w => w < 0f) || entry.Weights.Sum() <= 0f) report.Error(balance, path, "веса не отрицательные, сумма больше 0");
+                }
+
                 IReadOnlyList<float> words = balance.State.LoyaltyWordThresholds;
                 for (int i = 1; i < words.Count; i++)
                 {

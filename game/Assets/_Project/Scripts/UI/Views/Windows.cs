@@ -124,7 +124,9 @@ namespace GuildMaster.UI
 
             fatigue.Set(model.Fatigue / 100f, UiFormat.Number(model.Fatigue), model.Fatigue > 80 ? Theme.Danger : Theme.Accent);
             stress.Set(model.Stress / 100f, UiFormat.Number(model.Stress), model.Stress > 80 ? Theme.Danger : Theme.Accent);
-            contentment.Set(model.Contentment / 100f, UiFormat.Number(model.Contentment));
+            string sulking = model.SulkingToday ? UiStrings.SulkingToday : model.Sulking ? UiStrings.Sulking : null;
+            contentment.Set(model.Contentment / 100f, sulking != null ? $"{UiFormat.Number(model.Contentment)} · {sulking}" : UiFormat.Number(model.Contentment),
+                sulking != null ? Theme.Danger : Theme.Accent);
             satiety.Set(model.Satiety / 100f, $"{UiFormat.Number(model.Satiety)} · {model.HungerWord}",
                 model.Hunger >= HungerStage.Starving ? Theme.Danger : Theme.Accent);
 
@@ -426,8 +428,8 @@ namespace GuildMaster.UI
     }
 
     /// <summary>
-    /// Кандидат в авантюристы: карточка без особых черт (профиль, характеристики, навыки, характер), сколько ещё ждёт;
-    /// «Принять» и «Отказать» — командами. Кандидат ушёл — кнопки неактивны.
+    /// Кандидат в авантюристы: карточка без особых черт (профиль, характеристики, навыки, характер), сколько ещё ждёт, подъёмные;
+    /// «Принять» и «Отказать» — командами. Кандидат ушёл — кнопки неактивны; в казне меньше подъёмных — «Принять» неактивна.
     /// </summary>
     public sealed class CandidateWindow : ModalWindow
     {
@@ -463,7 +465,8 @@ namespace GuildMaster.UI
             IsWaiting = world.Adventurers.TryGetCandidate(CandidateId, out Candidate candidate);
             CardModel model = CardModel.Build(Client, CandidateId);
             TitleLabel.text = string.Format(UiStrings.CandidateTitleFormat, model.Found ? model.Name : UiStrings.Unknown);
-            accept.interactable = IsWaiting;
+            bool affordable = IsWaiting && RecruitSystem.CanAffordSigningBonus(Client.Data, world, candidate);
+            accept.interactable = affordable;
             reject.interactable = IsWaiting;
             if (!IsWaiting)
             {
@@ -473,13 +476,15 @@ namespace GuildMaster.UI
             }
 
             string waits = string.Format(UiStrings.CandidateUntilFormat, UiFormat.Duration(candidate.ExpiresAtHours - world.Time.TotalHours, Client.Calendar));
-            subtitle.text = $"{model.Subtitle} · {model.Power}\n{waits}";
+            string bonus = string.Format(UiStrings.CandidateSigningBonusFormat, UiFormat.Money(RecruitSystem.SigningBonus(Client.Data, candidate)));
+            if (!affordable) bonus += $" — <color={UiTheme.ToHex(Theme.Danger)}>{UiStrings.CandidateNoMoney}</color>";
+            subtitle.text = $"{model.Subtitle} · {model.Power}\n{waits}\n{bonus}";
             stats.text = CardWindow.StatsText(model, Theme, withTraits: false);
         }
 
         private void Answer(bool accepted)
         {
-            if (!IsWaiting) return;
+            if (!IsWaiting || accepted && !accept.interactable) return;
             PeopleActions.AnswerCandidate(Client, CandidateId, accepted);
             Context.Navigator.Close(this);
         }

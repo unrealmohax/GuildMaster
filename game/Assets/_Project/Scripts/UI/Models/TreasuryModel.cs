@@ -133,7 +133,8 @@ namespace GuildMaster.UI
                 return entry.Comment.StartsWith("debt", StringComparison.Ordinal) ? text + UiStrings.LedgerSalaryDebt : text;
             }
             if (category == LedgerCategories.DebtRepayment || category == LedgerCategories.Dormitory
-                || category == LedgerCategories.Infirmary || category == LedgerCategories.TrainingYard)
+                || category == LedgerCategories.Infirmary || category == LedgerCategories.TrainingYard
+                || category == LedgerCategories.SigningBonuses)
             {
                 Adventurer person = EventTextSource.FindPerson(world, entry.RelatedId);
                 return person != null ? person.Name : string.Empty;

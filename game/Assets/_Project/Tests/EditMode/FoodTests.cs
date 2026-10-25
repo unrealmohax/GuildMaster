@@ -297,6 +297,7 @@ namespace GuildMaster.Tests
         public void Hunger_DoesNotShiftOtherSystems()
         {
             data.NoQuests();
+            data.NeutralRumor(); // голод меняет довольство, а с ним — молву
             string Run(bool starve)
             {
                 List<ISimSystem> systems = SimulationSystems.CreateDefault();

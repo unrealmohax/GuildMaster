@@ -12,6 +12,7 @@ namespace GuildMaster.Core
     /// (дробная часть — шанс ещё одного, бросок всегда), каждый — <see cref="OrderGenerator"/>. Важный — игроку
     /// (<see cref="OrderStatus.AwaitingPlayer"/>, событие [В]); обычный — Регистратору: подходит под правила — на доску,
     /// нет — отклонён. За утро — по событию со счётом повешенных и отклонённых Регистратором (строки ленты).
+    /// В 00:00 — остывание репутации, если за сутки не выполнено ни одного задания (<see cref="ReputationService.Midnight"/>).
     /// Стартовые заказы — <see cref="ApplyStart"/>, своим потоком. Реестр только из чисел — заказов нет.
     /// </summary>
     public sealed class OrderSystem : ISimSystem
@@ -27,6 +28,7 @@ namespace GuildMaster.Core
         {
             if (!ctx.Data.HasDefinitions) return;
 
+            if (ctx.World.Time.Hour == 0) ReputationService.Midnight(ctx);
             CloseOverdue(ctx);
             if (ctx.World.Time.Hour == ctx.Data.Balance.Time.MorningHour) Morning(ctx);
         }

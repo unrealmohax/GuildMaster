@@ -26,6 +26,14 @@ namespace GuildMaster.Data
             new GenerationLevel(AdventurerLevel.Strong, 0.15f, new IntRange(30, 50), new IntRange(25, 45), new IntRange(70, 85), new IntRange(50, 60), new IntRange(45, 60)),
         };
 
+        [Tooltip("Уровни кандидатов по репутации: с этой репутации — такие веса Weak, Medium, Strong (вместо весов уровней выше)")]
+        [SerializeField] private List<LevelMixEntry> levelWeightsByReputation = new List<LevelMixEntry>
+        {
+            new LevelMixEntry(0, 0.65f, 0.3f, 0.05f),
+            new LevelMixEntry(30, 0.5f, 0.35f, 0.15f),
+            new LevelMixEntry(60, 0.35f, 0.4f, 0.25f),
+        };
+
         [Tooltip("Стартовые люди — не выше этого уровня: параметры низкие и средние")]
         [SerializeField] private AdventurerLevel startMaxLevel = AdventurerLevel.Medium;
 
@@ -156,6 +164,7 @@ namespace GuildMaster.Data
         public float MaleChance => maleChance;
         public IntRange Age => age;
         public IReadOnlyList<GenerationLevel> Levels => levels;
+        public IReadOnlyList<LevelMixEntry> LevelWeightsByReputation => levelWeightsByReputation;
         public AdventurerLevel StartMaxLevel => startMaxLevel;
         public IntRange NoviceCharacteristics => noviceCharacteristics;
         public IntRange NoviceSkills => noviceSkills;
@@ -210,6 +219,29 @@ namespace GuildMaster.Data
         Weak = 0,
         Medium = 1,
         Strong = 2,
+    }
+
+    /// <summary>Строка уровней кандидатов: с этой репутации — такие веса уровней Weak, Medium, Strong.</summary>
+    [Serializable]
+    public sealed class LevelMixEntry
+    {
+        [SerializeField, Range(0, 100)] private int fromReputation;
+
+        [Tooltip("Веса уровней Weak, Medium, Strong")]
+        [SerializeField] private float[] weights = new float[3];
+
+        public LevelMixEntry()
+        {
+        }
+
+        public LevelMixEntry(int fromReputation, params float[] weights)
+        {
+            this.fromReputation = fromReputation;
+            this.weights = weights;
+        }
+
+        public int FromReputation => fromReputation;
+        public IReadOnlyList<float> Weights => weights;
     }
 
     /// <summary>Уровень при генерации: шанс и диапазоны параметров для ролей и Мастера на все руки.</summary>

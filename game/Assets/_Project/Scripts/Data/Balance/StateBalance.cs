@@ -109,6 +109,24 @@ namespace GuildMaster.Data
 
         [SerializeField, Range(0f, 1f)] private float leaveChance = 0.2f;
 
+        [Tooltip("Ушёл по своей воле — каждый друг с довольством ниже этого бросает шанс уйти вслед")]
+        [SerializeField, Range(0f, 100f)] private float followContentment = 40f;
+
+        [SerializeField, Range(0f, 1f)] private float followFriendChance = 0.3f;
+
+        [Header("Не в духе")]
+        [Tooltip("Довольство ниже — человек не в духе")]
+        [SerializeField, Range(0f, 100f)] private float sulkContentment = 25f;
+
+        [Tooltip("Не в духе: весь профиль ×")]
+        [SerializeField, Range(0f, 1f)] private float sulkProfileMultiplier = 0.9f;
+
+        [Tooltip("Не в духе: утром шанс дня без работы при довольстве на границе sulkContentment")]
+        [SerializeField, Range(0f, 1f)] private float sulkSkipChance = 0.15f;
+
+        [Tooltip("Не в духе: шанс дня без работы при довольстве 0; между границей и 0 — по прямой")]
+        [SerializeField, Range(0f, 1f)] private float sulkSkipChanceMax = 0.7f;
+
         [Tooltip("Границы слов лояльности в карточке, по возрастанию")]
         [SerializeField] private List<float> loyaltyWordThresholds = new List<float> { 25f, 45f, 65f, 85f };
 
@@ -169,6 +187,12 @@ namespace GuildMaster.Data
         public float LoyaltyDailyStep => loyaltyDailyStep;
         public float LeaveCheckThreshold => leaveCheckThreshold;
         public float LeaveChance => leaveChance;
+        public float FollowContentment => followContentment;
+        public float FollowFriendChance => followFriendChance;
+        public float SulkContentment => sulkContentment;
+        public float SulkProfileMultiplier => sulkProfileMultiplier;
+        public float SulkSkipChance => sulkSkipChance;
+        public float SulkSkipChanceMax => sulkSkipChanceMax;
         public IReadOnlyList<float> LoyaltyWordThresholds => loyaltyWordThresholds;
         public float LowWalletMoneyMultiplier => lowWalletMoneyMultiplier;
         public float DebtRepaymentShare => debtRepaymentShare;

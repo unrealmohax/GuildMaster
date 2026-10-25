@@ -95,6 +95,20 @@ namespace GuildMaster.Tests
             simulation.ApplyCommandsNow();
         }
 
+        /// <summary>
+        /// Тикать, пока не выполнится условие, но не дольше <paramref name="maxDays"/> суток: мир, где нужное так и не наступило,
+        /// роняет тест, а не вешает редактор.
+        /// </summary>
+        public static void TickUntil(Simulation simulation, Func<bool> done, string what, int maxDays = 720)
+        {
+            long limit = simulation.Calendar.DaysToHours(maxDays);
+            for (long i = 0; !done(); i++)
+            {
+                if (i >= limit) NUnit.Framework.Assert.Fail($"За {maxDays} суток не дождались: {what}");
+                simulation.Tick();
+            }
+        }
+
         public static void Days(Simulation simulation, int days)
         {
             long ticks = simulation.Calendar.DaysToHours(days);

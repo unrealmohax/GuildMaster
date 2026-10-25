@@ -7,8 +7,8 @@ namespace GuildMaster.Core
     /// <summary>
     /// Значения меток строки из события. Откуда берётся каждая метка — таблица <see cref="Sources"/>:
     /// <list type="bullet">
-    /// <item><c>{имя}</c> — первый участник, <c>{напарник}</c> — второй; <c>{лекарь}</c>, <c>{щит}</c>, <c>{решающий}</c> —
-    /// id человека в данных события под ключами <c>medic</c>, <c>shield</c>, <c>leader</c>. Человек ищется среди
+    /// <item><c>{имя}</c> — первый участник, <c>{напарник}</c> — второй; <c>{лекарь}</c>, <c>{щит}</c>, <c>{решающий}</c>, <c>{друг}</c> —
+    /// id человека в данных события под ключами <c>medic</c>, <c>shield</c>, <c>leader</c>, <c>friend</c>. Человек ищется среди
     /// активных, в архиве и среди кандидатов; падежи имени — из списка имён. У событий персонала участников нет — <c>{имя}</c>
     /// берётся из данных события под ключом <c>staff</c>.</item>
     /// <item>Названия — в данных события под ключами <c>party</c>, <c>place</c>, <c>enemy</c>, <c>client</c>, <c>cargo</c>,
@@ -36,6 +36,7 @@ namespace GuildMaster.Core
                 ["лекарь"] = s => s.PersonFromPayload("medic"),
                 ["щит"] = s => s.PersonFromPayload("shield"),
                 ["решающий"] = s => s.PersonFromPayload("leader"),
+                ["друг"] = s => s.PersonFromPayload("friend"),
                 ["группа"] = s => s.PartyNoun("party"),
                 ["место"] = s => s.QuestNoun("place"),
                 ["враг"] = s => s.QuestNoun("enemy"),

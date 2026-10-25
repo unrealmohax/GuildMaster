@@ -433,6 +433,7 @@ namespace GuildMaster.Tests
             using (var data = new PeopleData())
             {
                 data.NoQuests(); // задания меняют репутацию, а с ней — шанс кандидата
+                data.NeutralRumor(); // без заданий довольство падает, молва гасит приток — кандидатов не было бы
                 data.Set("settlement.dailyDecay", 0.3f); // поселение живёт: спад, тревога, население, доход от жителей
                 data.Set("settlement.localsTavernIncome", 0.05f);
                 string Run(bool withSettlement)

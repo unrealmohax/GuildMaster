@@ -17,6 +17,8 @@ namespace GuildMaster.Core
         public const string AdventurerJoined = "guild.adventurer.joined";
         public const string ArchetypeChanged = "guild.archetype.changed";
         public const string AdventurerLeft = "guild.adventurer.left";
+        public const string AdventurerFollowedFriend = "guild.adventurer.followedFriend";
+        public const string SulkingDay = "guild.adventurer.sulking";
         public const string WalletEmptied = "guild.money.walletEmpty";
         public const string HungerStarted = "guild.food.hunger";
         public const string Exhausted = "guild.food.exhausted";
@@ -126,7 +128,7 @@ namespace GuildMaster.Core
         /// <summary>Ключи, которые события дают всегда (не из данных) — их шаблоны обязаны быть в данных.</summary>
         public static IReadOnlyList<string> Fixed { get; } = new[]
         {
-            CandidateArrived, CandidateLeft, AdventurerJoined, ArchetypeChanged, AdventurerLeft, WalletEmptied, HungerStarted, Exhausted,
+            CandidateArrived, CandidateLeft, AdventurerJoined, ArchetypeChanged, AdventurerLeft, AdventurerFollowedFriend, SulkingDay, WalletEmptied, HungerStarted, Exhausted,
             FamilyNeed, FamilyIll, FamilyDied,
             Recovered, WoundComplicated,
             BreakdownBinge, BreakdownBrawl, BreakdownBrawlAlone, BreakdownRefuse, BreakdownCollapse,
@@ -178,7 +180,8 @@ namespace GuildMaster.Core
                 { SimEventType.TraitRevealed, (e, w, d) => FromPayload(e) },
                 { SimEventType.AxisBalanced, Balanced },
                 { SimEventType.Breakdown, (e, w, d) => Breakdown(e) },
-                { SimEventType.AdventurerLeft, (e, w, d) => AdventurerLeft },
+                { SimEventType.AdventurerLeft, (e, w, d) => e.TryGet("cause", out LeaveCause cause) && cause == LeaveCause.FollowedFriend ? AdventurerFollowedFriend : AdventurerLeft },
+                { SimEventType.SulkingDay, (e, w, d) => SulkingDay },
                 { SimEventType.WalletEmptied, (e, w, d) => WalletEmptied },
                 { SimEventType.HungerStarted, (e, w, d) => HungerStarted },
                 { SimEventType.Exhausted, (e, w, d) => Exhausted },

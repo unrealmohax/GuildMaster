@@ -37,7 +37,7 @@
         /// <summary>Игрок отказал кандидату.</summary>
         CandidateRejected,
 
-        /// <summary>Игрок принял кандидата — человек вступил в гильдию.</summary>
+        /// <summary>Игрок принял кандидата — человек вступил в гильдию: <c>amount</c> — подъёмные.</summary>
         AdventurerJoined,
 
         /// <summary>Сменился архетип по параметрам. [О], без автопаузы.</summary>
@@ -80,7 +80,8 @@
 
         /// <summary>
         /// Ушёл из гильдии по ежемесячной проверке. [В], автопауза <see cref="AutopauseKind.MemberLeftGuild"/>. <c>cause</c> — главная
-        /// причина (<see cref="LeaveCause"/>), <c>causes</c> — все, <c>reason</c> — текст причин для игрока.
+        /// причина (<see cref="LeaveCause"/>), <c>causes</c> — все, <c>reason</c> — текст причин для игрока. Ушёл вслед за другом —
+        /// <c>cause</c> = <see cref="LeaveCause.FollowedFriend"/>, <c>friend</c> — id друга.
         /// </summary>
         AdventurerLeft,
 
@@ -446,5 +447,14 @@
 
         /// <summary>Безопасность поднялась выше нуля — отсчёт покидания снят. [З].</summary>
         SettlementAbandoningLifted,
+
+        /// <summary>
+        /// Принять кандидата не вышло — кандидат ждёт дальше: <c>reason</c> (<c>money</c> — в казне меньше подъёмных), <c>amount</c> —
+        /// подъёмные, <c>money</c> — казна. Без строки ленты.
+        /// </summary>
+        CandidateAcceptRefused,
+
+        /// <summary>Человек не в духе и сегодня не работает (заказов не берёт до ночи): <c>contentment</c>. [О].</summary>
+        SulkingDay,
     }
 }

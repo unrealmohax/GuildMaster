@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using GuildMaster.Core;
 using TMPro;
 using UnityEngine;
@@ -7,8 +8,8 @@ using UnityEngine.UI;
 namespace GuildMaster.UI
 {
     /// <summary>
-    /// Экран «Казна»: казна сейчас, комиссия, банкротство; журнал операций за месяц с фильтром по статьям; справа — отчёт
-    /// любого прошедшего месяца целиком.
+    /// Экран «Казна»: казна сейчас, комиссия, банкротство; журнал операций за месяц с фильтром по статьям; справа — репутация
+    /// с последними изменениями и причинами, под ней — отчёт любого прошедшего месяца целиком.
     /// </summary>
     public sealed class TreasuryScreen : ScreenView
     {
@@ -22,6 +23,8 @@ namespace GuildMaster.UI
         private readonly TableView ledger;
         private readonly CycleSelector reportSelector;
         private readonly TextMeshProUGUI reportText;
+        private readonly TextMeshProUGUI reputationNow;
+        private readonly TextMeshProUGUI reputationChanges;
 
         // Выбор месяца — номер отчёта в истории (−1 — текущий месяц / последний отчёт), чтобы новый отчёт не сдвигал выбор.
         private int periodReport = -1;
@@ -75,9 +78,24 @@ namespace GuildMaster.UI
             };
             ledger = new TableView(Factory, main, columns, null);
 
-            Image reportsPanel = Factory.Panel(Root, "Reports", Theme.Panel);
+            RectTransform side = UiFactory.Node(Root, "Side");
+            Factory.Vertical(side, 8);
+            UiFactory.Size(side, 560, flexWidth: 0, flexHeight: 1);
+
+            Image reputationPanel = Factory.Panel(side, "Reputation", Theme.Panel);
+            Factory.Vertical(reputationPanel, 4, Theme.Padding);
+            UiFactory.Size(reputationPanel, height: 340);
+            reputationNow = Factory.Label(reputationPanel.transform, string.Empty, Theme.FontSizeLarge, Theme.Accent);
+            UiFactory.Size(reputationNow, height: Theme.FontSizeLarge + 10);
+            Factory.Label(reputationPanel.transform, UiStrings.ReputationHint, Theme.FontSizeSmall, Theme.TextDim, wrap: true);
+            Factory.Heading(reputationPanel.transform, UiStrings.ReputationChanges);
+            RectTransform changesContent = Factory.Scroll(reputationPanel.transform, "ReputationChanges", out ScrollRect changesScroll, 4);
+            UiFactory.Size(changesScroll, flexWidth: 1, flexHeight: 1);
+            reputationChanges = Factory.LinkLabel(changesContent, Context.OnLink);
+
+            Image reportsPanel = Factory.Panel(side, "Reports", Theme.Panel);
             Factory.Vertical(reportsPanel, 8, Theme.Padding);
-            UiFactory.Size(reportsPanel, 560, flexWidth: 0, flexHeight: 1);
+            UiFactory.Size(reportsPanel, flexHeight: 1);
             Factory.Heading(reportsPanel.transform, UiStrings.ReportsHistory);
             reportSelector = new CycleSelector(Factory, reportsPanel.transform, 300);
             reportSelector.Changed += index =>
@@ -145,7 +163,34 @@ namespace GuildMaster.UI
                 ledger.SetText(i, 4, UiFormat.Money(row.BalanceAfter), row.BalanceAfter < 0 ? Theme.Danger : Theme.Text);
             }
 
+            RefreshReputation();
             RefreshReport(reports);
+        }
+
+        private void RefreshReputation()
+        {
+            ReputationModel reputation = ReputationModel.Build(Client);
+            reputationNow.text = string.Format(UiStrings.ReputationNowFormat,
+                reputation.Reputation.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture).Replace('.', ','),
+                UiFormat.Number(reputation.MaxReputation));
+
+            string dim = UiTheme.ToHex(Theme.TextDim);
+            if (reputation.Changes.Count == 0)
+            {
+                reputationChanges.text = $"<color={dim}>{UiStrings.ReputationNoChanges}</color>";
+                return;
+            }
+            string good = UiTheme.ToHex(Theme.Good);
+            string bad = UiTheme.ToHex(Theme.Danger);
+            string text = UiTheme.ToHex(Theme.Text);
+            var builder = new StringBuilder();
+            foreach (ReputationChangeRow row in reputation.Changes)
+            {
+                if (builder.Length > 0) builder.Append('\n');
+                builder.Append($"<color={dim}>{row.Time}</color>  <color={(row.Delta >= 0 ? good : bad)}>{ReputationModel.Delta(row.Delta)}</color>  ");
+                builder.Append(row.Link.Kind != TextLinkKind.None ? LinkCodec.Wrap(row.Text, row.Link, text) : LinkCodec.Escape(row.Text));
+            }
+            reputationChanges.text = builder.ToString();
         }
 
         private void RefreshReport(IReadOnlyList<MonthReport> reports)

@@ -11,7 +11,7 @@ namespace GuildMaster.Data
         /// <summary>Люди: склоняются и задают род для скобок <c>[м|ж]</c>.</summary>
         private static readonly HashSet<string> people = new HashSet<string>
         {
-            "имя", "напарник", "лекарь", "щит", "решающий",
+            "имя", "напарник", "лекарь", "щит", "решающий", "друг",
         };
 
         /// <summary>Прочие метки ленты и описаний заказов.</summary>

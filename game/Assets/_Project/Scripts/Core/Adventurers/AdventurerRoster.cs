@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using GuildMaster.Data;
 
 namespace GuildMaster.Core
 {
@@ -92,14 +93,19 @@ namespace GuildMaster.Core
     /// </summary>
     public sealed class Candidate
     {
-        internal Candidate(Adventurer adventurer, long arrivedAtHours, long expiresAtHours)
+        internal Candidate(Adventurer adventurer, AdventurerLevel level, long arrivedAtHours, long expiresAtHours)
         {
             Adventurer = adventurer ?? throw new ArgumentNullException(nameof(adventurer));
+            Level = level;
             ArrivedAtHours = arrivedAtHours;
             ExpiresAtHours = expiresAtHours;
         }
 
         public Adventurer Adventurer { get; }
+
+        /// <summary>Уровень при генерации: от него подъёмные.</summary>
+        public AdventurerLevel Level { get; }
+
         public long ArrivedAtHours { get; }
         public long ExpiresAtHours { get; }
     }

@@ -21,7 +21,8 @@ namespace GuildMaster.Core
     /// <c>drinkStressStep</c> стресса выше <c>drinkStressThreshold</c>; обычный пьёт только сверх резерва на еду, Пьяница — из всего
     /// кошелька. Оплаченные кружки — в доход таверны (<see cref="TreasuryService"/>).
     /// Тренировка — занятие на <c>trainingHoursPerDay</c> часов, плата <c>training</c> в казну при начале; после него человек
-    /// решает снова. Утром Пьяница может пропустить день (10%, при стрессе выше 50 — 20%).
+    /// решает снова. Утром Пьяница может пропустить день (10%, при стрессе выше 50 — 20%); человек не в духе (довольство ниже
+    /// <c>sulkContentment</c>) — с шансом <c>sulkSkipChance</c> провести день без работы: заказов не берёт, свободное время выбирает сам.
     /// </summary>
     public sealed class ActivitySystem : ISimSystem
     {
@@ -46,7 +47,11 @@ namespace GuildMaster.Core
                     state.BreakdownEndsAtHours = 0;
                 }
 
-                if (morning) TrySkipDay(ctx, adventurer);
+                if (morning)
+                {
+                    TrySkipDay(ctx, adventurer);
+                    TrySulk(ctx, adventurer);
+                }
 
                 Activity previous = state.Activity;
                 Activity next = Schedule(state, phase, now);
@@ -142,6 +147,25 @@ namespace GuildMaster.Core
             state.SkipsDayUntilHours = time.TotalHours - time.Hour + ctx.Data.Balance.Time.NightHour;
             ctx.Events.Publish(SimEventType.DrunkardSkippedDay, EventImportance.Normal, adventurer.Id);
             RevealService.TryRevealTrait(ctx, adventurer, drunkard.TraitId, RevealTrigger.DrunkardSkippedDay);
+        }
+
+        /// <summary>
+        /// Не в духе утром: шанс <c>sulkSkipChance</c> на день без работы — до начала ночи заказов не берёт (запрет модели решений).
+        /// Кто и так не работает сегодня (срыв, Лазарет, тяжёлая рана, Пьяница пропускает день), не бросает.
+        /// </summary>
+        private static void TrySulk(SimContext ctx, Adventurer adventurer)
+        {
+            AdventurerState state = adventurer.State;
+            StateBalance balance = ctx.Data.Balance.State;
+            long now = ctx.World.Time.TotalHours;
+            if (!StateRules.IsSulking(state, balance) || state.Breakdown != BreakdownKind.None || state.InInfirmary
+                || state.IsLaidUpByWound() || now < state.SkipsDayUntilHours) return;
+            if (!ctx.RollChance(StateRules.SulkSkipChance(state.Contentment, balance), "sulk-day", adventurer, "contentment", state.Contentment)) return;
+
+            GameTime time = ctx.World.Time;
+            state.SulksUntilHours = time.TotalHours - time.Hour + ctx.Data.Balance.Time.NightHour;
+            ctx.Events.Publish(SimEventType.SulkingDay, EventImportance.Normal, adventurer.Id)
+                .With("contentment", state.Contentment);
         }
 
         private static void PayForActivity(SimContext ctx, Adventurer adventurer)

@@ -13,14 +13,16 @@ namespace GuildMaster.Debugging
     /// </summary>
     public static class SummaryColumns
     {
-        /// <summary>По месяцам: люди, приход и уход, срывы, раны, раскрытия, средние показатели на конец месяца, кошельки, семьи,
-        /// строки ленты гильдии по важности, казна на конец месяца, доходы и расходы, банкротство, заказы, репутация на конец месяца,
+        /// <summary>По месяцам: люди, приход и уход, шанс кандидата (средний за месяц) и молва (на конец месяца), срывы, раны,
+        /// раскрытия, средние показатели на конец месяца, кошельки, семьи, строки ленты гильдии по важности, казна на конец месяца, доходы и расходы, банкротство, заказы, репутация на конец месяца, её остывание и потери за месяц,
         /// задания и группы, постройки (готовые, Общежитие, Лазарет, двор), персонал и долги по зарплате.</summary>
         public static readonly IReadOnlyList<MonthColumn> Monthly = new[]
         {
             new MonthColumn("Людей", m => m.World.Adventurers.Active.Count, SummaryTotal.Last, "0"),
             new MonthColumn("Кандидатов", m => m.Count(SimEventType.CandidateArrived), SummaryTotal.Sum, "0"),
             new MonthColumn("Пришло", m => m.Count(SimEventType.AdventurerJoined), SummaryTotal.Sum, "0"),
+            new MonthColumn("Шанс кандидата", m => m.CandidateChance, SummaryTotal.Mean, "0.###"),
+            new MonthColumn("Молва", m => RecruitSystem.Rumor(m.Game.Data, m.World), SummaryTotal.Mean, "0.##"),
             new MonthColumn("Ушло", m => m.Count(SimEventType.AdventurerLeft), SummaryTotal.Sum, "0"),
             new MonthColumn("Срывов", m => m.Count(SimEventType.Breakdown), SummaryTotal.Sum, "0"),
             new MonthColumn("Ран", m => m.Count(SimEventType.AdventurerWounded), SummaryTotal.Sum, "0"),
@@ -60,6 +62,9 @@ namespace GuildMaster.Debugging
             new MonthColumn("Смертей в семье", m => m.Count(SimEventType.FamilyMemberDied), SummaryTotal.Sum, "0"),
             new MonthColumn("Ушли из-за нужды семьи", m => m.Count(SimEventType.AdventurerLeft, e => e.TryGet("cause", out LeaveCause cause) && cause == LeaveCause.FamilyNeed),
                 SummaryTotal.Sum, "0"),
+            new MonthColumn("Не в духе, дней", m => m.Count(SimEventType.SulkingDay), SummaryTotal.Sum, "0"),
+            new MonthColumn("Ушли вслед за другом", m => m.Count(SimEventType.AdventurerLeft,
+                e => e.TryGet("cause", out LeaveCause cause) && cause == LeaveCause.FollowedFriend), SummaryTotal.Sum, "0"),
             new MonthColumn("Лента [О]", m => m.FeedLines(EventImportance.Normal), SummaryTotal.Sum, "0"),
             new MonthColumn("Лента [З]", m => m.FeedLines(EventImportance.Notable), SummaryTotal.Sum, "0"),
             new MonthColumn("Лента [В]", m => m.FeedLines(EventImportance.Important), SummaryTotal.Sum, "0"),
@@ -73,6 +78,9 @@ namespace GuildMaster.Debugging
             new MonthColumn("Отклонено игроком", m => m.Count(SimEventType.OrderDeclinedByPlayer), SummaryTotal.Sum, "0"),
             new MonthColumn("Снято по сроку", m => m.Count(SimEventType.OrderExpired), SummaryTotal.Sum, "0"),
             new MonthColumn("Репутация", m => m.World.Guild.Reputation, SummaryTotal.Last, "0.#"),
+            new MonthColumn("Репутация: остывание", m => ReputationSum(m, reason => reason == ReputationReasons.Decay), SummaryTotal.Sum, "0.##"),
+            new MonthColumn("Репутация: потери", m => ReputationSum(m, reason => reason != ReputationReasons.Decay, negativeOnly: true),
+                SummaryTotal.Sum, "0.##"),
             new MonthColumn("Безопасность", m => m.World.Settlement.Security, SummaryTotal.Last, "0.#"),
             new MonthColumn("Население", m => m.World.Settlement.Population, SummaryTotal.Last, "0"),
             new MonthColumn("Уровень", m => (int)m.World.Settlement.Level, SummaryTotal.Last, "0"),
@@ -114,6 +122,25 @@ namespace GuildMaster.Debugging
             new MonthColumn("Невыплат жалованья", m => m.Count(SimEventType.SalaryUnpaid), SummaryTotal.Sum, "0"),
             new MonthColumn("Долг по зарплате", m => UnpaidSalaries(m.World), SummaryTotal.Last, "0"),
         };
+
+        /// <summary>
+        /// Сумма изменений репутации за месяц по причинам, подходящим под условие; <paramref name="negativeOnly"/> — только
+        /// отрицательные. Потери — со знаком минус.
+        /// </summary>
+        private static double ReputationSum(MonthRecord m, Func<string, bool> reasonMatches, bool negativeOnly = false)
+        {
+            double sum = 0;
+            foreach (SimEvent simEvent in m.Events)
+            {
+                if (simEvent.Type != SimEventType.ReputationChanged) continue;
+                if (!simEvent.TryGet("reason", out string reason) || !reasonMatches(reason)) continue;
+                if (!simEvent.TryGet("from", out float from) || !simEvent.TryGet("to", out float to)) continue;
+                float delta = to - from;
+                if (negativeOnly && delta >= 0f) continue;
+                sum += delta;
+            }
+            return sum;
+        }
 
         private static int ReadyBuildings(WorldState world)
         {
