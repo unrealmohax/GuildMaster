@@ -22,7 +22,8 @@ namespace GuildMaster.Core
     /// кошелька. Оплаченные кружки — в доход таверны (<see cref="TreasuryService"/>).
     /// Тренировка — занятие на <c>trainingHoursPerDay</c> часов, плата <c>training</c> в казну при начале; после него человек
     /// решает снова. Утром Пьяница может пропустить день (10%, при стрессе выше 50 — 20%); человек не в духе (довольство ниже
-    /// <c>sulkContentment</c>) — с шансом <c>sulkSkipChance</c> провести день без работы: заказов не берёт, свободное время выбирает сам.
+    /// <c>sulkContentment</c>) — с шансом <see cref="StateRules.SulkSkipChance"/> (растёт с недовольством)
+    /// провести день без работы: заказов не берёт, свободное время выбирает сам.
     /// </summary>
     public sealed class ActivitySystem : ISimSystem
     {
@@ -150,7 +151,7 @@ namespace GuildMaster.Core
         }
 
         /// <summary>
-        /// Не в духе утром: шанс <c>sulkSkipChance</c> на день без работы — до начала ночи заказов не берёт (запрет модели решений).
+        /// Не в духе утром: шанс <see cref="StateRules.SulkSkipChance"/> на день без работы — до начала ночи заказов не берёт (запрет модели решений).
         /// Кто и так не работает сегодня (срыв, Лазарет, тяжёлая рана, Пьяница пропускает день), не бросает.
         /// </summary>
         private static void TrySulk(SimContext ctx, Adventurer adventurer)
