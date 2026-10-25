@@ -38,5 +38,14 @@
 
         /// <summary>Смерть родного у авантюриста.</summary>
         FamilyDeath,
+
+        /// <summary>Поселение: Безопасность упала до тревоги или осады.</summary>
+        SettlementAlarm,
+
+        /// <summary>Нападение на поселение.</summary>
+        SettlementAttack,
+
+        /// <summary>Безопасность поселения на нуле: жители собираются уходить.</summary>
+        SettlementAbandoning,
     }
 }

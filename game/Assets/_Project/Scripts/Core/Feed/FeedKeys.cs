@@ -83,6 +83,18 @@ namespace GuildMaster.Core
         public const string DecreeRevoked = "guild.decree.revoked";
         public const string DecreeBenefitCancelled = "guild.decree.benefitCancelled";
         public const string DecreeExpired = "guild.decree.expired";
+        public const string GuildClosedSettlement = "guild.closed.settlement";
+        public const string SettlementCalm = "guild.settlement.calm";
+        public const string SettlementNormalDown = "guild.settlement.normal.down";
+        public const string SettlementNormalUp = "guild.settlement.normal.up";
+        public const string SettlementAlarmDown = "guild.settlement.alarm.down";
+        public const string SettlementAlarmUp = "guild.settlement.alarm.up";
+        public const string SettlementSiege = "guild.settlement.siege";
+        public const string SettlementAttacked = "guild.settlement.attacked";
+        public const string SettlementAbandoning = "guild.settlement.abandoning";
+        public const string SettlementAbandoningLifted = "guild.settlement.abandoningLifted";
+        public const string SettlementGrew = "guild.settlement.grew";
+        public const string SettlementShrank = "guild.settlement.shrank";
 
         public const string QuestDeparted = "quest.departed";
         public const string QuestTravel = "quest.travel";
@@ -129,6 +141,8 @@ namespace GuildMaster.Core
             BuildingQueued, BuildingStarted, BuildingReady,
             StaffCandidateArrived, StaffCandidateLeft, StaffCandidateRefused, StaffHired, StaffDismissed, StaffQuit, SalaryUnpaid,
             DecreeEnabled, DecreeProhibition, DecreeProhibitionQuiet, DecreeRevoked, DecreeBenefitCancelled, DecreeExpired,
+            GuildClosedSettlement, SettlementCalm, SettlementNormalDown, SettlementNormalUp, SettlementAlarmDown, SettlementAlarmUp, SettlementSiege,
+            SettlementAttacked, SettlementAbandoning, SettlementAbandoningLifted, SettlementGrew, SettlementShrank,
             QuestDeparted, QuestTravel, QuestCamp, QuestCeiling, QuestDeath, QuestLost, QuestOnlyFugitive, QuestMedicSaved,
             QuestReturnTrip, QuestReturnTripHard, QuestRetreat, QuestFlee, QuestLootHandedIn, QuestLootSkimmed,
             QuestRationsShared, QuestRationsRanOut,
@@ -176,7 +190,7 @@ namespace GuildMaster.Core
                 { SimEventType.Quarrel, (e, w, d) => Quarrel },
                 { SimEventType.BankruptcyStarted, (e, w, d) => BankruptcyStarted },
                 { SimEventType.BankruptcyLifted, (e, w, d) => BankruptcyLifted },
-                { SimEventType.GuildClosed, (e, w, d) => GuildClosed },
+                { SimEventType.GuildClosed, (e, w, d) => e.TryGet("cause", out ClosedCause cause) && cause == ClosedCause.SettlementAbandoned ? GuildClosedSettlement : GuildClosed },
                 { SimEventType.MonthReportReady, (e, w, d) => MonthReport },
                 { SimEventType.NewOrdersPosted, (e, w, d) => NewOrders },
                 { SimEventType.RegistrarDeclinedOrders, (e, w, d) => RegistrarDeclined },
@@ -238,7 +252,36 @@ namespace GuildMaster.Core
                 { SimEventType.DecreeExpired, (e, w, d) => DecreeExpired },
                 { SimEventType.DilemmaArrived, (e, w, d) => DilemmaArrived },
                 { SimEventType.DilemmaAnswered, (e, w, d) => FromPayload(e) },
+                { SimEventType.SettlementLevelChanged, (e, w, d) => SettlementLevelKey(e) },
+                { SimEventType.SettlementLevelDropped, (e, w, d) => SettlementLevelKey(e) },
+                { SimEventType.SettlementAttacked, (e, w, d) => SettlementAttacked },
+                { SimEventType.SettlementAbandoning, (e, w, d) => SettlementAbandoning },
+                { SimEventType.SettlementAbandoningLifted, (e, w, d) => SettlementAbandoningLifted },
+                { SimEventType.PopulationChanged, (e, w, d) => PopulationKey(e) },
             };
+
+        /// <summary>Уровень поселения сменился: строка по новому уровню и направлению.</summary>
+        private static string SettlementLevelKey(SimEvent simEvent)
+        {
+            if (!simEvent.TryGet("to", out SettlementLevel to)) return null;
+            bool down = simEvent.TryGet("down", out bool flag) && flag;
+            switch (to)
+            {
+                case SettlementLevel.Calm: return SettlementCalm;
+                case SettlementLevel.Normal: return down ? SettlementNormalDown : SettlementNormalUp;
+                case SettlementLevel.Alarm: return down ? SettlementAlarmDown : SettlementAlarmUp;
+                default: return SettlementSiege;
+            }
+        }
+
+        /// <summary>Население за месяц выросло или убыло — строка; прочие изменения (постройка, нападение) — без строки.</summary>
+        private static string PopulationKey(SimEvent simEvent)
+        {
+            if (!simEvent.TryGet("reason", out string reason) || reason != SettlementReasons.Month) return null;
+            simEvent.TryGet("from", out int from);
+            simEvent.TryGet("to", out int to);
+            return to > from ? SettlementGrew : SettlementShrank;
+        }
 
         /// <summary>Объявлено распоряжение; у Сухого закона — своя строка (с Пьяницей-участником или без).</summary>
         private static string DecreeEnabledKey(SimEvent simEvent, DataRegistry data)

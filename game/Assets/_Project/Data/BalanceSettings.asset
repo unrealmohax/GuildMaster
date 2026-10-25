@@ -28,7 +28,8 @@ MonoBehaviour:
     debugSpeedMultiplier: 50
     maxTicksPerFrame: 10
   orders:
-    baseOrdersPerDay: 3
+    baseOrdersPerDay: 1
+    populationPerOrder: 40
     reputationPerExtraOrder: 33
     boardDays:
       min: 3
@@ -700,6 +701,35 @@ MonoBehaviour:
     loversMinDaysInGuild: 7
     feastAverageStress: 45
     feastRecentDeathDays: 7
+  settlement:
+    startSecurity: 60
+    startPopulation: 80
+    maxSecurity: 100
+    dailyDecay: 0.3
+    threatDonePerRank: 0.5
+    otherDonePerRank: 0.2
+    failedPerRank: 0.5
+    partyLost: 5
+    threatMissedPerRank: 1
+    calmFrom: 70
+    normalFrom: 40
+    alarmFrom: 20
+    calmGrowth: 0.02
+    alarmDecline: 0.02
+    siegeDecline: 0.05
+    populationPerBuilding: 5
+    attackChancePerNight: 0.1
+    attackKilled:
+      min: 2
+      max: 5
+    attackStress: 10
+    attackDamage:
+      min: 100
+      max: 300
+    abandonDays: 30
+    localsTavernIncome: 0.05
+    siegeTavernMultiplier: 0.5
+    recentChanges: 30
   feed:
     guildFeedLimit: 500
     questFeedKeepDays: 30

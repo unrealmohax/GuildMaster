@@ -48,6 +48,7 @@ namespace GuildMaster.Tests
         [Test]
         public void Year_WithLogAndSummary_UnderOneMinute()
         {
+            data.NoSettlementPressure(); // год должен дойти до конца: поселение не закрывает гильдию раньше
             var writer = new StringWriter();
             HeadlessRun.Result result = HeadlessRun.Run(data.Registry, 360u, 360, PlayerBots.Simple(), new SimLogger(SimLogLevel.Info, writer));
 

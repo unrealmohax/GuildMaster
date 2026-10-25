@@ -6,7 +6,8 @@ namespace GuildMaster.Core
     /// <summary>
     /// Точка входа симуляции. <see cref="Tick"/> — один игровой час: системы по порядку, затем очистка событий.
     /// Работает без сцены и без интерфейса. То же зерно + те же команды в те же такты = тот же мир.
-    /// При создании готовит стартовое состояние (казна, репутация; <see cref="StartScenario"/>: стартовые авантюристы;
+    /// При создании готовит стартовое состояние (казна, репутация, поселение; <see cref="StartScenario"/>: стартовые авантюристы
+    /// и название поселения;
     /// <see cref="OrderSystem.ApplyStart"/>: стартовые заказы на доске; <see cref="BuildingService.ApplyStart"/>: стартовые постройки;
     /// <see cref="StaffService.ApplyStart"/>: стартовый персонал).
     /// Когда гильдия закрыта (<see cref="IsFinished"/>), такты больше ничего не делают.
@@ -41,6 +42,7 @@ namespace GuildMaster.Core
             World = new WorldState { Time = Calendar.At(Calendar.StartTotalHours) };
             World.Treasury.Initialize(data.Balance.Guild.StartMoney, data.Balance.Economy.DefaultCommission, World.Time.TotalHours);
             World.Guild.Initialize(data.Balance.Guild.StartReputation);
+            SettlementService.Initialize(World.Settlement, data.Balance.Settlement);
             Events = new EventBus(World);
             Commands = new CommandQueue();
             Log = log ?? SimLogger.Disabled;

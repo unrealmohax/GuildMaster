@@ -29,6 +29,9 @@ namespace GuildMaster.Data
         [Tooltip("Вес типа при генерации заказа")]
         [SerializeField, Min(0f)] private float generationWeight = 1f;
 
+        [Tooltip("Угроза поселению: выполненный заказ поднимает Безопасность сильнее, упущенный — снижает")]
+        [SerializeField] private bool isThreat;
+
         [Tooltip("Ключ строк ленты: раунд удался")]
         [SerializeField] private string roundSuccessFeedKey;
 
@@ -41,6 +44,7 @@ namespace GuildMaster.Data
         public int MaxPartySizeCeiling => maxPartySizeCeiling;
         public IReadOnlyList<StatCeiling> StatCeilings => statCeilings;
         public float GenerationWeight => generationWeight;
+        public bool IsThreat => isThreat;
         public string RoundSuccessFeedKey => roundSuccessFeedKey;
         public string RoundFailFeedKey => roundFailFeedKey;
     }

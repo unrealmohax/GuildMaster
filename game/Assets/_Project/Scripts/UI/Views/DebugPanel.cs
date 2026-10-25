@@ -90,6 +90,13 @@ namespace GuildMaster.UI
                 if (TryFloat(reputationInput, out float value)) Client.Send(new DebugSetReputationCommand(value));
             }, 120, fontSize: Theme.FontSizeSmall);
 
+            // Поселение
+            Factory.Heading(content, UiStrings.Settlement);
+            RectTransform settlementRow = Row();
+            Factory.Button(settlementRow, UiStrings.DebugSecurityUp, () => Client.Send(new DebugSecurityCommand(10f)), 160, fontSize: Theme.FontSizeSmall);
+            Factory.Button(settlementRow, UiStrings.DebugSecurityDown, () => Client.Send(new DebugSecurityCommand(-10f)), 160, fontSize: Theme.FontSizeSmall);
+            Factory.Button(settlementRow, UiStrings.DebugAttack, () => Client.Send(new DebugAttackCommand()), 130, fontSize: Theme.FontSizeSmall);
+
             // Человек
             Factory.Heading(content, UiStrings.Person);
             RectTransform spawnRow = Row();

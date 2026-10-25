@@ -85,9 +85,12 @@ namespace GuildMaster.Core
             return found;
         }
 
-        /// <summary>Сколько заказов приходит в день: база + репутация / делитель (дробная часть — шанс ещё одного).</summary>
-        public static float OrdersPerDay(OrdersBalance balance, float reputation) =>
-            balance.BaseOrdersPerDay + reputation / balance.ReputationPerExtraOrder;
+        /// <summary>
+        /// Сколько заказов приходит в день: база + население поселения / делитель + репутация / делитель (дробная часть — шанс
+        /// ещё одного).
+        /// </summary>
+        public static float OrdersPerDay(OrdersBalance balance, float reputation, int population) =>
+            balance.BaseOrdersPerDay + population / balance.PopulationPerOrder + reputation / balance.ReputationPerExtraOrder;
 
         /// <summary>Важный заказ: сложный не по времени или награда не меньше порога.</summary>
         public static bool IsImportant(Order order, OrdersBalance balance) =>

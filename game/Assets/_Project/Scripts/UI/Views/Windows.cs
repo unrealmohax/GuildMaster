@@ -596,6 +596,7 @@ namespace GuildMaster.UI
             string dim = UiTheme.ToHex(Theme.TextDim);
             string text = UiTheme.ToHex(Theme.Text);
             var builder = new StringBuilder();
+            builder.Append(Model.Cause).Append('\n');
             builder.Append(Model.Days).Append("\n\n");
             builder.Append(Model.Money).Append('\n');
             builder.Append(Model.People).Append('\n');

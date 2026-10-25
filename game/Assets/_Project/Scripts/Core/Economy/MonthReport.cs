@@ -3,14 +3,15 @@ using System.Collections.Generic;
 namespace GuildMaster.Core
 {
     /// <summary>
-    /// Отчёт за прошедший месяц: период, казна на начало и конец, записи журнала за период, репутация и счётчики заказов
-    /// на конец (с них начинается следующий отчёт) и разделы. Раздел — заголовок
+    /// Отчёт за прошедший месяц: период, казна на начало и конец, записи журнала за период, репутация, счётчики заказов
+    /// и поселение на конец (с них начинается следующий отчёт) и разделы. Раздел — заголовок
     /// и строки (<see cref="MonthReportSections"/>). Тексты — ключи шаблонов; строками их собирает <see cref="MonthReportText"/>.
     /// </summary>
     public sealed class MonthReport
     {
         internal MonthReport(int year, int month, long fromHours, long toHours, int moneyAtStart, int moneyAtEnd, int ledgerFrom, int ledgerTo,
-            int income, int expense, float reputationAtEnd, OrderTotals ordersAtEnd, IReadOnlyList<ReportSection> sections)
+            int income, int expense, float reputationAtEnd, OrderTotals ordersAtEnd, SettlementSnapshot settlementAtEnd,
+            IReadOnlyList<ReportSection> sections)
         {
             Year = year;
             Month = month;
@@ -24,6 +25,7 @@ namespace GuildMaster.Core
             Expense = expense;
             ReputationAtEnd = reputationAtEnd;
             OrdersAtEnd = ordersAtEnd;
+            SettlementAtEnd = settlementAtEnd;
             Sections = sections;
         }
 
@@ -57,6 +59,9 @@ namespace GuildMaster.Core
 
         /// <summary>Счётчики заказов за игру, когда отчёт составлен.</summary>
         public OrderTotals OrdersAtEnd { get; }
+
+        /// <summary>Поселение, когда отчёт составлен: Безопасность, население, счётчики за игру.</summary>
+        public SettlementSnapshot SettlementAtEnd { get; }
 
         public IReadOnlyList<ReportSection> Sections { get; }
 

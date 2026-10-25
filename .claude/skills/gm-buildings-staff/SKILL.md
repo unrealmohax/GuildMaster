@@ -86,3 +86,6 @@ description: Постройки и персонал GuildMaster — Building/Bui
 ## Тесты
 
 `Tests/EditMode/BuildingStaffTests.cs` — помощники `Ready(world, id)` (постройка готова в обход стройки), `Hire(world, role, level)`.
+
+**Поселение** (скилл `gm-settlement`): постройка, ставшая готовой (`CompleteIfDue`, не стартовая), сама прибавляет жителей поселению
+(`SettlementService.BuildingReady`, + `populationPerBuilding`) — `BuildingSystem` стоит в такте после `SettlementSystem`.

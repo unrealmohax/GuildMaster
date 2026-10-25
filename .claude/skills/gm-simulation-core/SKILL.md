@@ -32,7 +32,7 @@ description: Ядро симуляции GuildMaster — такт Simulation.Tic
 в лог новые события (уровень — `EventLogLevels`). Потом `TicksDone++` → `TickCompleted(события)` → `Events.Clear()` → `StateChanged`.
 
 Порядок сейчас (`CreateDefault`): `CommandSystem` → `TimeSystem` → `OrderSystem` → `QuestSystem` → `ActivitySystem` →
-`StateSystem` → `HealthSystem` → `DecisionSystem` → `DilemmaSystem` → `EconomySystem` → `StaffSystem` → `BuildingSystem` →
+`StateSystem` → `HealthSystem` → `DecisionSystem` → `DilemmaSystem` → `SettlementSystem` → `EconomySystem` → `StaffSystem` → `BuildingSystem` →
 `SalarySystem` → `AdventurerSystem` → `RecruitSystem` → `DecreeSystem` → `MonthReportSystem` → `FeedSystem` → `AutopauseSystem`.
 Место 9 (`PartySystem`) пусто; 10 — `DilemmaSystem` (скилл `gm-dilemmas`); 12 — `StaffSystem`, `BuildingSystem`, `SalarySystem`;
 14 — `DecreeSystem` (скилл `gm-decrees`) — см. комментарий в `SimulationSystems`. Группы живут внутри `DecisionSystem`
@@ -112,3 +112,5 @@ description: Ядро симуляции GuildMaster — такт Simulation.Tic
 - Решение человека действует **со следующего часа** (`PlannedActivity`, `PlannedOrderId`) — тесты должны тикать ещё раз.
 - `DataRegistry(BalanceSettings)` — реестр только из чисел: людей, заказов, заданий и строк ленты нет (тесты времени).
 - Репутацию меняет только `ReputationService.Change(ctx, Δ, причина)` (обрезка 0..`maxReputation`, событие без строки).
+- Поселение (`World.Settlement`) меняет только `SettlementService`; `SettlementSystem` — между `DilemmaSystem` и `EconomySystem`
+  (скилл `gm-settlement`). `Simulation.IsFinished` = `Treasury.IsClosed`; закрывает гильдию только `GuildClosure.Close(ctx, причина)`.

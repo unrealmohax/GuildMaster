@@ -23,6 +23,10 @@ namespace GuildMaster.UI
 
         public List<(int Id, string Name)> TakenBy = new List<(int, string)>();
         public string Marks;
+
+        /// <summary>Угроза поселению: выполненная поднимает Безопасность, упущенная — снижает.</summary>
+        public bool IsThreat;
+
         public bool InWork;
         public int QuestRunId;
     }
@@ -108,6 +112,7 @@ namespace GuildMaster.UI
                 Surcharge = order.Surcharge,
                 InWork = order.IsInWork,
                 QuestRunId = order.QuestRunId,
+                IsThreat = !order.IsEventQuest && !order.IsPromotion && SettlementRules.IsThreat(client.Data, order.TypeId),
             };
 
             if (order.Status == OrderStatus.AwaitingPlayer)

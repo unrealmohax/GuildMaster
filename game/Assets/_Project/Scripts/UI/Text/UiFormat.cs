@@ -70,6 +70,15 @@ namespace GuildMaster.UI
 
         public static string Number(float value) => value.ToString("0", CultureInfo.InvariantCulture);
 
+        /// <summary>Число и слово в нужной форме: «1 житель», «3 жителя», «80 жителей».</summary>
+        public static string Plural(int count, string one, string few, string many)
+        {
+            int n = System.Math.Abs(count) % 100;
+            int last = n % 10;
+            string word = n >= 11 && n <= 14 ? many : last == 1 ? one : last >= 2 && last <= 4 ? few : many;
+            return count.ToString(CultureInfo.InvariantCulture) + " " + word;
+        }
+
         public static string Rank(GuildRank rank) => rank.ToString();
 
         /// <summary>Сумма из поля ввода: цифры, пробелы между тысячами допустимы; пусто — 0. Не число или меньше нуля — false.</summary>

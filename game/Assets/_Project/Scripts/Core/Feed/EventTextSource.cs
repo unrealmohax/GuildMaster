@@ -19,6 +19,7 @@ namespace GuildMaster.Core
     /// <item><c>{архетип}</c> — название архетипа в роде первого участника: id из данных события (<c>to</c>, <c>archetype</c>)
     /// или текущий архетип человека.</item>
     /// <item><c>{родной}</c> — родной первого участника (номер в семье — <c>relative</c>): отец, мать, муж, жена, сын, дочь.</item>
+    /// <item><c>{поселение}</c> — название поселения под ключом <c>settlement</c>; ссылка — на поселение.</item>
     /// </list>
     /// Ссылки (<see cref="TextValue.Link"/>): люди — на человека, <c>{имя}</c> сотрудника — на сотрудника (<c>staffId</c>),
     /// место, враг, заказчик, груз — на задание (<c>quest</c>), а без него — на заказ (<c>order</c>); постройка — на постройку
@@ -51,6 +52,7 @@ namespace GuildMaster.Core
                 ["причина"] = s => s.NounFromPayload("reason"),
                 ["название"] = s => s.PartyNoun("title"),
                 ["родной"] = s => s.Relative(),
+                ["поселение"] = s => s.NounFromPayload("settlement")?.WithLink(new TextLink(TextLinkKind.Settlement, 1)),
             };
 
         private readonly SimEvent simEvent;

@@ -116,7 +116,7 @@ namespace GuildMaster.Core
             return true;
         }
 
-        /// <summary>Стройка кончилась (срок вышел) — постройка готова.</summary>
+        /// <summary>Стройка кончилась (срок вышел) — постройка готова; в поселении прибавляются её работники.</summary>
         internal static void CompleteIfDue(SimContext ctx)
         {
             BuildingBook book = ctx.World.Buildings;
@@ -126,6 +126,7 @@ namespace GuildMaster.Core
             book.Current = null;
             building.State = BuildingState.Ready;
             Publish(ctx, SimEventType.BuildingReady, EventImportance.Notable, ctx.Data.Get<BuildingDefinition>(building.DefinitionId));
+            SettlementService.BuildingReady(ctx);
         }
 
         /// <summary>Переселить людей из города в Общежитие, пока есть места.</summary>

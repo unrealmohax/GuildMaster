@@ -27,6 +27,8 @@ namespace GuildMaster.Core
             ReputationAtEnd = world.Guild.Reputation;
             OrdersAtStart = previous?.OrdersAtEnd ?? default;
             OrdersAtEnd = world.Orders.Totals;
+            SettlementAtStart = previous?.SettlementAtEnd ?? SettlementSnapshot.AtStart(world.Settlement);
+            SettlementAtEnd = SettlementSnapshot.Of(world.Settlement);
         }
 
         public WorldState World { get; }
@@ -49,6 +51,11 @@ namespace GuildMaster.Core
         public OrderTotals OrdersAtStart { get; }
 
         public OrderTotals OrdersAtEnd { get; }
+
+        /// <summary>Поселение на начало периода (у первого отчёта — на старте игры) и сейчас; за период — их разница.</summary>
+        public SettlementSnapshot SettlementAtStart { get; }
+
+        public SettlementSnapshot SettlementAtEnd { get; }
 
         /// <summary>
         /// Час попадает в период. Час начала первого периода — начало игры: стартовый состав — не новость месяца.
@@ -86,6 +93,7 @@ namespace GuildMaster.Core
     /// <item>«Постройки»: что построено за месяц, что строится, что в очереди.</item>
     /// <item>«Персонал»: кто нанят, кто ушёл сам и кто уволен за месяц, кому гильдия должна жалованье.</item>
     /// <item>«Распоряжения»: какие действовали за месяц (сколько дней и сколько стоили) и расходы на них всего.</item>
+    /// <item>«Поселение»: Безопасность и население было → стало, угроз выполнено и упущено, нападений и ущерб — из счётчиков.</item>
     /// <item>«Репутация»: было → стало.</item>
     /// </list>
     /// </summary>
@@ -150,6 +158,14 @@ namespace GuildMaster.Core
         /// <summary>Подробность строки-сотрудника: id в строке — id сотрудника.</summary>
         public const string StaffDetail = "staff";
 
+        public const string SettlementTitle = "report.settlement";
+        public const string SettlementSecurity = "report.settlement.security";
+        public const string SettlementPopulation = "report.settlement.population";
+        public const string SettlementThreatsDone = "report.settlement.threatsDone";
+        public const string SettlementThreatsMissed = "report.settlement.threatsMissed";
+        public const string SettlementAttacks = "report.settlement.attacks";
+        public const string SettlementDamage = "report.settlement.damage";
+
         public const string ReputationTitle = "report.reputation";
         public const string ReputationChange = "report.reputation.change";
 
@@ -169,6 +185,9 @@ namespace GuildMaster.Core
             new MonthReportSection(StaffTitle, new[] { StaffHired, StaffQuit, StaffDismissed, StaffUnpaid }, BuildStaff),
             new MonthReportSection(DecreesTitle, new[] { DecreesActed, DecreesCost, DecreeItem }, BuildDecrees),
             new MonthReportSection(DilemmasTitle, new[] { DilemmasArrived, DilemmasAnswered, DilemmasTimedOut, DilemmasWithdrawn }, BuildDilemmas),
+            new MonthReportSection(SettlementTitle,
+                new[] { SettlementSecurity, SettlementPopulation, SettlementThreatsDone, SettlementThreatsMissed, SettlementAttacks, SettlementDamage },
+                BuildSettlement),
             new MonthReportSection(ReputationTitle, new[] { ReputationChange }, BuildReputation),
         };
 
@@ -420,6 +439,27 @@ namespace GuildMaster.Core
             lines.Add(ReportLine.Number(DilemmasAnswered, answered));
             lines.Add(ReportLine.Number(DilemmasTimedOut, timedOut));
             if (withdrawn > 0) lines.Add(ReportLine.Number(DilemmasWithdrawn, withdrawn));
+            return lines;
+        }
+
+        /// <summary>Поселение: Безопасность и население было → стало, угрозы выполнены и упущены; нападения и ущерб — если были.</summary>
+        private static List<ReportLine> BuildSettlement(ReportPeriod period)
+        {
+            SettlementSnapshot from = period.SettlementAtStart;
+            SettlementSnapshot to = period.SettlementAtEnd;
+            var lines = new List<ReportLine>
+            {
+                ReportLine.Change(SettlementSecurity, from.Security, to.Security),
+                ReportLine.Change(SettlementPopulation, from.Population, to.Population),
+                ReportLine.Number(SettlementThreatsDone, to.Totals.ThreatsDone - from.Totals.ThreatsDone),
+                ReportLine.Number(SettlementThreatsMissed, to.Totals.ThreatsMissed - from.Totals.ThreatsMissed),
+            };
+            int attacks = to.Totals.Attacks - from.Totals.Attacks;
+            if (attacks > 0)
+            {
+                lines.Add(ReportLine.Number(SettlementAttacks, attacks));
+                lines.Add(ReportLine.Money(SettlementDamage, -(to.Totals.Damage - from.Totals.Damage), signed: true));
+            }
             return lines;
         }
 

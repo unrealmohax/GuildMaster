@@ -170,7 +170,7 @@ namespace GuildMaster.Tests
         /// <summary>Склейки, которые дают скобки от мужской формы с беглой гласной: «ушёл[|ла]» → «ушёлла».</summary>
         private static readonly string[] BrokenForms = { "ёлла", "елла", "шелла", "одина", "ёна " };
 
-        private static readonly string[] NounLabels = { "группа", "место", "враг", "заказчик", "груз", "распоряжение", "постройка", "родной" };
+        private static readonly string[] NounLabels = { "группа", "место", "враг", "заказчик", "груз", "распоряжение", "постройка", "родной", "поселение" };
 
         [Test]
         public void AllTemplates_BothGenders_AllNounGenders_RenderWithoutMarkup()
@@ -665,6 +665,7 @@ namespace GuildMaster.Tests
         {
             using (var data = new PeopleData())
             {
+                data.NoSettlementPressure(); // год должен дойти до конца: сводка не считает последний неполный день
                 HeadlessRun.Result result = HeadlessRun.Run(data.Registry, 31u, 359, PlayerBots.Simple());
                 RunSummary summary = result.Summary;
                 FeedState feed = result.Simulation.World.Feed;

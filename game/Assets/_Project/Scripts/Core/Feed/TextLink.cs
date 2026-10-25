@@ -10,6 +10,9 @@ namespace GuildMaster.Core
         Order,
         Building,
         Party,
+
+        /// <summary>Поселение — оно одно, id ссылки всегда 1.</summary>
+        Settlement,
     }
 
     /// <summary>Цель ссылки: вид объекта и его id (у людей, сотрудников, заказов, заданий, построек и групп — свои счётчики).</summary>

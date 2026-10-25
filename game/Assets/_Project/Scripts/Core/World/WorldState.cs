@@ -52,5 +52,8 @@ namespace GuildMaster.Core
 
         /// <summary>Обращения: открытые, закрытые, перезарядки, отложенный праздник.</summary>
         public DilemmaBook Dilemmas { get; } = new DilemmaBook();
+
+        /// <summary>Поселение рядом с гильдией: Безопасность, население, уровень, отсчёт покидания.</summary>
+        public SettlementState Settlement { get; } = new SettlementState();
     }
 }

@@ -2,7 +2,10 @@ using GuildMaster.Core;
 
 namespace GuildMaster.UI
 {
-    /// <summary>Что показывает верхняя панель: дата и фаза дня, скорость, казна, репутация, люди, банкротство.</summary>
+    /// <summary>
+    /// Что показывает верхняя панель: дата и фаза дня, скорость, казна, репутация, люди, поселение (название, жители, Безопасность,
+    /// уровень, отсчёт покидания), банкротство.
+    /// </summary>
     public sealed class TopBarModel
     {
         public string Date { get; private set; }
@@ -11,6 +14,14 @@ namespace GuildMaster.UI
         public bool MoneyNegative => Money < 0;
         public int Reputation { get; private set; }
         public string Headcount { get; private set; }
+
+        /// <summary>«Ольховка · 80 жителей · Безопасность 60».</summary>
+        public string Settlement { get; private set; }
+
+        public SettlementLevel SettlementLevel { get; private set; }
+
+        /// <summary>«Уходят через 12 дн.»; пусто — отсчёта покидания нет.</summary>
+        public string SettlementLeaving { get; private set; }
 
         /// <summary>«до закрытия: 3 мес. 12 дн.», «Гильдия закрыта»; пусто — банкротства нет.</summary>
         public string Bankruptcy { get; private set; }
@@ -37,6 +48,13 @@ namespace GuildMaster.UI
                 DebugSpeed = clock != null && clock.DebugSpeed,
             };
             model.SpeedIndex = clock == null || clock.DebugSpeed ? -1 : clock.SpeedIndex;
+
+            SettlementState settlement = world.Settlement;
+            model.Settlement = string.Format(UiStrings.SettlementTopFormat, settlement.Name?.Nominative ?? UiStrings.SettlementDefaultName,
+                UiFormat.Plural(settlement.Population, "житель", "жителя", "жителей"), UiFormat.Number(settlement.Security));
+            model.SettlementLevel = settlement.Level;
+            int daysLeft = SettlementRules.DaysUntilAbandoned(settlement, world.Time.TotalHours, client.Calendar, client.Data.Balance.Settlement);
+            model.SettlementLeaving = daysLeft >= 0 ? string.Format(UiStrings.SettlementLeavingFormat, daysLeft) : string.Empty;
 
             Bankruptcy bankruptcy = world.Treasury.Bankruptcy;
             if (world.Treasury.IsClosed)

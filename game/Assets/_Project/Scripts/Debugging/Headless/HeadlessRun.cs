@@ -92,7 +92,7 @@ namespace GuildMaster.Debugging
                     ticks = simulation.TicksDone;
                     if (simulation.IsFinished)
                         log.WriteFrom(RunSource, SimLogLevel.Info, string.Format(CultureInfo.InvariantCulture,
-                            "guild closed at {0} after {1} ticks", simulation.World.Time, ticks));
+                            "guild closed at {0} after {1} ticks: {2}", simulation.World.Time, ticks, simulation.World.Treasury.ClosedCause));
                     return new Result(simulation, ticks, events, stopwatch.Elapsed.TotalSeconds, summary.Finish(bot.Name, days), scenario);
                 }
             }

@@ -200,16 +200,23 @@ namespace GuildMaster.Debugging
             {
                 text.AppendFormat(CultureInfo.InvariantCulture, "Зерно {0}: {1} тактов, {2} событий, {3} строк лога, конец — {4}, за {5:0.000} с",
                     first.Seed, first.Ticks, first.Events, lines, first.FinalTime, seconds);
-                if (first.GuildClosed) text.Append($"\nГильдия закрыта {first.FinalTime}: игра проиграна.");
+                if (first.GuildClosed) text.Append($"\nГильдия закрыта {first.FinalTime} ({CauseText(first.Simulation.World.Treasury.ClosedCause)}): игра проиграна.");
                 if (first.Scenario.Unrecorded > 0) text.Append($"\nКоманд вне сценария: {first.Scenario.Unrecorded} — сценарий игру не повторит.");
             }
             else
             {
                 text.AppendFormat(CultureInfo.InvariantCulture, "{0} прогонов по {1} тактов, {2} строк лога, за {3:0.000} с (в среднем {4:0.000} с)",
                     batch.Results.Count, first.Ticks, lines, seconds, seconds / batch.Results.Count);
-                int closed = 0;
-                foreach (HeadlessRun.Result result in batch.Results) closed += result.GuildClosed ? 1 : 0;
-                if (closed > 0) text.Append($"\nГильдия закрылась в {closed} прогонах.");
+                int bankrupt = 0;
+                int abandoned = 0;
+                foreach (HeadlessRun.Result result in batch.Results)
+                {
+                    if (!result.GuildClosed) continue;
+                    if (result.Simulation.World.Treasury.ClosedCause == ClosedCause.SettlementAbandoned) abandoned++;
+                    else bankrupt++;
+                }
+                if (bankrupt + abandoned > 0)
+                    text.Append($"\nГильдия закрылась в {bankrupt + abandoned} прогонах: банкротство — {bankrupt}, поселение покинуто — {abandoned}.");
             }
             if (batch.Cancelled) text.Append("\nПрервано.");
 
@@ -253,6 +260,8 @@ namespace GuildMaster.Debugging
             for (int m = 0; m < aggregate.Months.Count; m++) Row(StatRow(aggregate.MonthLabels[m], aggregate.Months[m]));
             Row(StatRow("Итого", aggregate.Totals), bold: true);
         }
+
+        private static string CauseText(ClosedCause cause) => cause == ClosedCause.SettlementAbandoned ? "поселение покинуто" : "банкротство";
 
         private static List<string> StatRow(string label, IReadOnlyList<SummaryStat> stats)
         {

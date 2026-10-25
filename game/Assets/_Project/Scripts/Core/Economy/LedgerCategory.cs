@@ -115,6 +115,12 @@ namespace GuildMaster.Core
         /// <summary>Штрафы с людей по ответам на обращения. Связанный объект — человек.</summary>
         public static readonly LedgerCategory Fines = new LedgerCategory("fines", LedgerFlow.Income);
 
+        /// <summary>Доход таверны от жителей поселения за сутки. Комментарий — население.</summary>
+        public static readonly LedgerCategory TavernLocals = new LedgerCategory("tavernLocals", LedgerFlow.Income);
+
+        /// <summary>Ущерб от нападений на поселение — даже в минус.</summary>
+        public static readonly LedgerCategory AttackDamage = new LedgerCategory("attackDamage", LedgerFlow.Expense, ExpenseKind.Mandatory);
+
         /// <summary>Деньги, добавленные отладочной панелью.</summary>
         public static readonly LedgerCategory DebugIncome = new LedgerCategory("debugIncome", LedgerFlow.Income);
 
@@ -125,7 +131,7 @@ namespace GuildMaster.Core
         {
             TavernFood, TavernDrinks, Commission, DebtRepayment, Dormitory, Infirmary, TrainingYard,
             Surcharges, EventQuests, Discoveries, Construction, Upkeep, Salaries, Decrees,
-            Loans, Dilemmas, Fines, DebugIncome, DebugExpense,
+            Loans, Dilemmas, Fines, TavernLocals, AttackDamage, DebugIncome, DebugExpense,
         };
     }
 }

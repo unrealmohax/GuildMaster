@@ -326,6 +326,39 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("guild.bankruptcy.started", V, None, "Казна пуста уже месяц. Начинается банкротство"));
             // Новое (предложение, в event-feed.md — 💡): закрытие гильдии по истечении срока банкротства.
             t.Add(Guild("guild.closed", V, None, "Гильдия закрыта. Долги так и не отдали"));
+            // Новое (GM-21, 💡): поселение — уровни Безопасности, нападения, покидание, население за месяц, поражение.
+            t.Add(Guild("guild.closed.settlement", V, None,
+                "{поселение} опустел[|а|о|и]@поселение. Гильдии некого больше защищать — она закрыта"));
+            t.Add(Guild("guild.settlement.calm", Z, None,
+                "В {поселение:п} спокойно: дороги безопасны, на рынок снова едут из округи",
+                "В {поселение:п} спокойно: дикие земли отступили"));
+            t.Add(Guild("guild.settlement.normal.down", Z, None,
+                "В {поселение:п} снова неспокойно: у дорог видели следы зверья",
+                "Покой в {поселение:п} кончился: на окрестных тропах снова опасно"));
+            t.Add(Guild("guild.settlement.normal.up", Z, None,
+                "В {поселение:п} отлегло: тревога позади",
+                "Жители {поселение:р} вздохнули свободнее: беда отступила"));
+            t.Add(Guild("guild.settlement.alarm.down", V, None,
+                "Тревога в {поселение:п}: жители боятся выходить за околицу, кое-кто уже собирается уезжать",
+                "В {поселение:п} тревожно: угрозы в округе множатся, семьи грузят телеги"));
+            t.Add(Guild("guild.settlement.alarm.up", Z, None,
+                "Осада {поселение:р} снята: нападения стихли, но тревога не ушла"));
+            t.Add(Guild("guild.settlement.siege", V, None,
+                "{поселение} в осаде: дикие земли подступили к самым дворам. По ночам жди нападений",
+                "Дикие земли обступили {поселение:в}: это осада. По ночам жди нападений"));
+            t.Add(Guild("guild.settlement.attacked", V, None,
+                "Ночью на {поселение:в} напали: погибших — {число}, разорены дворы. Ущерб гильдии — {сумма} монет",
+                "Ночное нападение на {поселение:в}: погибших — {число}, ущерб гильдии — {сумма} монет"));
+            t.Add(Guild("guild.settlement.abandoning", V, None,
+                "Жители {поселение:р} собирают пожитки. Если ничего не изменится, через {число} дн. здесь никого не останется"));
+            t.Add(Guild("guild.settlement.abandoningLifted", Z, None,
+                "Жители {поселение:р} распаковывают пожитки: в округе стало чуть спокойнее"));
+            t.Add(Guild("guild.settlement.grew", O, None,
+                "{поселение} растёт: жителей теперь {всего} (+{число})",
+                "В {поселение:п} прибавилось народу: жителей теперь {всего} (+{число})"));
+            t.Add(Guild("guild.settlement.shrank", O, None,
+                "Из {поселение:р} уезжают семьи: жителей теперь {всего} (−{число})",
+                "{поселение} пустеет: жителей теперь {всего} (−{число})"));
 
             // Правка: «пришла новичок» — в женском роде «новенькая».
             t.Add(Guild("guild.adventurer.joined", O, None, "В гильдию приш[ёл новичок|ла новенькая] — {имя}"));
@@ -426,6 +459,14 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("report.dilemmas.answered", O, None, "Вы ответили"));
             t.Add(Guild("report.dilemmas.timedOut", O, None, "Без ответа (по умолчанию)"));
             t.Add(Guild("report.dilemmas.withdrawn", O, None, "Сняты"));
+            // Новое (GM-21, 💡): раздел отчёта «Поселение».
+            t.Add(Guild("report.settlement", O, None, "Поселение"));
+            t.Add(Guild("report.settlement.security", O, None, "Безопасность"));
+            t.Add(Guild("report.settlement.population", O, None, "Население"));
+            t.Add(Guild("report.settlement.threatsDone", O, None, "Угроз выполнено"));
+            t.Add(Guild("report.settlement.threatsMissed", O, None, "Угроз упущено"));
+            t.Add(Guild("report.settlement.attacks", O, None, "Нападений"));
+            t.Add(Guild("report.settlement.damage", O, None, "Ущерб от нападений"));
             // Названия статей журнала казны.
             // Правка (GM-18): доход таверны — еда и выпивка отдельно.
             t.Add(Guild("ledger.tavernFood", O, None, "Таверна: еда"));
@@ -448,6 +489,9 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("ledger.loans", O, None, "Займы авантюристам"));
             t.Add(Guild("ledger.dilemmas", O, None, "Обращения"));
             t.Add(Guild("ledger.fines", O, None, "Штрафы"));
+            // Новое (GM-21, 💡): доход от жителей поселения и ущерб от нападений.
+            t.Add(Guild("ledger.tavernLocals", O, None, "Таверна: жители"));
+            t.Add(Guild("ledger.attackDamage", O, None, "Ущерб от нападений"));
             // Новое (GM-14): деньги, добавленные и снятые отладочной панелью.
             t.Add(Guild("ledger.debugIncome", O, None, "Отладка: пополнение"));
             t.Add(Guild("ledger.debugExpense", O, None, "Отладка: изъятие"));
@@ -475,6 +519,25 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("ui.building.construction", O, None, "строится — ещё {число} дн."));
             t.Add(Guild("ui.building.queued", O, None, "в очереди"));
             t.Add(Guild("ui.building.notBuilt", O, None, "не построена"));
+            // Новое (GM-21, 💡): поселение — уровни, что будет дальше, причины изменения Безопасности.
+            t.Add(Guild("ui.settlement.level.calm", O, None, "спокойно"));
+            t.Add(Guild("ui.settlement.level.normal", O, None, "норма"));
+            t.Add(Guild("ui.settlement.level.alarm", O, None, "тревога"));
+            t.Add(Guild("ui.settlement.level.siege", O, None, "осада"));
+            t.Add(Guild("ui.settlement.next.calm", O, None, "Спокойно: население растёт, жителей прибавляется каждый месяц."));
+            t.Add(Guild("ui.settlement.next.normal", O, None, "Норма: население держится. Упущенные угрозы и время понемногу съедают Безопасность."));
+            t.Add(Guild("ui.settlement.next.alarm", O, None, "Тревога: жители уезжают — население убывает каждый месяц."));
+            t.Add(Guild("ui.settlement.next.siege", O, None, "Осада: жители бегут, по ночам бывают нападения — гибнут люди, гильдия несёт ущерб."));
+            t.Add(Guild("ui.settlement.reason.night", O, None, "ночь"));
+            t.Add(Guild("ui.settlement.reason.threatDone", O, None, "выполнено"));
+            t.Add(Guild("ui.settlement.reason.otherDone", O, None, "выполнено"));
+            t.Add(Guild("ui.settlement.reason.failed", O, None, "не выполнено"));
+            t.Add(Guild("ui.settlement.reason.partyLost", O, None, "группа погибла"));
+            t.Add(Guild("ui.settlement.reason.expired", O, None, "снят по сроку"));
+            t.Add(Guild("ui.settlement.reason.registrar", O, None, "отклонён Регистратором"));
+            t.Add(Guild("ui.settlement.reason.player", O, None, "отклонён вами"));
+            t.Add(Guild("ui.settlement.reason.noAnswer", O, None, "остался без ответа"));
+            t.Add(Guild("ui.settlement.reason.debug", O, None, "отладка"));
 
             t.Add(Guild("guild.decree.enabled", O, None, "Объявлено: {распоряжение}"));
             t.Add(Guild("guild.decree.benefitCancelled", Z, None, "Новость об отмене {распоряжение:р} встретили молча"));

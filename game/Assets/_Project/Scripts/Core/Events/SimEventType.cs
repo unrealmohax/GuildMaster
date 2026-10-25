@@ -412,5 +412,39 @@
 
         /// <summary>Весть из дома: родной умер. [В], автопауза <see cref="AutopauseKind.FamilyDeath"/>.</summary>
         FamilyMemberDied,
+
+        // Поселение.
+
+        /// <summary>
+        /// Безопасность изменилась: <c>from</c>, <c>to</c>, <c>reason</c> (причина), <c>order</c> — заказ, если есть. Без строки.
+        /// </summary>
+        SecurityChanged,
+
+        /// <summary>Население изменилось: <c>from</c>, <c>to</c>, <c>count</c> — на сколько, <c>reason</c>. Строка — только за месяц.</summary>
+        PopulationChanged,
+
+        /// <summary>Уровень Безопасности сменился вверх или со «спокойно» на «норму»: <c>from</c>, <c>to</c>, <c>down</c>. [З].</summary>
+        SettlementLevelChanged,
+
+        /// <summary>
+        /// Уровень Безопасности упал до тревоги или осады: <c>from</c>, <c>to</c>. [В], автопауза
+        /// <see cref="AutopauseKind.SettlementAlarm"/>.
+        /// </summary>
+        SettlementLevelDropped,
+
+        /// <summary>
+        /// Ночное нападение на поселение: участники — люди гильдии, получившие стресс; <c>killed</c> (и <c>count</c>) — погибло
+        /// жителей, <c>amount</c> — ущерб казне. [В], автопауза <see cref="AutopauseKind.SettlementAttack"/>.
+        /// </summary>
+        SettlementAttacked,
+
+        /// <summary>
+        /// Безопасность дошла до нуля — жители собираются уходить: <c>count</c> — суток до покидания, <c>endsAt</c>. [В], автопауза
+        /// <see cref="AutopauseKind.SettlementAbandoning"/>.
+        /// </summary>
+        SettlementAbandoning,
+
+        /// <summary>Безопасность поднялась выше нуля — отсчёт покидания снят. [З].</summary>
+        SettlementAbandoningLifted,
     }
 }

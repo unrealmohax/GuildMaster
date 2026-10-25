@@ -58,7 +58,7 @@
 
 | Что | Значение |
 |---|---|
-| Новых заказов в день | ❔ 3 + репутация / 33 (до 6) — ⚠️ было 1 + репутация / 10 (до 11); первичный баланс 2026-10-11 |
+| Новых заказов в день | ❔ 1 + население поселения / 40 + репутация / 33 — `Orders.baseOrdersPerDay`, `populationPerOrder`, `reputationPerExtraOrder` (GM-21; на старте — 3,15, как раньше). ⚠️ было 3 + репутация / 33 (до 6), первичный баланс 2026-10-11; ещё раньше — 1 + репутация / 10 (до 11) |
 | Срок на доске | 3–7 дней |
 | Шанс «сложного не по времени» заказа | 5% |
 | Смесь рангов | ✅ 2026-09-27: лёгкие не пропадают. Репутация 0–20: G 85%, F 15%; 20–40: G 40%, F 35%, E 25%; 40–60: G 25%, F 25%, E 30%, D 20%; 60+: G 15%, F 20%, E 25%, D 25%, C 15%. ⚠️ Было: 20–40: F–E; 40–60: E–D; 60+: D–C — с заданиями гильдия к 2-му месяцу видела только заказы не по силам |
@@ -516,6 +516,11 @@
 | Заказов в день | 1 + население / 40 + репутация / 33 (на старте — 3, как было) |
 | Жители в таверне | 0,05 в сутки с жителя гильдии; в осаде × 0,5 |
 | Последних изменений во вкладке | 30 |
+
+Реализовано в GM-21: поля `BalanceSettings.Settlement` (`startSecurity`, `startPopulation`, `maxSecurity`, `dailyDecay`, `threatDonePerRank`,
+`otherDonePerRank`, `failedPerRank`, `partyLost`, `threatMissedPerRank`, `calmFrom`/`normalFrom`/`alarmFrom`, `calmGrowth`, `alarmDecline`,
+`siegeDecline`, `populationPerBuilding`, `attackChancePerNight`, `attackKilled`, `attackStress`, `attackDamage`, `abandonDays`,
+`localsTavernIncome`, `siegeTavernMultiplier`, `recentChanges`); поток заказов — в `Orders`. Замер 10 лет — [TechJob/21 → Замер](../../TechJob/21-settlement.md).
 
 ## Люди и репутация ❔ (GM-22)
 
