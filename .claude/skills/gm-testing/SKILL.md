@@ -76,3 +76,8 @@ description: Тесты GuildMaster (EditMode, сборка GuildMaster.Tests) �
   (`settlement: true` — включить); `PeopleData.NoQuests()` вызывает `NoSettlementPressure()` (спад, сдвиги за заказы, рост, доход от жителей — 0):
   без заданий поселение иначе покидают за несколько месяцев, гильдия закрывается и прогон встаёт. Тестам, которым нужен целый год
   с «Простым» ботом на числах по умолчанию, — тоже `NoSettlementPressure()`.
+
+- **Люди и репутация** (`PeopleReputationTests`, `SulkFollowTests`, `LiveReputationTests`): `PeopleData.NeutralRumor()` — молва всегда × 1 (тесты,
+  где довольство меняется само, а броски притока не должны сдвигаться); `PeopleData.StableReputation()` — без остывания и потерь за уход
+  и бегство (зовёт `NoQuests()`). Ожидание события в мире — `SimulationRun.TickUntil(sim, условие, что, maxDays = 720)`: не дождались —
+  тест падает, а не вешает редактор (циклы `while (…) Tick()` без предела зависали, когда нужное в мире переставало наступать).

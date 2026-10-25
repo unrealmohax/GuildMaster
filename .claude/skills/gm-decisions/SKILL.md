@@ -99,3 +99,9 @@ description: Модель решений GuildMaster — DecisionSystem (шаг 
   заказ без запаса «весит» меньше на цену пайков; отдельного минуса за длину пути нет.
 - Семья (скилл `gm-state-health` → «Семья»): `StateFactor.FamilyNeed` — Деньги × 1,5 при `FamilyInNeed` (в логе `family need`);
   `LeaveCause.FamilyNeed` (`reason.familyNeed`) — первой для мотива «Деньги», раньше голода; денежная (`IsMoney`).
+
+## Люди и репутация (GM-22)
+
+- Запрет **«sulking: not working today»** в `DecisionBans.Default` — `action.IsOrder` при `IsSulkingDay(now)` (одному и с группой);
+  отдых и таверна — можно. `DecisionSystem.Parties.Invitable` тоже не зовёт того, у кого день «не в духе».
+- `LeaveReasons.Text(ctx, человек, причины, friend)` — `{друг}` для `LeaveCause.FollowedFriend` (`PersonTextSource`).

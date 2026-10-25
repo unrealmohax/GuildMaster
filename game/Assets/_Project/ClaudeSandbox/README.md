@@ -134,6 +134,8 @@
   нападения, угрозы. Закрытая раньше срока гильдия — последний неполный год тоже в `yearly_N.csv`.
   Ещё `budget_N.csv` (`BudgetTracker.cs`) — доходы и расходы людей по статьям, году и рангу, человеко-часы на ранге; свёртка «на человека
   в неделю» — в `docs/content/balance-runs.md`.
+  GM-22: `10 Years Seeds 1-3 Reckless Bot` — то же ботом «Безрассудный» (3 зерна). Сам бот уехал из зонда в код проекта —
+  `PlayerBots.Reckless` (`Scripts/Debugging/Headless/PlayerBot.cs`), зонд только вызывает его.
 
 - **Переопределения**: `Logs/Balance/overrides.txt`, строка `balance путь значение` или `IdОпределения путь значение`
   (путь — как у `SerializedProperty`, например `ranks.ranks.Array.data[4].reward.max 240`, `Dormitory cost 1500`, `#` — комментарий).
