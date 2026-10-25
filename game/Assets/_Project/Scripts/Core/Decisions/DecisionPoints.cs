@@ -127,7 +127,7 @@ namespace GuildMaster.Core
     /// (кроме приглашения: заказ уже у той группы, которая зовёт). Тренировка: двор полон (мест — вместимость двора, считаются
     /// и те, кто выбрал двор в этом часу); уже тренировался сегодня; есть рана; усталость выше 90; в кошельке меньше платы.
     /// Вернувшийся беглец, пока гильдия не ответила на его обращение, заказов не берёт. Распоряжение «только группой»: заказ ранга
-    /// из его области нельзя взять одному (экзамен — можно).
+    /// из его области нельзя взять одному (экзамен — можно). В день «не в духе» заказов не берёт ни одному, ни с группой.
     /// </summary>
     public static class DecisionBans
     {
@@ -155,6 +155,8 @@ namespace GuildMaster.Core
                 (ctx, a, action) => action.Kind == DecisionActionKind.Train && a.State.Wallet < WalletService.Coins(ctx.Data.Balance.Expenses.Training)),
             new DecisionBan("deserter awaits the guild's answer",
                 (ctx, a, action) => action.IsOrder && ctx.World.Dilemmas.IsAwaiting(DilemmaTrigger.DeserterReturned, a.Id)),
+            new DecisionBan("sulking: not working today",
+                (ctx, a, action) => action.IsOrder && a.State.IsSulkingDay(ctx.World.Time.TotalHours)),
             new DecisionBan("solo forbidden by decree",
                 (ctx, a, action) => action.Kind == DecisionActionKind.TakeOrder && OrderOf(ctx, action, out Order o)
                     && DecreeRules.IsSoloBanned(ctx.World, ctx.Data, o)),

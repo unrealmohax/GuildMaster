@@ -100,3 +100,11 @@ description: Лента событий и тексты GuildMaster — FeedSyste
 - Поселение (скилл `gm-settlement`): метка `{поселение}` (данные `settlement`, род — из названия, скобка — `[|а|о|и]@поселение`, ссылка
   `TextLinkKind.Settlement`), ключи `guild.settlement.*` и `guild.closed.settlement` в `FeedKeys.Fixed`; население за месяц — строка только
   при `reason = month`; `SecurityChanged` строки не даёт.
+
+## Люди и репутация (GM-22)
+
+- Метка **`{друг}`** — человек из данных события `friend` (`EventTextSource`, словарь `TextPlaceholders`) и в тексте причин
+  (`PersonTextSource(…, friend)`).
+- Ключи: `guild.adventurer.followedFriend` [В] — `AdventurerLeft` с `cause=FollowedFriend` (выбор ключа в `FeedKeys`), `guild.adventurer.sulking` [О] —
+  `SulkingDay`; причина `reason.followedFriend` «уш[ёл|ла]@имя вслед за {друг:т}». `CandidateAcceptRefused` и `ReputationChanged` — без строк.
+- Шаблоны интерфейса `ui.reputation.reason.*` (9 причин) и `ledger.signingBonuses` — в генераторе `.Feed.cs`.

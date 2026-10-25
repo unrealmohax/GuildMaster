@@ -365,6 +365,8 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("guild.adventurer.leaving", Z, None, "{имя} собрал[|а] вещи. Говорит, хватит"));
             // Правка: причина ухода видна игроку — {причина} (тексты причин ниже).
             t.Add(Guild("guild.adventurer.left", V, None, "{имя} уш[ёл|ла] из гильдии: {причина}"));
+            t.Add(Guild("guild.adventurer.followedFriend", V, None, "{имя} уш[ёл|ла] из гильдии вслед за {друг:т}"));
+            t.Add(Guild("guild.adventurer.sulking", O, None, "{имя} не в духе — сегодня не работает"));
 
             // ===== Причины ухода (TechJob/08-decision-model.md → «Причины»): не строки ленты, а текст для {причина} =====
             // Шаблон с условием «черта раскрыта» называет черту; без него — текст без черты.
@@ -389,6 +391,7 @@ namespace GuildMaster.ClaudeSandbox
             // Новое (GM-20): нужда семьи; скрытая черта Семейного не называется.
             t.Add(Guild("reason.familyNeed", O, None, "дома голодают, а здесь не платят"));
             t.Add(Guild("reason.familyNeed", O, IfTrait(traits["Family"]), "семья для [него|неё]@имя — всё, а дома голодают"));
+            t.Add(Guild("reason.followedFriend", O, None, "уш[ёл|ла]@имя вслед за {друг:т}"));
 
             // Причины решений на задании (GM-11, 💡): бегство и отказ от заказа из-за Кошмаров.
             t.Add(Guild("reason.fled", O, None, "не выдержал[|а]@имя"));
@@ -492,6 +495,8 @@ namespace GuildMaster.ClaudeSandbox
             // Новое (GM-21, 💡): доход от жителей поселения и ущерб от нападений.
             t.Add(Guild("ledger.tavernLocals", O, None, "Таверна: жители"));
             t.Add(Guild("ledger.attackDamage", O, None, "Ущерб от нападений"));
+            // Новое (GM-22, ❔): подъёмные новичку при приёме.
+            t.Add(Guild("ledger.signingBonuses", O, None, "Подъёмные"));
             // Новое (GM-14): деньги, добавленные и снятые отладочной панелью.
             t.Add(Guild("ledger.debugIncome", O, None, "Отладка: пополнение"));
             t.Add(Guild("ledger.debugExpense", O, None, "Отладка: изъятие"));
@@ -538,6 +543,17 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("ui.settlement.reason.player", O, None, "отклонён вами"));
             t.Add(Guild("ui.settlement.reason.noAnswer", O, None, "остался без ответа"));
             t.Add(Guild("ui.settlement.reason.debug", O, None, "отладка"));
+
+            // Причины изменения репутации — блок «Репутация» на экране «Казна».
+            t.Add(Guild("ui.reputation.reason.questDone", O, None, "выполнено"));
+            t.Add(Guild("ui.reputation.reason.questFailed", O, None, "не выполнено"));
+            t.Add(Guild("ui.reputation.reason.importantFailed", O, None, "провален важный заказ"));
+            t.Add(Guild("ui.reputation.reason.decay", O, None, "сутки без выполненных заданий"));
+            t.Add(Guild("ui.reputation.reason.death", O, None, "гибель"));
+            t.Add(Guild("ui.reputation.reason.left", O, None, "уход из гильдии"));
+            t.Add(Guild("ui.reputation.reason.fled", O, None, "бегство с задания"));
+            t.Add(Guild("ui.reputation.reason.braggart", O, None, "хвастовство"));
+            t.Add(Guild("ui.reputation.reason.debug", O, None, "отладка"));
 
             t.Add(Guild("guild.decree.enabled", O, None, "Объявлено: {распоряжение}"));
             t.Add(Guild("guild.decree.benefitCancelled", Z, None, "Новость об отмене {распоряжение:р} встретили молча"));

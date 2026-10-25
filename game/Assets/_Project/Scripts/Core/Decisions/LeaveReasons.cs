@@ -46,6 +46,9 @@ namespace GuildMaster.Core
 
         /// <summary>Деньги, когда семья в нужде: дома голодают, а здесь не платят.</summary>
         FamilyNeed,
+
+        /// <summary>Ушёл вслед за другом, который ушёл из гильдии сам; дальше друзей не уводит.</summary>
+        FollowedFriend,
     }
 
     /// <summary>
@@ -128,11 +131,11 @@ namespace GuildMaster.Core
         /// Текст причин через запятую: «пустой кошелёк, устал». Шаблон — самый конкретный из подходящих (раскрыта ли черта),
         /// первый вариант. Ошибки шаблона — в лог.
         /// </summary>
-        public static string Text(SimContext ctx, Adventurer adventurer, IReadOnlyList<LeaveCause> causes)
+        public static string Text(SimContext ctx, Adventurer adventurer, IReadOnlyList<LeaveCause> causes, Adventurer friend = null)
         {
             var text = new StringBuilder();
             var errors = new List<string>();
-            var source = new PersonTextSource(adventurer, ctx.Data);
+            var source = new PersonTextSource(adventurer, ctx.Data, friend);
             foreach (LeaveCause cause in causes)
             {
                 if (text.Length > 0) text.Append(", ");
@@ -161,19 +164,24 @@ namespace GuildMaster.Core
         }
     }
 
-    /// <summary>Метка <c>{имя}</c> — этот человек (род для скобок <c>[его|её]@имя</c>).</summary>
+    /// <summary>
+    /// Метка <c>{имя}</c> — этот человек (род для скобок <c>[его|её]@имя</c>); <c>{друг}</c> — друг, за которым он ушёл
+    /// (если задан).
+    /// </summary>
     public sealed class PersonTextSource : ITextSource
     {
         private readonly TextValue person;
+        private readonly TextValue friend;
 
-        public PersonTextSource(Adventurer adventurer, DataRegistry data)
+        public PersonTextSource(Adventurer adventurer, DataRegistry data, Adventurer friend = null)
         {
             person = EventTextSource.PersonValue(adventurer, data);
+            this.friend = friend != null ? EventTextSource.PersonValue(friend, data) : null;
         }
 
         public bool TryGet(string label, out TextValue value)
         {
-            value = label == "имя" ? person : null;
+            value = label == "имя" ? person : label == "друг" ? friend : null;
             return value != null;
         }
     }

@@ -32,9 +32,9 @@ description: Отладка и прогоны GuildMaster без интерфе�
 ## Боты и сценарии
 
 - `PlayerBot` = имя + список `IBotRule` (правило получает `BotTurn`: мир на чтение, `Send`, номер такта). Готовые — `PlayerBots.Presets`:
-  «Пассивный», «Простой» (принять всех кандидатов, комиссия 20% первым ходом, правила Регистратора до высшего ранга людей, ответ на
+  «Пассивный», «Простой» (приём кандидатов — см. «Люди и репутация» ниже, комиссия 20% первым ходом, правила Регистратора до высшего ранга людей, ответ на
   важные заказы при наличии человека ранга, ранг событийным заданиям по источнику, стройка Общежитие → Лазарет → двор с запасом
-  3 месяца расходов — `BuildWithReserveRule`, найм лучшего кандидата за просимую — `HireBestCandidateRule`), «Сценарий».
+  3 месяца расходов — `BuildWithReserveRule`, найм лучшего кандидата за просимую — `HireBestCandidateRule`), «Безрассудный», «Сценарий».
 - Сценарий — текст, строка на команду: `такт слово аргументы`, `#` — комментарий, `# seed=N` — зерно. Слова (`ScenarioCommands.Formats`):
   `accept`, `reject`, `autopause Вид on|off`, `commission 0.2`, `registrar …`, `answer id accept Доплата|decline`,
   `eventquest id Ранг|decline`, `surcharge id сумма`, `build IdОпределения`, `buildqueue 1,2`, `unbuild IdПостройки`,
@@ -104,3 +104,17 @@ description: Отладка и прогоны GuildMaster без интерфе�
   в логе и в окне Run Headless. Зонд Balance: `10 Years Seeds 1-5 Passive Bot`, в `done.txt` — закрытие и поселение, в `yearly_*.csv` —
   Безопасность, минимум, худший уровень, население, нападения, угрозы по годам. Лог `Debug` — `security 61.5 -> 60.0 expired #42 Hunt E`,
   `population 80 -> 82 month`, бросок `settlement-attack`.
+
+## Люди и репутация (GM-22)
+
+- **Боты.** «Простой» принимает кандидатов `AcceptCandidatesWithReserveRule(SimpleCandidateReserveMonths = 1, SimpleMinPeople = 8)`: пока людей
+  (с принятыми в этот ход) меньше 8 — если хватает на подъёмные, дальше — если после них остаётся месяц расходов. **«Безрассудный»**
+  (`PlayerBots.Reckless`, в `Presets` и окне Run Headless): комиссия 50%, `AcceptCandidatesWithReserveRule(0)`, Регистратор до высшего ранга,
+  `BuildWithReserveRule(0, …)`, `HireBestCandidateRule`, `AnswerDilemmasRandomlyRule`; на важные заказы и событийные задания не отвечает.
+  Зонд: Balance → `10 Years Seeds 1-3 Reckless Bot`.
+- **Сводка**: «Шанс кандидата» (среднее за месяц, `MonthRecord.CandidateChance`), «Молва» (на конец месяца), «Не в духе, дней», «Ушли вслед за
+  другом», «Репутация: остывание» (сумма за месяц), «Репутация: потери» (сумма отрицательных, кроме остывания); «Расход: Подъёмные» — статья.
+- **Лог**: `Debug` — броски `candidate`, `sulk-day`, `follow-friend`, строка `reputation day quests=N reputation=…`; `ReputationChanged` несёт
+  `reason=…`.
+- **Замер 10 лет** (ассеты): «Простой» жив во всех 5 зёрнах, к 5-му году казна ~185 тыс., население ~330; «Безрассудный» к 5-му году ~44 тыс.
+  и население ~40, покинут в 2 из 3 зёрен. Таблица — `docs/content/numbers.md` → «Люди и репутация».

@@ -46,7 +46,7 @@ namespace GuildMaster.Core
             {
                 if (run.Completed && returned.Count > 0) Pay(ctx, run, order, returned);
                 if (run.Discovery != null && run.Discovery.State == DiscoveryState.Skipped && returned.Count > 0) Report(ctx, run, order, returned);
-                Reward(ctx, run, returned);
+                Reward(ctx, run, order, returned);
             }
 
             int[] ids = QuestSystem.Ids(returned);
@@ -249,7 +249,7 @@ namespace GuildMaster.Core
 
         // ---------- Очки, репутация, опыт, черты ----------
 
-        private static void Reward(SimContext ctx, QuestRun run, List<Adventurer> returned)
+        private static void Reward(SimContext ctx, QuestRun run, Order order, List<Adventurer> returned)
         {
             DataRegistry data = ctx.Data;
             RanksBalance ranks = data.Balance.Ranks;
@@ -264,15 +264,19 @@ namespace GuildMaster.Core
                 foreach (Adventurer member in returned) GuildRanks.AddPoints(ctx, member, points);
             }
 
-            ReputationService.Change(ctx, (run.Completed ? guild.SuccessReputationPerRank : guild.FailureReputationPerRank) * rankNumber,
-                run.Completed ? "quest done" : "quest failed");
             if (run.Completed)
             {
+                ReputationService.QuestDone(ctx, rankNumber, order);
                 foreach (Adventurer member in returned)
                 {
                     if (TraitRules.FindWithHook(member, TraitHook.BraggartReputation, data) != null)
-                        ReputationService.Change(ctx, data.Balance.Traits.BraggartReputationPerSuccess, "braggart");
+                        ReputationService.Change(ctx, data.Balance.Traits.BraggartReputationPerSuccess, ReputationReasons.Braggart, member.Id, order);
                 }
+            }
+            else
+            {
+                ReputationService.Change(ctx, guild.FailureReputationPerRank * rankNumber, ReputationReasons.QuestFailed, 0, order);
+                if (order.IsImportant) ReputationService.Change(ctx, guild.ImportantFailedReputation, ReputationReasons.ImportantFailed, 0, order);
             }
 
             Experience(ctx, run, returned);

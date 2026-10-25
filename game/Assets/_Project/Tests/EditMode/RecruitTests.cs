@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using GuildMaster.Core;
@@ -31,6 +31,7 @@ namespace GuildMaster.Tests
         {
             data.NoQuests(); // репутация от заданий меняет шанс кандидата
             data.NoBankruptcy();
+            data.NeutralRumor(); // без заданий довольство падает, а с ним — молва
             const int days = 3600;
             const int seeds = 5;
             int total = 0;
@@ -74,6 +75,8 @@ namespace GuildMaster.Tests
         public void GuildLimit_CountsWaitingCandidates()
         {
             data.Set("guild.maxAdventurers", 8);
+            data.NoSettlementPressure(); // 1500 дней: без защиты поселение могут покинуть, и гильдия закроется
+            data.NoBankruptcy();
             Simulation simulation = Simulation.CreateDefault(data.Registry, 3u);
             int maxHead = 0;
 
@@ -100,8 +103,10 @@ namespace GuildMaster.Tests
         [Test]
         public void AcceptAndReject_WorkOnPause()
         {
+            data.Set("guild.influxBaseChance", 1f); // кандидат каждое утро: двое ждут ответа одновременно
+            data.NeutralRumor();
             Simulation simulation = Simulation.CreateDefault(data.Registry, 99u);
-            while (simulation.World.Adventurers.Candidates.Count < 2) simulation.Tick();
+            SimulationRun.TickUntil(simulation, () => simulation.World.Adventurers.Candidates.Count >= 2, "двух кандидатов");
 
             Candidate accepted = simulation.World.Adventurers.Candidates[0];
             Candidate rejected = simulation.World.Adventurers.Candidates[1];
@@ -130,7 +135,7 @@ namespace GuildMaster.Tests
         public void AcceptedCandidate_WithPartnerTrait_LinksPartner()
         {
             Simulation simulation = Simulation.CreateDefault(data.Registry, 99u);
-            while (simulation.World.Adventurers.Candidates.Count == 0) simulation.Tick();
+            SimulationRun.TickUntil(simulation, () => simulation.World.Adventurers.Candidates.Count > 0, "кандидата");
             Candidate candidate = simulation.World.Adventurers.Candidates[0];
             Adventurer newcomer = candidate.Adventurer;
 
@@ -150,7 +155,7 @@ namespace GuildMaster.Tests
         public void AcceptedCandidate_PartnerGone_DropsPartnerTrait()
         {
             Simulation simulation = Simulation.CreateDefault(data.Registry, 99u);
-            while (simulation.World.Adventurers.Candidates.Count == 0) simulation.Tick();
+            SimulationRun.TickUntil(simulation, () => simulation.World.Adventurers.Candidates.Count > 0, "кандидата");
             Adventurer newcomer = simulation.World.Adventurers.Candidates[0].Adventurer;
 
             Adventurer partner = simulation.World.Adventurers.Active.First(a => a.Traits.Count == 0);

@@ -84,3 +84,24 @@ accuracy=0.97 profile Str=16.2 … hints=…: текст`. `Info` — событ
 - Угрозы поселению — `QuestTypeDefinition.isThreat` (Охота, Истребление): их итоги, снятие по сроку и отклонение двигают Безопасность
   (скилл `gm-settlement`); на доске — пометка «угроза», у Регистратора — подсказка.
 - Бот «Простой» отвечает на важные заказы, только когда есть человек нужного ранга; до этого заказ ждёт и уходит без ответа.
+
+## Живая репутация (GM-22)
+
+- Всё — через `ReputationService.Change(ctx, Δ, причина, человек, заказ)`: запись `ReputationChange` (время, фактический сдвиг, причина,
+  человек, тип и ранг заказа) в `GuildState.Changes` (последние `recentReputationChanges` = 50), событие `ReputationChanged` (человек —
+  участник; данные `reason`, `order`, `from`, `to`). Причины — `ReputationReasons` (`questDone`, `questFailed`, `importantFailed`, `decay`,
+  `death`, `left`, `fled`, `braggart`, `debug`).
+- **Задание выполнено** — `ReputationService.QuestDone` (из `QuestSettlement.Reward`): `QuestDoneDelta` = `successReputationPerRank` (0,03) ×
+  ранг × (1 − репутация / `maxReputation`) и `GuildState.QuestsDoneToday++`. Экзамены сюда не попадают. Провал — обычный штраф, у важного
+  заказа (`IsImportant`) — ещё `importantFailedReputation` (−3).
+- **Остывание** — `ReputationService.Midnight` из `OrderSystem.Tick` в 00:00: ни одного задания с прошлой полуночи — −`reputationDecayPerDay`
+  (0,05); счёт заново; гильдия закрыта — ничего. Лог `Debug` — `reputation day quests=N reputation=…`.
+- **Потери**: гибель (`QuestRounds.Kill`, −2), бегство (`QuestTension.Flee`, −1 в момент бегства), ушёл сам (`StateSystem.CheckLeaving`, −1;
+  вслед за другом — нет).
+
+### Ловушки живой репутации
+
+- Остывание живёт в `OrderSystem`: мир без этой системы не остывает. Тесты, которым нужна постоянная репутация, — `PeopleData.StableReputation()`
+  (его зовёт `NoQuests()`).
+- Задание, закончившееся в такт 00:00, засчитывается в следующие сутки. Снятый по сроку важный заказ репутацию не снижает.
+- «Хвастун» прибавляет без убывающей отдачи.

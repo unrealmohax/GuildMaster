@@ -603,6 +603,7 @@ namespace GuildMaster.Tests
         [Test]
         public void YearRun_SummaryHasTreasuryAndCategories_LedgerMatchesMoney()
         {
+            data.NoSettlementPressure(); // нужен целый год: без защиты поселение могут покинуть раньше
             HeadlessRun.Result result = HeadlessRun.Run(data.Registry, 11u, 360, PlayerBots.Simple());
             RunSummary summary = result.Summary;
             List<string> names = summary.MonthColumns.Select(c => c.Name).ToList();

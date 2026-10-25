@@ -48,7 +48,7 @@ namespace GuildMaster.Core
         {
             float delta = Value - ctx.World.Guild.Reputation;
             if (Math.Abs(delta) < 0.001f) return;
-            ReputationService.Change(ctx, delta, "debug");
+            ReputationService.Change(ctx, delta, ReputationReasons.Debug);
             DebugAction.Publish(ctx, "reputation").With("value", ctx.World.Guild.Reputation);
         }
     }

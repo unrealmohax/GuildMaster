@@ -448,6 +448,7 @@ namespace GuildMaster.Tests
         public void DecisionSystem_DoesNotShiftRecruitRolls()
         {
             data.NoQuests(); // задания меняют репутацию, а с ней — шанс кандидата
+            data.NeutralRumor(); // решения меняют довольство, а с ним — молву
             string Run(bool withDecisions)
             {
                 List<ISimSystem> systems = SimulationSystems.CreateDefault();

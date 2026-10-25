@@ -34,9 +34,10 @@ namespace GuildMaster.Debugging
 
         internal MonthRecord(int year, int month, int days, ISimulationClient game, Dictionary<SimEventType, int> counts, long[] feedLines,
             long[] activityHours, long personHours, int ledgerFrom, int ledgerTo, IReadOnlyList<SimEvent> events = null,
-            long[] meals = null, long[] hungerHours = null, SettlementTotals settlementFrom = default)
+            long[] meals = null, long[] hungerHours = null, SettlementTotals settlementFrom = default, double candidateChance = 0)
         {
             SettlementFrom = settlementFrom;
+            CandidateChance = candidateChance;
             this.meals = meals ?? new long[Vocabulary.MealTierCount];
             this.hungerHours = hungerHours ?? new long[Enum.GetValues(typeof(HungerStage)).Length];
             this.events = events ?? Array.Empty<SimEvent>();
@@ -57,6 +58,9 @@ namespace GuildMaster.Debugging
 
         /// <summary>Счётчики поселения на начало месяца: за месяц — разница с <see cref="SettlementState.Totals"/> мира.</summary>
         public SettlementTotals SettlementFrom { get; }
+
+        /// <summary>Шанс кандидата в сутки (с распоряжениями, населением и молвой), средний по утрам месяца; утр не было — 0.</summary>
+        public double CandidateChance { get; }
 
         /// <summary>Сколько суток месяца попало в прогон.</summary>
         public int Days { get; }
@@ -269,6 +273,8 @@ namespace GuildMaster.Debugging
         private long[] hungerHours = new long[Enum.GetValues(typeof(HungerStage)).Length];
         private int ledgerAtMonthStart;
         private SettlementTotals settlementAtMonthStart;
+        private double candidateChanceSum;
+        private int candidateChanceDays;
         private List<SimEvent> monthEvents = new List<SimEvent>();
 
         public SummaryRecorder(Simulation simulation, IReadOnlyList<MonthColumn> monthColumns = null, IReadOnlyList<PersonColumn> personColumns = null)
@@ -332,6 +338,11 @@ namespace GuildMaster.Debugging
 
             GameTime time = simulation.World.Time;
             Calendar calendar = simulation.Calendar;
+            if (time.Hour == simulation.Data.Balance.Time.MorningHour)
+            {
+                candidateChanceSum += RecruitSystem.CandidateChance(simulation.Data, simulation.World);
+                candidateChanceDays++;
+            }
             if (time.Day == calendar.DaysPerMonth && time.Hour == calendar.HoursPerDay - 1) CloseMonth();
         }
 
@@ -349,7 +360,8 @@ namespace GuildMaster.Debugging
             }
             int ledgerCount = simulation.World.Treasury.Ledger.Count;
             var record = new MonthRecord(time.Year, time.Month, days, simulation, monthCounts, feedLines, activityHours, personHours,
-                ledgerAtMonthStart, ledgerCount, monthEvents, meals, hungerHours, settlementAtMonthStart);
+                ledgerAtMonthStart, ledgerCount, monthEvents, meals, hungerHours, settlementAtMonthStart,
+                candidateChanceDays > 0 ? candidateChanceSum / candidateChanceDays : 0);
             ledgerAtMonthStart = ledgerCount;
             settlementAtMonthStart = simulation.World.Settlement.Totals;
             var values = new double[monthColumns.Count];
@@ -359,6 +371,8 @@ namespace GuildMaster.Debugging
             monthCounts.Clear();
             monthEvents = new List<SimEvent>();
             monthTicks = 0;
+            candidateChanceSum = 0;
+            candidateChanceDays = 0;
             activityHours = new long[activityHours.Length];
             meals = new long[meals.Length];
             hungerHours = new long[hungerHours.Length];

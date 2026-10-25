@@ -28,14 +28,8 @@ namespace GuildMaster.ClaudeSandbox
         [MenuItem(Menu + "10 Years Seeds 1-3 Passive Bot")]
         private static void ThreePassive() => Run(3, PlayerBots.Passive);
 
-        /// <summary>«Плохой игрок»: комиссия 50%, принимает всех, строит всё сразу без запаса, нанимает всех.</summary>
         [MenuItem(Menu + "10 Years Seeds 1-3 Reckless Bot")]
-        private static void ThreeReckless() => Run(3, Reckless);
-
-        private static PlayerBot Reckless() =>
-            new PlayerBot("Безрассудный", new SetCommissionOnceRule(0.5f), new AcceptAllCandidatesRule(), new RegistrarUpToTopRankRule(),
-                new BuildWithReserveRule(0, BuildingFunction.Dormitory, BuildingFunction.Infirmary, BuildingFunction.TrainingYard),
-                new HireBestCandidateRule(), new AnswerDilemmasRandomlyRule());
+        private static void ThreeReckless() => Run(3, PlayerBots.Reckless);
 
         [MenuItem(Menu + "10 Years Seeds 1-5")]
         private static void Five() => Run(5);

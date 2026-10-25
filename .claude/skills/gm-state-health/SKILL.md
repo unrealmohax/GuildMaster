@@ -191,3 +191,22 @@ GuildMaster → Sandbox → State: `Light Wound First`, `Heavy Wound First`, `St
   (`adventurer.Family.Add(new FamilyMember(роль, пол, имя))`, `FamilyTests.WithFamily`: жена и двое детей = 22 в неделю).
 - Плата идёт и с задания; нужда держит стресс (+1/сутки) — у новичков в месяцы 4–7 совпадает с голодом.
 - `Debug`-лог прогона вырос на строку `family pay` на человека в неделю.
+
+## «Не в духе» и уход вслед за другом (GM-22)
+
+- **Не в духе** — `StateRules.IsSulking` (довольство < `sulkContentment` 25): профиль × `sulkProfileMultiplier` (0,9) —
+  `AdventurerStats.SulkMultiplier` среди множителей состояния; карточка — «не в духе».
+- **День без работы** — `ActivitySystem.TrySulk` утром, после `TrySkipDay` Пьяницы: шанс `StateRules.SulkSkipChance(довольство)` —
+  `sulkSkipChance` (15%) на границе, по прямой до `sulkSkipChanceMax` (70%) при 0. Бросок `sulk-day` только у того, кто не в духе
+  и сегодня и так работает (не срыв, не Лазарет, не тяжёлая рана, не пропуск Пьяницы). `AdventurerState.SulksUntilHours` — до ночи;
+  `IsSulkingDay(now)` — запрет «sulking: not working today» на заказы (`DecisionBans`) и отказ в приглашениях в группу. Событие
+  `SulkingDay` [О].
+- **Уход вслед** — `StateSystem.CheckLeaving`: ушёл сам → −`leaveReputation` (−1), затем `FollowFriend`: друзья (отношения ≥
+  `friendsThreshold`) с довольством < `followContentment` (40), не на задании, по возрастанию id бросают `follow-friend`
+  (`followFriendChance` 30%). Уход — `LeaveCause.FollowedFriend`, данные `friend`, текст `reason.followedFriend`, ключ
+  `guild.adventurer.followedFriend` [В]. Цепочки нет; ушедший вслед репутацию не снижает.
+
+### Ловушки «не в духе»
+
+- Тест с `sulkSkipChance` 1 должен ставить и `sulkSkipChanceMax` 1, иначе ниже границы шанс меньше 1.
+- Ушедший вслед в этом же такте ещё стоит в списке проверки ухода — `CheckLeaving` пропускает тех, кого уже нет среди активных.

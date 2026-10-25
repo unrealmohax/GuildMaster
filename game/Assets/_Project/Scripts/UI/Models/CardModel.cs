@@ -65,6 +65,12 @@ namespace GuildMaster.UI
         public float Fatigue { get; private set; }
         public float Stress { get; private set; }
         public float Contentment { get; private set; }
+
+        /// <summary>Не в духе (довольство ниже порога): профиль ниже.</summary>
+        public bool Sulking { get; private set; }
+
+        /// <summary>Сегодня день «не в духе»: заказов не берёт.</summary>
+        public bool SulkingToday { get; private set; }
         public string Loyalty { get; private set; } = string.Empty;
 
         public float Satiety { get; private set; }
@@ -145,6 +151,8 @@ namespace GuildMaster.UI
             Fatigue = state.Fatigue;
             Stress = state.Stress;
             Contentment = state.Contentment;
+            Sulking = StateRules.IsSulking(state, data.Balance.State);
+            SulkingToday = state.IsSulkingDay(world.Time.TotalHours);
             Satiety = state.Satiety;
             Hunger = FoodRules.StageOf(state.Satiety, data.Balance.Food);
             HungerWord = (female ? UiStrings.HungerStagesFemale : UiStrings.HungerStagesMale)[(int)Hunger];

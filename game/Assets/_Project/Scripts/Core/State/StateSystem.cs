@@ -96,13 +96,14 @@ namespace GuildMaster.Core
         /// <summary>
         /// Ежемесячная проверка ухода. У каждого, кто в неё попал, — причины из мотивов и состояния (<see cref="LeaveReasons"/>):
         /// если главная — деньги, раскрывается Наёмник, даже если человек останется. Уход — важное решение: причины видны
-        /// игроку текстом, скрытые черты не называются.
+        /// игроку текстом, скрытые черты не называются. Ушедший может увести недовольных друзей (<see cref="FollowFriend"/>).
         /// </summary>
         private static void CheckLeaving(SimContext ctx)
         {
             StateBalance balance = ctx.Data.Balance.State;
             foreach (Adventurer adventurer in new List<Adventurer>(ctx.World.Adventurers.Active))
             {
+                if (!ctx.World.Adventurers.TryGetActive(adventurer.Id, out _)) continue; // уже ушёл вслед за другом
                 if (adventurer.State.Loyalty >= balance.LeaveCheckThreshold || adventurer.State.IsOnQuest()) continue;
 
                 List<LeaveCause> causes = LeaveReasons.Of(adventurer, ctx.Data, ctx.World.Time.TotalHours, ctx.Calendar);
@@ -122,6 +123,43 @@ namespace GuildMaster.Core
                     .With("causes", string.Join(",", causes))
                     .With("loyalty", loyalty)
                     .With("reason", reason);
+                ReputationService.Change(ctx, ctx.Data.Balance.Guild.LeaveReputation, ReputationReasons.Left, adventurer.Id, null);
+                FollowFriend(ctx, adventurer);
+            }
+        }
+
+        /// <summary>
+        /// Ушёл сам — его друзья (отношения не ниже <c>friendsThreshold</c>) с довольством ниже <c>followContentment</c> бросают
+        /// <c>followFriendChance</c> и уходят вслед (<see cref="LeaveCause.FollowedFriend"/>). Кто на задании, не уходит;
+        /// ушедший вслед друзей не уводит. Друзья — по возрастанию id.
+        /// </summary>
+        private static void FollowFriend(SimContext ctx, Adventurer leaver)
+        {
+            StateBalance balance = ctx.Data.Balance.State;
+            AdventurersBalance adventurers = ctx.Data.Balance.Adventurers;
+            var followers = new List<Adventurer>();
+            foreach (Adventurer friend in ctx.World.Adventurers.Active)
+            {
+                if (friend.State.IsOnQuest() || friend.State.Contentment >= balance.FollowContentment) continue;
+                if (RelationService.AreFriends(ctx.World.Relations, leaver.Id, friend.Id, adventurers)) followers.Add(friend);
+            }
+            followers.Sort((a, b) => a.Id.CompareTo(b.Id));
+
+            foreach (Adventurer friend in followers)
+            {
+                if (!ctx.RollChance(balance.FollowFriendChance, "follow-friend", friend, "contentment", friend.State.Contentment)) continue;
+
+                float loyalty = friend.State.Loyalty;
+                var causes = new List<LeaveCause> { LeaveCause.FollowedFriend };
+                string reason = LeaveReasons.Text(ctx, friend, causes, leaver);
+                AdventurerLifecycle.Retire(ctx, friend, LeaveReason.Left);
+                friend.LeaveReasonText = reason;
+                ctx.Events.Publish(SimEventType.AdventurerLeft, EventImportance.Important, friend.Id)
+                    .With("cause", LeaveCause.FollowedFriend)
+                    .With("causes", LeaveCause.FollowedFriend.ToString())
+                    .With("loyalty", loyalty)
+                    .With("reason", reason)
+                    .With("friend", leaver.Id);
             }
         }
     }

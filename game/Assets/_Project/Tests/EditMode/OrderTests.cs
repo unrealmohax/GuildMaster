@@ -395,7 +395,8 @@ namespace GuildMaster.Tests
         {
             data.Set("orders.hardEarlyChance", 1f);
             var simulation = Simulation.CreateDefault(data.Registry, 10u);
-            while (simulation.World.Orders.Open.Count(o => o.Status == OrderStatus.AwaitingPlayer) < 2) simulation.Tick();
+            SimulationRun.TickUntil(simulation, () => simulation.World.Orders.Open.Count(o => o.Status == OrderStatus.AwaitingPlayer) >= 2,
+                "двух важных заказов");
             for (int i = 0; i < 3; i++) simulation.Tick(); // ответ — через несколько часов после прихода
 
             List<Order> waiting = simulation.World.Orders.Open.Where(o => o.Status == OrderStatus.AwaitingPlayer).ToList();
@@ -508,6 +509,7 @@ namespace GuildMaster.Tests
             const int days = 1500;
             data.NoQuests(); // репутация стоит на месте
             data.NoBankruptcy();
+            data.NeutralRumor(); // довольство людей меняется само, а с ним — молва
             var simulation = Simulation.CreateDefault(data.Registry, 17u);
             SimulationRun.Do(simulation, ctx => ReputationService.Change(ctx, 55f, "test"));
             float chance = RecruitSystem.CandidateChance(data.Registry, simulation.World.Guild.Reputation);

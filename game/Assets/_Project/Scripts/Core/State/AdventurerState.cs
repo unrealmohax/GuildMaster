@@ -85,6 +85,12 @@ namespace GuildMaster.Core
         /// <summary>Пьяница пропускает этот день в таверне: до этого часа днём — таверна.</summary>
         public long SkipsDayUntilHours { get; internal set; }
 
+        /// <summary>День «не в духе»: до этого часа заказов не берёт (отдыхает или сидит в таверне, решая сам).</summary>
+        public long SulksUntilHours { get; internal set; }
+
+        /// <summary>Сейчас день «не в духе».</summary>
+        public bool IsSulkingDay(long nowHours) => nowHours < SulksUntilHours;
+
         // Учёт текущих суток; расходы за них списываются и учёт сбрасывается в 00:00 (StateSystem).
 
         /// <summary>Сумма вкуса приёмов пищи за текущие сутки (пропущенный приём — 0): вкус дня — среднее, вклад в довольство.</summary>

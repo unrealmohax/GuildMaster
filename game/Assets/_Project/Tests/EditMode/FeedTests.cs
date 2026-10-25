@@ -193,6 +193,7 @@ namespace GuildMaster.Tests
                     .Set("лекарь", TextValue.Person(other.Nominative, other, gender == Gender.Male ? Gender.Female : Gender.Male))
                     .Set("щит", TextValue.Person(subject.Nominative, subject, gender))
                     .Set("решающий", TextValue.Person(subject.Nominative, subject, gender))
+                    .Set("друг", TextValue.Person(other.Nominative, other, gender == Gender.Male ? Gender.Female : Gender.Male))
                     .Set("число", TextValue.Number(2)).Set("всего", TextValue.Number(4)).Set("сумма", TextValue.Number(50))
                     .Set("доход", TextValue.Number(300)).Set("расход", TextValue.Number(200))
                     .Set("архетип", TextValue.Word(gender == Gender.Male ? "Разведчик" : "Разведчица"))

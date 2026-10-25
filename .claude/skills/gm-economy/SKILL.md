@@ -96,3 +96,8 @@ description: Экономика гильдии GuildMaster — казна Treasu
 - Пайки (скилл `gm-state-health` → «Походные пайки»): проданные при выходе пайки — в «Таверна: еда» (`Treasury.TavernRations`,
   `CountTavernRations`; комментарий `… rationCheap=… rationRegular=…`, доля гильдии — `food.rationCheap/rationRegular.guildShare`);
   журнал казны дописывает «пайки N (дешёвых M)». Паёк, съеденный в городе, дохода не даёт (уже куплен).
+
+## Подъёмные (GM-22)
+
+- Статья `LedgerCategories.SigningBonuses` (`signingBonuses`, расход `IfAffordable`): списывает `AcceptCandidateCommand` при приёме
+  кандидата; комментарий — уровень, связанный — человек. Шаблон `ledger.signingBonuses` «Подъёмные». Сводка — «Расход: Подъёмные» (сама).

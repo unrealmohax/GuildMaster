@@ -275,6 +275,22 @@ MonoBehaviour:
       jackOfAllTrades:
         min: 45
         max: 60
+    levelWeightsByReputation:
+    - fromReputation: 0
+      weights:
+      - 0.65
+      - 0.3
+      - 0.05
+    - fromReputation: 30
+      weights:
+      - 0.5
+      - 0.35
+      - 0.15
+    - fromReputation: 60
+      weights:
+      - 0.35
+      - 0.4
+      - 0.25
     startMaxLevel: 1
     noviceCharacteristics:
       min: 10
@@ -518,6 +534,12 @@ MonoBehaviour:
     loyaltyDailyStep: 0.1
     leaveCheckThreshold: 25
     leaveChance: 0.2
+    followContentment: 40
+    followFriendChance: 0.3
+    sulkContentment: 25
+    sulkProfileMultiplier: 0.9
+    sulkSkipChance: 0.15
+    sulkSkipChanceMax: 0.7
     loyaltyWordThresholds:
     - 25
     - 45
@@ -636,11 +658,23 @@ MonoBehaviour:
     startMoney: 3000
     startReputation: 5
     maxReputation: 100
-    successReputationPerRank: 0.012
+    successReputationPerRank: 0.03
     failureReputationPerRank: -0.15
     deathReputation: -2
+    reputationDecayPerDay: 0.05
+    leaveReputation: -1
+    fleeReputation: -1
+    importantFailedReputation: -3
+    recentReputationChanges: 50
     influxBaseChance: 0.02
     influxChancePerReputation: 0.0025
+    influxPopulationCap: 2
+    rumorBase: -0.25
+    rumorDivisor: 40
+    rumorMax: 1.5
+    signingBonusWeak: 20
+    signingBonusMedium: 40
+    signingBonusStrong: 60
     maxAdventurers: 30
   staff:
     candidateLevel:

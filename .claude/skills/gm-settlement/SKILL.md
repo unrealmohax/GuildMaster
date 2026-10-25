@@ -75,3 +75,10 @@ description: Поселение GuildMaster — часть мира SettlementSt
 `SettlementTests` (сдвиги, уровни, население, нападения, покидание, доход, детерминизм, «не сдвигает чужие»), `SettlementSummaryTests`,
 `SettlementUiTests`. Зонд: GuildMaster → Sandbox → Balance → `10 Years Seeds 1-5` и `… Passive Bot` (в `done.txt` — причина и дата
 закрытия, Безопасность, население, нападения, угрозы; в `yearly_*.csv` — по годам). Снимки: UI → `Capture All` (шаг `4b_guild_settlement`).
+
+## Люди и репутация (GM-22)
+
+- Население кормит приток: `RecruitSystem.PopulationMultiplier` = население / `startPopulation` (не больше `influxPopulationCap` 2). Пустеет
+  поселение — кандидатов меньше, при 0 — нет. Принятый кандидат население не уменьшает.
+- Жадная гильдия (низкое довольство) гасит приток молвой, теряет людей и с ними — угрозы: в замере «Безрассудный» теряет поселение
+  в 2 из 3 зёрен.

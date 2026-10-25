@@ -28,6 +28,7 @@ namespace GuildMaster.Tests
         {
             var adventurer = new Adventurer(simulation.World.Ids.Next());
             for (int i = 0; i < Vocabulary.StatCount; i++) adventurer.SetStat((StatId)i, 30f);
+            adventurer.State.Contentment = 50f; // не «не в духе»: профиль без множителя состояния
             ArchetypeService.Initialize(adventurer, data.Registry);
             simulation.World.Adventurers.AddActive(adventurer);
             return adventurer;

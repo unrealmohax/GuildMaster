@@ -327,7 +327,7 @@ namespace GuildMaster.Core
             QuestParty.Publish(ctx, SimEventType.AdventurerDied, run, EventImportance.Important, victim.Id).With("all", everyone);
             AdventurerLifecycle.Retire(ctx, victim, LeaveReason.Died);
             StressEvents.AdventurerDied(ctx, victim);
-            ReputationService.Change(ctx, ctx.Data.Balance.Guild.DeathReputation, "death");
+            ReputationService.Change(ctx, ctx.Data.Balance.Guild.DeathReputation, ReputationReasons.Death, victim.Id, null);
         }
     }
 }

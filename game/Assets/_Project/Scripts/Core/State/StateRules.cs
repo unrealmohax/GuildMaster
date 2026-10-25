@@ -54,6 +54,22 @@ namespace GuildMaster.Core
         public static bool IsFatigueLowersProfile(AdventurerState state, StateBalance balance) =>
             state.Fatigue > balance.FatigueProfileThreshold;
 
+        /// <summary>Довольство ниже <c>sulkContentment</c>: человек не в духе — профиль ниже, утром может не выйти на работу.</summary>
+        public static bool IsSulking(AdventurerState state, StateBalance balance) =>
+            state.Contentment < balance.SulkContentment;
+
+        /// <summary>
+        /// Шанс дня без работы у того, кто не в духе: <c>sulkSkipChance</c> на границе <c>sulkContentment</c>, растёт по прямой
+        /// до <c>sulkSkipChanceMax</c> при довольстве 0. Чем недовольнее, тем чаще не выходит.
+        /// </summary>
+        public static float SulkSkipChance(float contentment, StateBalance balance)
+        {
+            float threshold = balance.SulkContentment;
+            if (threshold <= 0f) return balance.SulkSkipChance;
+            float depth = Math.Max(0f, Math.Min(1f, (threshold - contentment) / threshold));
+            return balance.SulkSkipChance + (balance.SulkSkipChanceMax - balance.SulkSkipChance) * depth;
+        }
+
         /// <summary>Усталость выше <c>fatigueQuestBanThreshold</c> (90): нельзя брать задания (запрет модели решений).</summary>
         public static bool IsTooTiredForQuests(AdventurerState state, StateBalance balance) =>
             state.Fatigue > balance.FatigueQuestBanThreshold;

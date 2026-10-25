@@ -76,12 +76,14 @@ namespace GuildMaster.Debugging
     {
         public const string PassiveName = "Пассивный";
         public const string SimpleName = "Простой";
+        public const string RecklessName = "Безрассудный";
         public const string ScenarioName = "Сценарий";
 
         public static readonly IReadOnlyList<BotPreset> Presets = new[]
         {
             new BotPreset(PassiveName, Passive),
             new BotPreset(SimpleName, Simple),
+            new BotPreset(RecklessName, Reckless),
         };
 
         /// <summary>Ничего не делает: мир живёт сам.</summary>
@@ -93,17 +95,39 @@ namespace GuildMaster.Debugging
         /// <summary>Сколько месяцев расходов бот «Простой» держит в запасе, прежде чем строить.</summary>
         public const int SimpleReserveMonths = 3;
 
+        /// <summary>Сколько месяцев расходов бот «Простой» оставляет в казне после подъёмных, когда людей хватает.</summary>
+        public const int SimpleCandidateReserveMonths = 1;
+
+        /// <summary>Пока людей меньше, бот «Простой» принимает каждого, на чьи подъёмные хватает казны, без запаса.</summary>
+        public const int SimpleMinPeople = 8;
+
         /// <summary>
-        /// Ставит комиссию 20%, принимает всех кандидатов в авантюристы, Регистратору велит брать все типы до высшего ранга людей
+        /// Ставит комиссию 20%, принимает кандидатов в авантюристы: пока людей меньше восьми — каждого, на чьи подъёмные хватает
+        /// казны, дальше — если после подъёмных в казне остаётся месяц расходов; Регистратору велит брать все типы до высшего ранга людей
         /// гильдии без порога награды, важные заказы принимает, как только в гильдии есть человек этого ранга или выше; до тех пор
         /// заказ ждёт, и без ответа заказчик уходит сам. Строит Общежитие → Лазарет → Тренировочный двор по одной, когда денег не
         /// меньше цены и трёх месяцев расходов; на вакансию нанимает кандидата с высшим уровнем за просимую зарплату; на обращения
         /// отвечает наугад (или не отвечает — тогда по сроку срабатывает вариант по умолчанию).
         /// </summary>
         public static PlayerBot Simple() =>
-            new PlayerBot(SimpleName, new SetCommissionOnceRule(SimpleCommission), new AcceptAllCandidatesRule(),
+            new PlayerBot(SimpleName, new SetCommissionOnceRule(SimpleCommission), new AcceptCandidatesWithReserveRule(SimpleCandidateReserveMonths, SimpleMinPeople),
                 new RegistrarUpToTopRankRule(), new AnswerImportantOrdersByRankRule(), new AnswerEventQuestsBySourceRankRule(),
                 new BuildWithReserveRule(SimpleReserveMonths, BuildingFunction.Dormitory, BuildingFunction.Infirmary, BuildingFunction.TrainingYard),
+                new HireBestCandidateRule(), new AnswerDilemmasRandomlyRule());
+
+        /// <summary>Комиссия бота «Безрассудный».</summary>
+        public const float RecklessCommission = 0.5f;
+
+        /// <summary>
+        /// Жадный игрок без запаса: ставит комиссию 50%, принимает каждого кандидата, на чьи подъёмные хватает казны, Регистратору велит
+        /// брать все типы до высшего ранга людей, строит Общежитие → Лазарет → Тренировочный двор, как только денег не меньше цены,
+        /// на вакансию нанимает кандидата с высшим уровнем за просимую зарплату, на обращения отвечает наугад. На важные заказы и
+        /// событийные задания не отвечает.
+        /// </summary>
+        public static PlayerBot Reckless() =>
+            new PlayerBot(RecklessName, new SetCommissionOnceRule(RecklessCommission), new AcceptCandidatesWithReserveRule(0),
+                new RegistrarUpToTopRankRule(),
+                new BuildWithReserveRule(0, BuildingFunction.Dormitory, BuildingFunction.Infirmary, BuildingFunction.TrainingYard),
                 new HireBestCandidateRule(), new AnswerDilemmasRandomlyRule());
 
         /// <summary>Повторяет команды сценария в их такты.</summary>
@@ -136,6 +160,42 @@ namespace GuildMaster.Debugging
         {
             IReadOnlyList<Candidate> candidates = turn.World.Adventurers.Candidates;
             for (int i = 0; i < candidates.Count; i++) turn.Send(new AcceptCandidateCommand(candidates[i].Adventurer.Id));
+        }
+    }
+
+    /// <summary>
+    /// Принять ожидающих кандидатов по порядку прихода, пока после их подъёмных в казне остаётся не меньше <c>reserveMonths</c>
+    /// месяцев расходов (как запас перед стройкой, <see cref="BuildWithReserveRule.Reserve"/>). Пока людей вместе с принятыми
+    /// меньше <c>minPeople</c>, запаса не нужно — хватило бы на подъёмные. Не хватает — кандидат ждёт.
+    /// </summary>
+    public sealed class AcceptCandidatesWithReserveRule : IBotRule
+    {
+        private readonly int reserveMonths;
+        private readonly int minPeople;
+
+        public AcceptCandidatesWithReserveRule(int reserveMonths, int minPeople = 0)
+        {
+            this.reserveMonths = reserveMonths;
+            this.minPeople = minPeople;
+        }
+
+        public void Act(BotTurn turn)
+        {
+            IReadOnlyList<Candidate> candidates = turn.World.Adventurers.Candidates;
+            if (candidates.Count == 0) return;
+
+            DataRegistry data = turn.Game.Data;
+            long money = turn.World.Treasury.Money;
+            int reserve = BuildWithReserveRule.Reserve(turn.World, data, reserveMonths);
+            int people = turn.World.Adventurers.Active.Count;
+            for (int i = 0; i < candidates.Count; i++)
+            {
+                int bonus = RecruitSystem.SigningBonus(data, candidates[i]);
+                if (money - bonus < (people < minPeople ? 0 : reserve)) continue;
+                money -= bonus;
+                people++;
+                turn.Send(new AcceptCandidateCommand(candidates[i].Adventurer.Id));
+            }
         }
     }
 
@@ -229,11 +289,14 @@ namespace GuildMaster.Debugging
                 BuildingDefinition definition = data.BuildingWith(function);
                 if (definition == null || world.Buildings.TryGetByDefinition(definition.Id, out _)) continue;
 
-                int reserve = reserveMonths * (StaffRules.MonthlySalaries(world) + BuildingRules.MonthlyUpkeep(world, data));
-                if (world.Treasury.Money >= definition.Cost + reserve) turn.Send(new StartBuildingCommand(definition.Id));
+                if (world.Treasury.Money >= definition.Cost + Reserve(world, data, reserveMonths)) turn.Send(new StartBuildingCommand(definition.Id));
                 return;
             }
         }
+
+        /// <summary>Запас: <paramref name="months"/> месяцев расходов — зарплаты и содержание готовых построек.</summary>
+        public static int Reserve(WorldState world, DataRegistry data, int months) =>
+            months * (StaffRules.MonthlySalaries(world) + BuildingRules.MonthlyUpkeep(world, data));
     }
 
     /// <summary>Вакансия с кандидатами: предложить кандидату с высшим уровнем (при равенстве — пришедшему раньше) просимую зарплату.</summary>

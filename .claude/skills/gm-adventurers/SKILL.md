@@ -96,3 +96,24 @@ description: Авантюристы GuildMaster — модель Adventurer и A
   (`FamilyGenerator.FitToTraits`). `DebugSpawnAdventurerCommand` с чертами — семья по чертам из генерации, не по заданным. Лог генерации —
   `| family Parent(M):Имя Spouse(F):Имя …`. Хук `FamilySendsMoneyHome` теперь значит «платит семье первым и сверх нормы»; доли дохода
   домой больше нет.
+
+## Люди и репутация (GM-22)
+
+- **Приток** — `RecruitSystem.CandidateChance(data, world)`: (`influxBaseChance` + репутация × `influxChancePerReputation`) ×
+  `PopulationMultiplier` (население / `startPopulation`, не больше `influxPopulationCap`) × `Rumor` × множитель распоряжений.
+  Перегрузка с числами (`CandidateChance(data, репутация, …)`) — для тестов и интерфейса.
+- **Молва** `RecruitSystem.Rumor`: `rumorBase` + среднее довольство активных / `rumorDivisor`, в пределах 0..`rumorMax`
+  (−0,25 + д / 40: 50 → × 1, 20 → × 0,25, ≤ 10 → 0 — кандидатов нет); людей нет — × 1. Отдельной шкалы нет.
+- **Уровень кандидата по репутации** — `AdventurerGenerator.LevelMixFor(balance, репутация)`: последняя строка
+  `levelWeightsByReputation` с `fromReputation` ≤ репутации (веса Weak / Medium / Strong); Новичок — как прежде. Валидатор: первая строка
+  с 0, по возрастанию, три неотрицательных веса.
+- **Подъёмные** — `RecruitSystem.SigningBonus(data, кандидат)` по уровню (`signingBonusWeak/Medium/Strong`, Новичок — слабый).
+  `AcceptCandidateCommand`: денег меньше — событие `CandidateAcceptRefused` (`reason=money`, `amount`, `money`), без строки ленты,
+  кандидат ждёт; иначе `TreasuryService.Debit(SigningBonuses)` + `WalletService.Give`, у `AdventurerJoined` — `amount`.
+  Окно спрашивает `CanAffordSigningBonus`.
+
+### Ловушки притока
+
+- Молва зависит от довольства, поэтому шанс кандидата сдвигают все системы, которые его меняют (еда, решения, состояние).
+  Тесты частоты притока — `PeopleData.NeutralRumor()`; в мирах без заданий довольство падает и приток без него почти встаёт.
+- Гильдия без денег на подъёмные может застрять: кандидаты приходят, но принять их нельзя.

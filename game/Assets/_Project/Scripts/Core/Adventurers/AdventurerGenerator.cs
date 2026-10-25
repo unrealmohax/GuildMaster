@@ -46,8 +46,11 @@ namespace GuildMaster.Core
             // 2. Тип — по весам определений (временные шансы).
             ArchetypeDefinition type = fixedType ?? PickType(rng, data);
 
-            // 3. Уровень: у Новичка всегда слабый; на старте — не выше startMaxLevel.
-            GenerationLevel level = PickLevel(rng, balance, type, atStart ? balance.StartMaxLevel : AdventurerLevel.Strong);
+            // 3. Уровень: у Новичка всегда слабый; на старте — не выше startMaxLevel по весам уровней; позже — по весам
+            // для репутации гильдии.
+            GenerationLevel level = atStart
+                ? PickLevel(rng, balance, type, balance.StartMaxLevel)
+                : PickCandidateLevel(rng, balance, type, world.Guild.Reputation);
 
             // 4. Параметры.
             GenerateStats(rng, balance, type, level, adventurer);
@@ -183,6 +186,27 @@ namespace GuildMaster.Core
                 weights.Add(level.Weight);
             }
             return rng.PickWeighted(levels, weights);
+        }
+
+        /// <summary>Уровень кандидата: веса — строка <c>levelWeightsByReputation</c> для репутации гильдии; у Новичка — слабый.</summary>
+        private static GenerationLevel PickCandidateLevel(Rng rng, AdventurersBalance balance, ArchetypeDefinition type, float reputation)
+        {
+            if (type.Kind == ArchetypeKind.Novice) return FindLevel(balance, AdventurerLevel.Weak);
+
+            IReadOnlyList<float> weights = LevelMixFor(balance, reputation).Weights;
+            return FindLevel(balance, (AdventurerLevel)rng.PickWeightedIndex(weights));
+        }
+
+        /// <summary>Строка весов уровней кандидатов для репутации: последняя, чья нижняя граница не выше репутации.</summary>
+        public static LevelMixEntry LevelMixFor(AdventurersBalance balance, float reputation)
+        {
+            IReadOnlyList<LevelMixEntry> mix = balance.LevelWeightsByReputation;
+            LevelMixEntry found = mix[0];
+            foreach (LevelMixEntry entry in mix)
+            {
+                if (reputation >= entry.FromReputation) found = entry;
+            }
+            return found;
         }
 
         private static GenerationLevel FindLevel(AdventurersBalance balance, AdventurerLevel wanted)

@@ -49,11 +49,11 @@ namespace GuildMaster.Core
 
         // ---------- Кого можно звать ----------
 
-        /// <summary>Свободен, может брать задания, не взял заказ и не в собираемой группе.</summary>
+        /// <summary>Свободен, может брать задания, не в день «не в духе», не взял заказ и не в собираемой группе.</summary>
         private static bool CanInvite(SimContext ctx, Adventurer person, long now)
         {
             AdventurerState state = person.State;
-            return DecisionPoints.CanDecide(state, now) && StateRules.CanTakeQuests(state, ctx.Data.Balance.State)
+            return DecisionPoints.CanDecide(state, now) && StateRules.CanTakeQuests(state, ctx.Data.Balance.State) && !state.IsSulkingDay(now)
                 && state.PlannedOrderId == 0 && person.PartyId == 0;
         }
 
