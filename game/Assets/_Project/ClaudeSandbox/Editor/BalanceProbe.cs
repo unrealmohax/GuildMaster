@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -49,6 +49,8 @@ namespace GuildMaster.ClaudeSandbox
             public double Power, TopPower, Treasury, Reputation;
             public double Security, MinSecurity = double.MaxValue;
             public int Population, WorstLevel, Attacks, ThreatsDone, ThreatsMissed;
+            public int Quests, Done, Brilliant, SoloQuests, SoloDone, GroupQuests, GroupDone, GroupMembers, PermanentQuests, PermanentDone;
+            public int Rounds, CappedRounds, ThreatQuests, ThreatQuestsDone;
         }
 
         private static void Run(int runs, Func<PlayerBot> bot = null)
@@ -177,7 +179,7 @@ namespace GuildMaster.ClaudeSandbox
                     current = new Year();
                     simulation.TickCompleted += events =>
                     {
-                        foreach (SimEvent e in events) Count(current, e);
+                        foreach (SimEvent e in events) Count(current, e, simulation);
                         WorldState world = simulation.World;
                         current.MinSecurity = Math.Min(current.MinSecurity, world.Settlement.Security);
                         current.WorstLevel = Math.Max(current.WorstLevel, (int)world.Settlement.Level);
@@ -211,8 +213,9 @@ namespace GuildMaster.ClaudeSandbox
             Debug.Log($"[BalanceProbe] {runs} run(s) x {Days} days: {seconds:0.0} s -> {folder}\n{report}");
         }
 
-        private static void Count(Year year, SimEvent e)
+        private static void Count(Year year, SimEvent e, ISimulationClient game)
         {
+            WorldState world = game.World;
             switch (e.Type)
             {
                 case SimEventType.OrderArrived:
@@ -221,7 +224,19 @@ namespace GuildMaster.ClaudeSandbox
                 case SimEventType.QuestReturned:
                     if ((e.TryGet("promotion", out bool promotion) && promotion) || !e.TryGet("rank", out GuildRank rank)) break;
                     year.QuestsByRank[(int)rank]++;
-                    if (e.TryGet("done", out bool done) && done) year.DoneByRank[(int)rank]++;
+                    bool isDone = e.TryGet("done", out bool done) && done;
+                    if (isDone) year.DoneByRank[(int)rank]++;
+                    CountParty(year, e, world, isDone);
+                    if (e.TryGet("questType", out string questType) && SettlementRules.IsThreat(game.Data, questType))
+                    {
+                        year.ThreatQuests++;
+                        if (isDone) year.ThreatQuestsDone++;
+                    }
+                    break;
+                case SimEventType.RoundSuccess:
+                case SimEventType.RoundFail:
+                    year.Rounds++;
+                    if (e.TryGet("chance", out float chance) && chance >= game.Data.Balance.Rounds.MaxRoundChance - 1e-5f) year.CappedRounds++;
                     break;
                 case SimEventType.OrderTaken:
                     if (e.TryGet("rank", out GuildRank taken) && e.TryGet("reward", out int reward)) year.RewardByRank[(int)taken] += reward;
@@ -250,6 +265,29 @@ namespace GuildMaster.ClaudeSandbox
             }
         }
 
+        /// <summary>Задание (не экзамен) по составу: соло, группа (размер), постоянная группа; выполнено и «блестяще».</summary>
+        private static void CountParty(Year year, SimEvent e, WorldState world, bool done)
+        {
+            year.Quests++;
+            if (done) year.Done++;
+            if (e.TryGet("kind", out string kind) && kind == "brilliant") year.Brilliant++;
+            int total = e.TryGet("total", out int departed) ? departed : 0;
+            if (total <= 1)
+            {
+                year.SoloQuests++;
+                if (done) year.SoloDone++;
+                return;
+            }
+            year.GroupQuests++;
+            year.GroupMembers += total;
+            if (done) year.GroupDone++;
+            if (e.TryGet("quest", out int questId) && world.Quests.TryGetRun(questId, out QuestRun run) && run.IsPermanentParty)
+            {
+                year.PermanentQuests++;
+                if (done) year.PermanentDone++;
+            }
+        }
+
         private static void Close(Year year, WorldState world)
         {
             IReadOnlyList<Adventurer> active = world.Adventurers.Active;
@@ -273,7 +311,9 @@ namespace GuildMaster.ClaudeSandbox
         {
             var text = new StringBuilder();
             text.Append("Год,Людей,Пришло,Ушло,Погибло,Повышений,Сила,Сила max,Казна,Репутация,"
-                + "Безопасность,Безопасность min,Худший уровень,Население,Нападений,Угроз выполнено,Угроз упущено");
+                + "Безопасность,Безопасность min,Худший уровень,Население,Нападений,Угроз выполнено,Угроз упущено,"
+                + "Заданий,Выполнено всего,Блестяще,Соло,Соло выполнено,В группе,В группе выполнено,Людей в группах,Постоянной группой,Постоянной выполнено,"
+                + "Раундов,Раундов на потолке,Заданий-угроз,Угроз выполнено заданий");
             foreach (string prefix in new[] { "Люди ", "Заказы ", "Задания ", "Выполнено ", "Награда ср. " })
                 foreach (GuildRank rank in Ranks) text.Append(',').Append(prefix).Append(rank);
             text.Append('\n');
@@ -285,6 +325,9 @@ namespace GuildMaster.ClaudeSandbox
                     r.Power, r.TopPower, r.Treasury, r.Reputation));
                 text.Append(string.Format(inv, ",{0:0.#},{1:0.#},{2},{3},{4},{5},{6}", r.Security, r.MinSecurity, r.WorstLevel, r.Population, r.Attacks,
                     r.ThreatsDone, r.ThreatsMissed));
+                text.Append(string.Format(inv, ",{0},{1},{2},{3},{4},{5},{6},{7},{8},{9}", r.Quests, r.Done, r.Brilliant, r.SoloQuests, r.SoloDone,
+                    r.GroupQuests, r.GroupDone, r.GroupMembers, r.PermanentQuests, r.PermanentDone));
+                text.Append(string.Format(inv, ",{0},{1},{2},{3}", r.Rounds, r.CappedRounds, r.ThreatQuests, r.ThreatQuestsDone));
                 foreach (int v in r.PeopleByRank) text.Append(',').Append(v);
                 foreach (int v in r.OrdersByRank) text.Append(',').Append(v);
                 foreach (int v in r.QuestsByRank) text.Append(',').Append(v);

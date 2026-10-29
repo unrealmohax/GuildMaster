@@ -131,7 +131,7 @@ namespace GuildMaster.Core
             DataRegistry data = ctx.Data;
             DecisionsBalance decisions = data.Balance.Decisions;
             float[] perceived = QuestMath.PerceivedRequirements(order.Profile, order.DescriptionAccuracy, viewer, data);
-            float p = QuestMath.Overlap(data.Stats.RadarOrder, perceived, group);
+            float p = QuestMath.RoundChance(QuestMath.Overlap(data.Stats.RadarOrder, perceived, group), 0f, data.Balance.Rounds);
 
             var goOn = new float[Vocabulary.MotiveCount];
             float share = ExpectedShare(order, ctx.World.Treasury.Commission, present.Count);
@@ -163,7 +163,7 @@ namespace GuildMaster.Core
             List<Adventurer> present = QuestParty.Present(ctx.World, run);
             Adventurer leader = QuestParty.Leader(present, data);
             float[] perceived = QuestMath.PerceivedRequirements(profile, 1f, leader, data);
-            float p = QuestMath.Overlap(data.Stats.RadarOrder, perceived, QuestMath.GroupProfile(present, data));
+            float p = QuestMath.RoundChance(QuestMath.Overlap(data.Stats.RadarOrder, perceived, QuestMath.GroupProfile(present, data)), 0f, data.Balance.Rounds);
 
             float expectedLoot = 0f;
             foreach (OutcomeChance outcome in discovery.SuccessOutcomes)

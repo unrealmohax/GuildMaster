@@ -17,6 +17,16 @@ namespace GuildMaster.Data
         [Tooltip("Неточность описания: скрытый множитель профиля заказа")]
         [SerializeField] private FloatRange descriptionAccuracy = new FloatRange(0.9f, 1.1f);
 
+        [Header("Сложение группы")]
+        [Tooltip("Вклад человека в группе: × (это число + (1 − это число) × Слаженность / 100)")]
+        [SerializeField, Range(0f, 1f)] private float cohesionBase = 0.7f;
+
+        [Tooltip("Веса вкладов на каждой оси: лучший на оси — × первый вес, следующий — × второй и так далее; по убыванию, не меньше, чем людей в группе")]
+        [SerializeField] private List<float> groupContributionWeights = new List<float> { 1f, 0.6f, 0.45f, 0.35f, 0.3f, 0.25f };
+
+        [Tooltip("Шанс раунда (и экзамена, и события в пути) не выше")]
+        [SerializeField, Range(0f, 1f)] private float maxRoundChance = 0.95f;
+
         [Header("Синергии (добавка к перекрытию за пару)")]
         [SerializeField, Range(-1f, 1f)] private float friendsSynergy = 0.05f;
         [SerializeField, Range(-1f, 1f)] private float longPartnersSynergy = 0.05f;
@@ -50,6 +60,9 @@ namespace GuildMaster.Data
         public int MaxPartySize => maxPartySize;
         public float SoloProfileMultiplier => soloProfileMultiplier;
         public FloatRange DescriptionAccuracy => descriptionAccuracy;
+        public float CohesionBase => cohesionBase;
+        public IReadOnlyList<float> GroupContributionWeights => groupContributionWeights;
+        public float MaxRoundChance => maxRoundChance;
         public float FriendsSynergy => friendsSynergy;
         public float LongPartnersSynergy => longPartnersSynergy;
         public float LoversSynergy => loversSynergy;

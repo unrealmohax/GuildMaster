@@ -149,7 +149,7 @@ namespace GuildMaster.Tests
     public sealed class QuestRoundTests
     {
         [Test]
-        public void GroupProfile_SoloFull_GroupTimesCohesion_PanicAndRush()
+        public void GroupProfile_SoloFull_GroupWeightedByPlace_PanicAndRush()
         {
             using var quests = new QuestWorld();
             Adventurer a = quests.Add();
@@ -158,8 +158,9 @@ namespace GuildMaster.Tests
             b.SetStat(StatId.Cohesion, 20f);
 
             Assert.AreEqual(30f, QuestMath.GroupProfile(new[] { a }, quests.Registry)[(int)StatId.Strength], 1e-4, "один — × 1");
-            Assert.AreEqual(30f * 0.5f + 30f * 0.2f, QuestMath.GroupProfile(new[] { a, b }, quests.Registry)[(int)StatId.Strength], 1e-4,
-                "группа — × Слаженность / 100");
+            // Вклад в группе × (0,7 + 0,3 × Слаженность / 100): 30 × 0,85 = 25,5 и 30 × 0,76 = 22,8; лучший целиком, второй × 0,6.
+            Assert.AreEqual(25.5f + 22.8f * 0.6f, QuestMath.GroupProfile(new[] { a, b }, quests.Registry)[(int)StatId.Strength], 1e-4,
+                "группа — вклады по убыванию с весами");
             Assert.AreEqual(0f, QuestMath.GroupProfile(new[] { a }, quests.Registry)[(int)StatId.Cohesion], "Слаженность — не ось");
             Assert.AreEqual(15f, QuestMath.GroupProfile(new[] { a }, quests.Registry, new[] { a.Id })[(int)StatId.Strength], 1e-4, "паника × 0,5");
             Assert.AreEqual(39f, QuestMath.GroupProfile(new[] { a }, quests.Registry, null, new[] { a.Id })[(int)StatId.Strength], 1e-4, "бросок × 1,3");
@@ -211,7 +212,7 @@ namespace GuildMaster.Tests
                 QuestMath.GroupProfile(new[] { a, b }, quests.Registry));
             SimEvent round = events.Single(e => e.Type == SimEventType.RoundSuccess || e.Type == SimEventType.RoundFail);
             round.TryGet("chance", out float chance);
-            Assert.AreEqual(overlap + 0.05f, chance, 1e-4);
+            Assert.AreEqual(Math.Min(quests.Registry.Balance.Rounds.MaxRoundChance, overlap + 0.05f), chance, 1e-4);
             StringAssert.Contains("synergy=0.05", writer.ToString());
             Assert.IsTrue(events.Any(e => e.Type == SimEventType.Synergy), "строка синергии в первом раунде");
         }

@@ -158,6 +158,15 @@ MonoBehaviour:
     descriptionAccuracy:
       min: 0.9
       max: 1.1
+    cohesionBase: 0.7
+    groupContributionWeights:
+    - 1
+    - 0.6
+    - 0.45
+    - 0.35
+    - 0.3
+    - 0.25
+    maxRoundChance: 0.95
     friendsSynergy: 0.05
     longPartnersSynergy: 0.05
     loversSynergy: 0.1

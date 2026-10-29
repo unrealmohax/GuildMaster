@@ -39,7 +39,7 @@ namespace GuildMaster.Core
         public static float[] OrderProfile(Order order) => order?.Profile != null ? (float[])order.Profile.Clone() : Array.Empty<float>();
 
         /// <summary>
-        /// Шанс раунда задания сейчас: перекрытие профиля группы с требованиями плюс синергии, без случайности. Нет заказа или
+        /// Шанс раунда задания сейчас: перекрытие профиля группы с требованиями плюс синергии, не выше потолка, без случайности. Нет заказа или
         /// никого на задании — 0.
         /// </summary>
         public static float RoundChance(QuestRun run, WorldState world, DataRegistry data)
@@ -52,7 +52,7 @@ namespace GuildMaster.Core
             if (QuestMath.CeilingHit(order, present.Count, group)) return 0f;
             float overlap = QuestMath.Overlap(data.Stats.RadarOrder, order.Profile, group);
             float synergy = QuestMath.Synergy(present, world.Relations, data);
-            return Math.Max(0f, Math.Min(1f, overlap + synergy));
+            return QuestMath.RoundChance(overlap, synergy, data.Balance.Rounds);
         }
     }
 }

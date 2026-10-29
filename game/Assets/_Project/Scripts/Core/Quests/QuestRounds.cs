@@ -37,7 +37,7 @@ namespace GuildMaster.Core
             float overlap = QuestMath.Overlap(ctx.Data.Stats.RadarOrder, order.Profile, group);
             var pairs = new List<PairSynergy>();
             float synergy = QuestMath.Synergy(present, ctx.World.Relations, ctx.Data, pairs);
-            float chance = Math.Max(0f, Math.Min(1f, overlap + synergy));
+            float chance = QuestMath.RoundChance(overlap, synergy, ctx.Data.Balance.Rounds);
             bool ceiling = QuestMath.CeilingHit(order, present.Count, group);
             int[] ids = QuestSystem.Ids(present);
 
@@ -98,12 +98,13 @@ namespace GuildMaster.Core
         {
             Adventurer candidate = present[0];
             float overlap = QuestMath.Overlap(ctx.Data.Stats.RadarOrder, order.Profile, QuestMath.GroupProfile(present, ctx.Data));
-            bool passed = ctx.RollChance(overlap, "exam", candidate, "overlap", overlap);
+            float chance = QuestMath.RoundChance(overlap, 0f, ctx.Data.Balance.Rounds);
+            bool passed = ctx.RollChance(chance, "exam", candidate, "overlap", overlap);
             run.Completed = passed;
             if (passed) GuildRanks.Promote(ctx, candidate);
             else GuildRanks.FailPromotion(ctx, candidate);
             QuestParty.Publish(ctx, SimEventType.PromotionExam, run, EventImportance.Notable, candidate.Id)
-                .With("passed", passed).With("chance", overlap);
+                .With("passed", passed).With("chance", chance);
             QuestSystem.StartReturn(ctx, run);
         }
 

@@ -6,8 +6,9 @@ namespace GuildMaster.Core
 {
     /// <summary>
     /// Как человек оценивает заказ с группой. Всё — глазами того, кто смотрит: требования искажены неточностью описания
-    /// и его ошибкой оценки риска, профиль группы — сумма эффективных параметров × Слаженность / 100 (один — × 1), к перекрытию —
-    /// синергии пар (друзья, соперники…) в пределах потолка. Коэффициенты — <see cref="DecisionsBalance"/>. Случайных чисел не тратит.
+    /// и его ошибкой оценки риска, профиль группы — по тому же правилу, что в настоящем раунде (<see cref="QuestMath.SumContributions"/>),
+    /// к перекрытию — синергии пар (друзья, соперники…) в пределах потолка, шанс — не выше потолка шанса раунда. Коэффициенты —
+    /// <see cref="DecisionsBalance"/>. Случайных чисел не тратит.
     /// Расчёт — через <see cref="PartyLens"/> (взгляд одного человека на один заказ); функции здесь — обёртки для разовых вопросов.
     /// </summary>
     public static class PartyMath
@@ -175,6 +176,8 @@ namespace GuildMaster.Core
     {
         private readonly float[] requirements;
         private readonly float[] profile = new float[Vocabulary.StatCount];
+        private float[][] parts = new float[0][];
+        private float[] sorted = new float[0];
         private readonly float[] scores = new float[Vocabulary.MotiveCount];
         private readonly ProfileCache profiles;
         private readonly MotiveWeights weights;
@@ -209,21 +212,23 @@ namespace GuildMaster.Core
         /// <summary>Воспринимаемое перекрытие профиля группы, без синергий.</summary>
         public float Overlap(IReadOnlyList<Adventurer> members)
         {
-            Array.Clear(profile, 0, profile.Length);
-            bool solo = members.Count == 1;
-            foreach (Adventurer member in members)
+            int count = members.Count;
+            if (parts.Length < count)
             {
-                float[] part = solo ? profiles.Solo(member) : profiles.Grouped(member);
-                for (int i = 0; i < profile.Length; i++) profile[i] += part[i];
+                parts = new float[count][];
+                sorted = new float[count];
             }
+            bool solo = count == 1;
+            for (int k = 0; k < count; k++) parts[k] = solo ? profiles.Solo(members[k]) : profiles.Grouped(members[k]);
+            QuestMath.SumContributions(parts, count, Data.Balance.Rounds.GroupContributionWeights, sorted, profile);
             return QuestMath.Overlap(Data.Stats.RadarOrder, requirements, profile);
         }
 
-        /// <summary>Шанс раунда: перекрытие + синергии пар (в группе), 0..1.</summary>
+        /// <summary>Шанс раунда: перекрытие + синергии пар (в группе), не выше потолка шанса раунда.</summary>
         public float Chance(IReadOnlyList<Adventurer> members)
         {
             float synergy = members.Count > 1 ? QuestMath.Synergy(members, Relations, Data) : 0f;
-            return Math.Max(0f, Math.Min(1f, Overlap(members) + synergy));
+            return QuestMath.RoundChance(Overlap(members), synergy, Data.Balance.Rounds);
         }
 
         /// <summary>Оценки варианта «этот заказ с этой группой» по мотивам.</summary>
@@ -246,8 +251,8 @@ namespace GuildMaster.Core
     }
 
     /// <summary>
-    /// Профили людей для оценки групп: один — эффективные параметры × множитель одиночки, в группе — × Слаженность / 100.
-    /// Считаются один раз на человека (в пределах часа параметры не меняются).
+    /// Вклады людей для оценки групп: один — эффективные параметры × множитель одиночки, в группе — × <see cref="QuestMath.GroupMultiplier"/>.
+    /// Считаются один раз на человека (в пределах часа параметры не меняются); складывает их <see cref="QuestMath.SumContributions"/>.
     /// </summary>
     public sealed class ProfileCache
     {
@@ -262,24 +267,15 @@ namespace GuildMaster.Core
 
         public float[] Solo(Adventurer person)
         {
-            if (!solo.TryGetValue(person.Id, out float[] profile)) solo[person.Id] = profile = Build(person, data.Balance.Rounds.SoloProfileMultiplier);
+            if (!solo.TryGetValue(person.Id, out float[] profile))
+                solo[person.Id] = profile = QuestMath.Contribution(person, data.Balance.Rounds.SoloProfileMultiplier, data);
             return profile;
         }
 
         public float[] Grouped(Adventurer person)
         {
-            if (!grouped.TryGetValue(person.Id, out float[] profile)) grouped[person.Id] = profile = Build(person, person.GetStat(StatId.Cohesion) / 100f);
-            return profile;
-        }
-
-        private float[] Build(Adventurer person, float multiplier)
-        {
-            var profile = new float[Vocabulary.StatCount];
-            for (int i = 0; i < profile.Length; i++)
-            {
-                var stat = (StatId)i;
-                if (Vocabulary.IsDiagramAxis(stat)) profile[i] = AdventurerStats.Effective(person, stat, data) * multiplier;
-            }
+            if (!grouped.TryGetValue(person.Id, out float[] profile))
+                grouped[person.Id] = profile = QuestMath.Contribution(person, QuestMath.GroupMultiplier(person, data.Balance.Rounds), data);
             return profile;
         }
     }

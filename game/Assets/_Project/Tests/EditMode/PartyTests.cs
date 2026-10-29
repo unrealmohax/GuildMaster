@@ -149,8 +149,9 @@ namespace GuildMaster.Tests
         {
             using var quests = new QuestWorld();
             List<Adventurer> pool = Enumerable.Range(0, 8).Select(_ => PartyTestSupport.Person(quests, cohesion: 50f)).ToList();
-            // Награда в масштабе расходов на жизнь (9 в день): доля в группе заметна для жадного.
-            Order order = quests.AddOrder(requirement: 50f, reward: 162);
+            // Награда в масштабе расходов на жизнь (9 в день): доля в группе заметна для жадного. Требование — у порога, где третий
+            // ещё поднимает шанс, но не до потолка: дальше от порога группы всех растут до потолка шанса и сравниваются по размеру.
+            Order order = quests.AddOrder(requirement: 45f, reward: 162);
 
             int Size(float money, float people)
             {

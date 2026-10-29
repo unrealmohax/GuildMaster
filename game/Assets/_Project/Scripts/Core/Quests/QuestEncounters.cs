@@ -183,11 +183,11 @@ namespace GuildMaster.Core
             }
         }
 
-        /// <summary>Один раунд события или находки: перекрытие группы и профиля + синергии; строка в лог.</summary>
+        /// <summary>Один раунд события или находки: перекрытие группы и профиля + синергии, не выше потолка шанса; строка в лог.</summary>
         private static bool Round(SimContext ctx, QuestRun run, List<Adventurer> present, float[] profile, string roll)
         {
             float overlap = QuestMath.Overlap(ctx.Data.Stats.RadarOrder, profile, QuestMath.GroupProfile(present, ctx.Data, run.Panicked, run.Rushing));
-            float chance = Math.Max(0f, Math.Min(1f, overlap + QuestMath.Synergy(present, ctx.World.Relations, ctx.Data)));
+            float chance = QuestMath.RoundChance(overlap, QuestMath.Synergy(present, ctx.World.Relations, ctx.Data), ctx.Data.Balance.Rounds);
             return ctx.RollChance(chance, roll, QuestParty.Leader(present, ctx.Data), "overlap", overlap);
         }
 

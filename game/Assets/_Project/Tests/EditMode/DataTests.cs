@@ -206,6 +206,21 @@ namespace GuildMaster.Tests
             AssertError(report, "шансы исходов в сумме");
         }
 
+        [Test]
+        public void GroupWeights_NotDescendingOrTooFew_IsError()
+        {
+            GameConfig config = data.Copy(data.Config);
+            BalanceSettings balance = data.Copy(config.Balance);
+            GameData.Edit(balance, "rounds.groupContributionWeights.Array.data[2]", p => p.floatValue = 0.9f);
+            GameData.Edit(balance, "rounds.maxPartySize", p => p.intValue = 7);
+            GameData.Edit(config, "balance", p => p.objectReferenceValue = balance);
+
+            DataValidationReport report = DataValidator.Validate(config);
+
+            AssertError(report, "веса — по убыванию");
+            AssertError(report, "а людей в группе до 7");
+        }
+
         private static void AssertError(DataValidationReport report, string fragment) =>
             Assert.IsTrue(report.Errors.Any(i => i.Message.Contains(fragment)), $"Нет ошибки «{fragment}».\n{report}");
     }
