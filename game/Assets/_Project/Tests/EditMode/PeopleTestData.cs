@@ -56,7 +56,8 @@ namespace GuildMaster.Tests
 
         /// <summary>
         /// Поселение не меняется само: нет суточного спада Безопасности, сдвигов за заказы, роста населения и дохода таверны
-        /// от жителей. Для тестов других механик, которым поселение мешает (казна, долгие прогоны).
+        /// от жителей, кризисы ничего не меняют (<see cref="NoCrises"/>). Для тестов других механик, которым поселение мешает
+        /// (казна, долгие прогоны).
         /// </summary>
         public void NoSettlementPressure()
         {
@@ -67,6 +68,25 @@ namespace GuildMaster.Tests
             })
                 Set(path, 0f);
             Set("settlement.populationPerBuilding", 0);
+            NoCrises();
+        }
+
+        /// <summary>
+        /// Кризисы по календарю приходят, но ничего не меняют: налог 0, мора нет, зима не дороже и не реже, заказ набега не снимается
+        /// по сроку, а его итог Безопасность и население не трогает. Для долгих прогонов других механик.
+        /// </summary>
+        public void NoCrises()
+        {
+            foreach (string path in new[]
+            {
+                "crises.raidWonSecurity", "crises.raidLostSecurity", "crises.raidLostPopulationShare", "crises.taxShareOfIncome",
+                "crises.taxUnpaidReputation", "crises.taxUnpaidSecurity", "crises.plagueChance", "crises.winterCityHousing",
+            })
+                Set(path, 0f);
+            Set("crises.taxBase", 0);
+            Set("crises.raidDays", 100000);
+            foreach (string path in new[] { "crises.winterFoodPriceMultiplier", "crises.winterOrdersMultiplier", "crises.winterDecayMultiplier" })
+                Set(path, 1f);
         }
 
         /// <summary>

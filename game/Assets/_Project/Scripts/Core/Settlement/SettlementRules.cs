@@ -25,13 +25,14 @@ namespace GuildMaster.Core
         /// <summary>
         /// Изменение населения в начале месяца: спокойно — + <c>calmGrowth</c>, норма — 0, тревога — − <c>alarmDecline</c>,
         /// осада — − <c>siegeDecline</c> от населения; ненулевая доля округляется от нуля (не меньше одного человека).
+        /// <paramref name="extraCalmGrowth"/> — прибавка к росту в спокойствии (Колодец).
         /// </summary>
-        public static int MonthlyPopulationChange(int population, SettlementLevel level, SettlementBalance balance)
+        public static int MonthlyPopulationChange(int population, SettlementLevel level, SettlementBalance balance, float extraCalmGrowth = 0f)
         {
             float share;
             switch (level)
             {
-                case SettlementLevel.Calm: share = balance.CalmGrowth; break;
+                case SettlementLevel.Calm: share = balance.CalmGrowth + extraCalmGrowth; break;
                 case SettlementLevel.Alarm: share = -balance.AlarmDecline; break;
                 case SettlementLevel.Siege: share = -balance.SiegeDecline; break;
                 default: share = 0f; break;

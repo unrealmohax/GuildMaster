@@ -114,3 +114,5 @@ description: Ядро симуляции GuildMaster — такт Simulation.Tic
 - Репутацию меняет только `ReputationService.Change(ctx, Δ, причина)` (обрезка 0..`maxReputation`, событие без строки).
 - Поселение (`World.Settlement`) меняет только `SettlementService`; `SettlementSystem` — между `DilemmaSystem` и `EconomySystem`
   (скилл `gm-settlement`). `Simulation.IsFinished` = `Treasury.IsClosed`; закрывает гильдию только `GuildClosure.Close(ctx, причина)`.
+- Кризисы (скилл `gm-crises`): `CrisisSystem` — после `SettlementSystem`, перед `EconomySystem`; часть мира `World.Crises` (`CrisisBook`). Новые события в конце
+  `SimEventType`: `BuildingUpgraded`, `CrisisWarning`, `CrisisStarted`, `CrisisEnded`; виды автопаузы `CrisisWarning`, `CrisisStarted`.

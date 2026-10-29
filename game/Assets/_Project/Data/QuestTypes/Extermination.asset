@@ -21,5 +21,6 @@ MonoBehaviour:
   statCeilings: []
   generationWeight: 0.25
   isThreat: 1
+  isRaid: 1
   roundSuccessFeedKey: quest.round.success.extermination
   roundFailFeedKey: quest.round.fail.extermination

@@ -46,12 +46,13 @@ namespace GuildMaster.Core
         {
             AdventurerState state = adventurer.State;
             FoodBalance food = ctx.Data.Balance.Food;
-            MealTier? choice = FoodRules.Choose(adventurer, ctx.Data, out int spare);
+            bool winter = CrisisRules.IsWinter(ctx.World);
+            MealTier? choice = FoodRules.Choose(adventurer, ctx.Data, winter, out int spare);
             bool guildPays = choice != MealTier.Luxury && DecreeRules.GuildPaysLiving(adventurer, ctx.World, ctx.Data);
 
             if (!guildPays && !choice.HasValue)
             {
-                WalletService.MarkUnpaid(ctx, adventurer, food.Cheap.Price);
+                WalletService.MarkUnpaid(ctx, adventurer, FoodRules.MealPrice(MealTier.Cheap, ctx.Data.Balance, winter));
                 if (RationService.EatInTown(ctx, adventurer)) return;
                 state.LastMealTier = null;
                 state.LastMealWasRation = false;
@@ -68,8 +69,9 @@ namespace GuildMaster.Core
 
             MealTier tier = guildPays ? MealTier.Simple : choice.Value;
             MealBalance meal = food.Meal(tier);
-            if (guildPays) DecreeService.PayMeal(ctx, adventurer, meal.Price);
-            else WalletService.Pay(ctx, adventurer, meal.Price);
+            int price = FoodRules.MealPrice(tier, ctx.Data.Balance, winter);
+            if (guildPays) DecreeService.PayMeal(ctx, adventurer, price);
+            else WalletService.Pay(ctx, adventurer, price);
 
             state.Satiety = FoodRules.AfterMeal(state.Satiety, meal);
             state.TasteToday += meal.Taste;
@@ -81,7 +83,7 @@ namespace GuildMaster.Core
             {
                 StringBuilder line = ctx.Log.Begin(SimLogLevel.Debug);
                 AdventurerLog.AppendName(line.Append("meal "), adventurer)
-                    .Append(' ').Append(tier).Append(' ').Append(meal.Price.ToString(CultureInfo.InvariantCulture))
+                    .Append(' ').Append(tier).Append(' ').Append(price.ToString(CultureInfo.InvariantCulture))
                     .Append(" (wallet=").Append(state.Wallet.ToString(CultureInfo.InvariantCulture))
                     .Append(", spare=").Append(spare.ToString(CultureInfo.InvariantCulture));
                 if (guildPays) line.Append(", guild pays");

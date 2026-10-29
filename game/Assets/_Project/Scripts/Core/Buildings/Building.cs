@@ -43,15 +43,25 @@ namespace GuildMaster.Core
         /// <summary>Когда стройка кончится (у готовой — когда кончилась).</summary>
         public long ConstructionEndsAtHours { get; internal set; }
 
-        /// <summary>Сколько заплачено за стройку.</summary>
+        /// <summary>Сколько заплачено за стройку и улучшения.</summary>
         public int PaidCost { get; internal set; }
 
+        /// <summary>
+        /// Улучшение в очереди или в стройке: до какого уровня; 0 — улучшения нет. Пока идёт улучшение, постройка работает
+        /// на прежнем уровне.
+        /// </summary>
+        public int UpgradingToLevel { get; internal set; }
+
         public bool IsReady => State == BuildingState.Ready;
+
+        /// <summary>Постройка готова и стоит в очереди или в стройке на улучшение.</summary>
+        public bool IsUpgrading => UpgradingToLevel > 0;
     }
 
     /// <summary>
     /// Постройки гильдии: все (в порядке появления), текущая стройка и очередь. Одна стройка одновременно, остальные ждут
-    /// в очереди в порядке, который задаёт игрок. Каждое определение — не больше одной постройки.
+    /// в очереди в порядке, который задаёт игрок. Каждое определение — не больше одной постройки; улучшение готовой постройки
+    /// встаёт в ту же очередь.
     /// </summary>
     public sealed class BuildingBook
     {

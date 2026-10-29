@@ -94,6 +94,10 @@ namespace GuildMaster.Debugging
             new ScenarioCommandFormat("unbuild", typeof(CancelBuildingCommand),
                 args => new CancelBuildingCommand(ParseInt(args, 0)),
                 command => Int(((CancelBuildingCommand)command).BuildingId)),
+            // upgrade IdПостройки — улучшить готовую постройку с уровнями (Арсенал)
+            new ScenarioCommandFormat("upgrade", typeof(UpgradeBuildingCommand),
+                args => new UpgradeBuildingCommand(ParseInt(args, 0)),
+                command => Int(((UpgradeBuildingCommand)command).BuildingId)),
             // offer IdКандидата сумма
             new ScenarioCommandFormat("offer", typeof(OfferSalaryCommand),
                 args => new OfferSalaryCommand(ParseInt(args, 0), ParseInt(args, 1)),

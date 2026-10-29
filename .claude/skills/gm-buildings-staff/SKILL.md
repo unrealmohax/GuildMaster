@@ -89,3 +89,14 @@ description: Постройки и персонал GuildMaster — Building/Bui
 
 **Поселение** (скилл `gm-settlement`): постройка, ставшая готовой (`CompleteIfDue`, не стартовая), сама прибавляет жителей поселению
 (`SettlementService.BuildingReady`, + `populationPerBuilding`) — `BuildingSystem` стоит в такте после `SettlementSystem`.
+
+## Траты и кризисы (GM-24, скилл `gm-crises`)
+
+- **Уровни** — только у Арсенала (`maxLevel` определения, валидатор). Улучшение — `UpgradeBuildingCommand` → `BuildingService.EnqueueUpgrade`: та же очередь,
+  у постройки `UpgradingToLevel` (`IsUpgrading`), `State` остаётся `Ready`, пока идёт — прежний уровень; цена `CostFor(def, уровень)`, срок `DaysFor`;
+  готово — `BuildingUpgraded` [З], без прибавки жителей. `Cancel` снимает и улучшение из очереди.
+- **Содержание** — × уровень; плюс запись «за людей» (`BuildingRules.PeopleUpkeep` = `upkeepPerAdventurer` × людей, комментарий `PeopleUpkeepComment`,
+  связанный id — сколько людей). `MonthlyUpkeep` включает и её — запас ботов вырос.
+- **Проекты поселения** — постройки с `settlementProject` (Частокол, Дозорная вышка, Колодец, Дорога): та же стройка, статья `Projects` вместо
+  `Construction`, на вкладке «Постройки» не показаны (они на «Поселении»); готовый — ещё `SettlementService.ProjectReady`.
+- Тестовые помощники `Ready`/`Hire` есть и в `CrisisTests`. Содержание стартовых построек сейчас Зал 150 + Таверна 100 (в ловушке выше «90» — устарело).

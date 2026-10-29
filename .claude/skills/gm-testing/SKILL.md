@@ -89,3 +89,9 @@ description: Тесты GuildMaster (EditMode, сборка GuildMaster.Tests) �
   `DescriptionAccuracy = 1` (так ставит `QuestWorld.AddOrder`): `PartyLens.Overlap` == `QuestMath.RealOverlap`. Тесты размеров групп
   (`PartyGatheringTests`) — требование у порога, где следующий человек ещё поднимает шанс, но не до потолка: иначе группы всех характеров
   растут до потолка и сравниваются.
+
+- **Кризисы** (`CrisisTests`, скилл `gm-crises`): `StateWorld(crises: true)` / `QuestWorld(crises: true)` — по умолчанию без `CrisisSystem`. Долгий прогон
+  с кризисами в `StateWorld` — добавить денег (`TreasuryService.Credit(…DebugIncome…)`), иначе разорение до зимы; в `StateWorld` нет `OrderSystem` —
+  заказ набега не снимается по сроку (проигрыш набега — через `Simulation.CreateDefault`). `PeopleData.NoCrises()` (зовёт `NoSettlementPressure()`) —
+  кризисы без последствий. Изменение населения — проверять по событиям `PopulationChanged` с нужной причиной: месячный рост, постройки и набег
+  меняют его в те же дни.

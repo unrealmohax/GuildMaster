@@ -121,6 +121,12 @@ namespace GuildMaster.Core
         /// <summary>Ущерб от нападений на поселение — даже в минус.</summary>
         public static readonly LedgerCategory AttackDamage = new LedgerCategory("attackDamage", LedgerFlow.Expense, ExpenseKind.Mandatory);
 
+        /// <summary>Стройка проекта поселения — только если хватает денег. Комментарий — id определения постройки.</summary>
+        public static readonly LedgerCategory Projects = new LedgerCategory("projects", LedgerFlow.Expense, ExpenseKind.IfAffordable);
+
+        /// <summary>Налог лорда в конце квартала — обязательный, даже в минус. Комментарий — id кризиса.</summary>
+        public static readonly LedgerCategory Tax = new LedgerCategory("tax", LedgerFlow.Expense, ExpenseKind.Mandatory);
+
         /// <summary>
         /// Подъёмные новичку при приёме — только если хватает денег (иначе приём отклоняется). Комментарий — уровень кандидата,
         /// связанный объект — человек.
@@ -137,7 +143,7 @@ namespace GuildMaster.Core
         {
             TavernFood, TavernDrinks, Commission, DebtRepayment, Dormitory, Infirmary, TrainingYard,
             Surcharges, EventQuests, Discoveries, Construction, Upkeep, Salaries, Decrees,
-            Loans, Dilemmas, Fines, TavernLocals, AttackDamage, SigningBonuses, DebugIncome, DebugExpense,
+            Loans, Dilemmas, Fines, TavernLocals, AttackDamage, SigningBonuses, Projects, Tax, DebugIncome, DebugExpense,
         };
     }
 }

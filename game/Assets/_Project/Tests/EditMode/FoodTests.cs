@@ -69,7 +69,7 @@ namespace GuildMaster.Tests
             MealTier? Choose(Adventurer a, int wallet)
             {
                 a.State.Wallet = wallet;
-                return FoodRules.Choose(a, data, out _);
+                return FoodRules.Choose(a, data, false, out _);
             }
 
             Assert.AreEqual(42, FoodRules.Reserve(plain, world.Balance), "7 × (город 3 + 3 × дешёвая 1)");

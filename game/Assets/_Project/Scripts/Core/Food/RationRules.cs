@@ -29,21 +29,21 @@ namespace GuildMaster.Core
 
         /// <summary>
         /// Какой тип и сколько пайков человек купит из <paramref name="wanted"/>: обычные — если на все хватает без захода
-        /// в резерв; иначе дешёвые, сколько хватит денег.
+        /// в резерв; иначе дешёвые, сколько хватит денег. Зимой — по зимним ценам.
         /// </summary>
-        public static (RationTier Tier, int Count) Afford(Adventurer adventurer, int wanted, BalanceSettings balance)
+        public static (RationTier Tier, int Count) Afford(Adventurer adventurer, int wanted, BalanceSettings balance, bool winter = false)
         {
             if (wanted <= 0) return (RationTier.Cheap, 0);
-            FoodBalance food = balance.Food;
             int wallet = adventurer.State.Wallet;
-            int spare = wallet - FoodRules.Reserve(adventurer, balance);
-            if (spare >= wanted * food.RationRegular.Price) return (RationTier.Regular, wanted);
-            int price = food.RationCheap.Price;
+            int spare = wallet - FoodRules.Reserve(adventurer, balance, winter);
+            if (spare >= wanted * FoodRules.RationPrice(RationTier.Regular, balance, winter)) return (RationTier.Regular, wanted);
+            int price = FoodRules.RationPrice(RationTier.Cheap, balance, winter);
             return (RationTier.Cheap, price > 0 ? Math.Min(wanted, wallet / price) : wanted);
         }
 
-        /// <summary>Цена покупки <paramref name="count"/> пайков этого типа.</summary>
-        public static int Cost(RationTier tier, int count, FoodBalance food) => count * food.Ration(tier).Price;
+        /// <summary>Цена покупки <paramref name="count"/> пайков этого типа (зимой — по зимней цене).</summary>
+        public static int Cost(RationTier tier, int count, BalanceSettings balance, bool winter = false) =>
+            count * FoodRules.RationPrice(tier, balance, winter);
 
         /// <summary>
         /// Запас, на который человек рассчитывает перед выбором заказа: личный, а у члена постоянной группы ещё его доля общего
@@ -60,15 +60,15 @@ namespace GuildMaster.Core
 
         /// <summary>
         /// Сколько человеку стоят пайки на этот заказ, как он их прикидывает: нужно на ожидаемое задание + запас, минус свой
-        /// запас, по типу, который он купил бы (не больше, чем есть денег).
+        /// запас, по типу, который он купил бы (не больше, чем есть денег). Зимой — по зимним ценам.
         /// </summary>
-        public static int OrderCost(Adventurer adventurer, Order order, DataRegistry data, int ownStock)
+        public static int OrderCost(Adventurer adventurer, Order order, DataRegistry data, int ownStock, bool winter = false)
         {
             FoodBalance food = data.Balance.Food;
             int wanted = Need(adventurer, TravelPlan.ExpectedMeals(order, data), food) - ownStock;
             if (wanted <= 0) return 0;
-            (RationTier tier, int count) = Afford(adventurer, wanted, data.Balance);
-            return Cost(tier, count, food);
+            (RationTier tier, int count) = Afford(adventurer, wanted, data.Balance, winter);
+            return Cost(tier, count, data.Balance, winter);
         }
 
         /// <summary>Жадный не делится пайками: ось Деньги не ниже <c>greedyNoShareAxis</c>.</summary>

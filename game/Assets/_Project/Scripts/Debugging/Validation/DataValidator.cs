@@ -28,7 +28,7 @@ namespace GuildMaster.Debugging
             [typeof(QuestTypeDefinition)] = 5,
             [typeof(RandomEventDefinition)] = 2,
             [typeof(DiscoveryDefinition)] = 1,
-            [typeof(BuildingDefinition)] = 5,
+            [typeof(BuildingDefinition)] = 10,
             [typeof(StaffRoleDefinition)] = 4,
             [typeof(DecreeDefinition)] = 4,
             [typeof(DilemmaDefinition)] = 6,
@@ -82,6 +82,7 @@ namespace GuildMaster.Debugging
                 foreach (DiscoveryDefinition discovery in Live(config.Discoveries)) CheckDiscovery(discovery);
                 foreach (BuildingDefinition building in Live(config.Buildings)) CheckBuilding(building);
                 CheckBuildingFunctions();
+                CheckRaidType();
                 foreach (StaffRoleDefinition role in Live(config.StaffRoles)) CheckStaffRole(role);
                 CheckDecrees();
                 CheckDilemmas();
@@ -491,6 +492,20 @@ namespace GuildMaster.Debugging
                 if (building.StaffRole != null && building.StaffRole.RequiredBuilding != building)
                     report.Error(building, "staffRole", $"{building.StaffRole.Id} работает в другой постройке");
                 if (!building.BuiltAtStart && building.BuildDays == 0) report.Warning(building, "buildDays", "стройка за 0 дней");
+                if (building.MaxLevel > 1 && building.Function != BuildingFunction.Armory)
+                    report.Error(building, "maxLevel", "уровни есть только у Арсенала");
+                if (building.SettlementProject && building.StaffRole != null) report.Error(building, "staffRole", "у проекта поселения нет должности");
+            }
+
+            /// <summary>Тип заказа набега — ровно один, и он угроза поселению.</summary>
+            private void CheckRaidType()
+            {
+                var raid = Live(config.QuestTypes).Where(type => type.IsRaid).ToList();
+                if (raid.Count != 1) report.Error(config, "questTypes", $"типов набега {raid.Count}, нужен один");
+                foreach (QuestTypeDefinition type in raid)
+                {
+                    if (!type.IsThreat) report.Error(type, "isRaid", "тип набега должен быть угрозой поселению");
+                }
             }
 
             /// <summary>Правила находят постройку по назначению: у каждого назначения — не больше одной постройки.</summary>
@@ -502,7 +517,8 @@ namespace GuildMaster.Debugging
                     if (building.Function == BuildingFunction.None) continue;
                     if (!seen.Add(building.Function)) report.Error(building, "function", $"назначение {building.Function} уже есть у другой постройки");
                 }
-                foreach (BuildingFunction function in new[] { BuildingFunction.Dormitory, BuildingFunction.Infirmary, BuildingFunction.TrainingYard })
+                foreach (BuildingFunction function in new[] { BuildingFunction.Dormitory, BuildingFunction.Infirmary, BuildingFunction.TrainingYard,
+                             BuildingFunction.Armory, BuildingFunction.Palisade, BuildingFunction.Watchtower, BuildingFunction.Well, BuildingFunction.Road })
                 {
                     if (!seen.Contains(function)) report.Warning(config, "buildings", $"нет постройки с назначением {function}");
                 }

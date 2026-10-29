@@ -57,6 +57,7 @@ namespace GuildMaster.UI
             SettlementReasons.Night, SettlementReasons.ThreatDone, SettlementReasons.OtherDone, SettlementReasons.Failed,
             SettlementReasons.PartyLost, SettlementReasons.Expired, SettlementReasons.DeclinedByRegistrar,
             SettlementReasons.DeclinedByPlayer, SettlementReasons.NoAnswer, SettlementReasons.Debug,
+            SettlementReasons.RaidWon, SettlementReasons.RaidLost, SettlementReasons.TaxUnpaid,
         };
 
         /// <summary>Подпись причины изменения репутации: префикс + <see cref="ReputationReasons"/>.</summary>

@@ -21,7 +21,7 @@ namespace GuildMaster.UI
     /// <summary>
     /// Окно «Время»: текущая дата, сколько до начала месяца и ближайшие события по порядку — конец стройки, сроки ответа
     /// на важные заказы, возвращение групп (только тех, кто уже на обратном пути: срок на месте заранее не известен), окончание
-    /// срока распоряжений, сроки ответа на обращения.
+    /// срока распоряжений, сроки ответа на обращения, кризисы (объявленные — начало, идущие — конец; мор — только когда идёт).
     /// </summary>
     public sealed class CalendarModel
     {
@@ -32,6 +32,7 @@ namespace GuildMaster.UI
             new PartiesReturn(),
             new DecreesEnd(),
             new DilemmaAnswersDue(),
+            new CrisisModel.CalendarSource(),
         };
 
         public string Today { get; private set; } = string.Empty;
@@ -41,7 +42,7 @@ namespace GuildMaster.UI
         public void Refresh(ISimulationClient client)
         {
             GameTime now = client.World.Time;
-            Today = $"{UiFormat.Date(now)} · {UiFormat.Phase(client.Rhythm.PhaseAt(now))}";
+            Today = $"{UiFormat.Date(now)} · {CrisisModel.SeasonOf(client)} · {UiFormat.Phase(client.Rhythm.PhaseAt(now))}";
             long monthStart = client.Calendar.ToTotalHours(now.Year, now.Month, 1, 0);
             long nextMonth = monthStart + client.Calendar.HoursPerMonth;
             UntilMonth = string.Format(UiStrings.UntilMonthFormat, UiFormat.Duration(nextMonth - now.TotalHours, client.Calendar));

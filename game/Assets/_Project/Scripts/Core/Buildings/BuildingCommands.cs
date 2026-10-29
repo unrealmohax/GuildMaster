@@ -32,7 +32,23 @@ namespace GuildMaster.Core
         public void Apply(SimContext ctx) => BuildingService.Reorder(ctx, BuildingIds);
     }
 
-    /// <summary>Игрок снимает стройку из очереди. Начатую снять нельзя.</summary>
+    /// <summary>
+    /// Игрок заказывает улучшение готовой постройки с уровнями (Арсенал): улучшение встаёт в ту же очередь строек. Постройки нет,
+    /// не готова, уже на наибольшем уровне или улучшение уже заказано — ничего.
+    /// </summary>
+    public sealed class UpgradeBuildingCommand : ICommand
+    {
+        public UpgradeBuildingCommand(int buildingId)
+        {
+            BuildingId = buildingId;
+        }
+
+        public int BuildingId { get; }
+
+        public void Apply(SimContext ctx) => BuildingService.EnqueueUpgrade(ctx, BuildingId);
+    }
+
+    /// <summary>Игрок снимает стройку или улучшение из очереди. Начатое снять нельзя.</summary>
     public sealed class CancelBuildingCommand : ICommand
     {
         public CancelBuildingCommand(int buildingId)

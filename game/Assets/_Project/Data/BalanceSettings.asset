@@ -773,6 +773,39 @@ MonoBehaviour:
     localsTavernIncome: 0.05
     siegeTavernMultiplier: 0.5
     recentChanges: 30
+  crises:
+    upkeepPerAdventurer: 10
+    armoryProfilePerLevel: 0.05
+    palisadeAttackBelow: 10
+    palisadeDamageMultiplier: 0.5
+    watchtowerDecayReduction: 0.15
+    wellPopulation: 10
+    wellGrowth: 0.01
+    roadPopulation: 15
+    roadOrdersPerDay: 0.5
+    warningDays: 30
+    raidMonth: 3
+    raidRankByYear: 01000000020000000300000004000000i
+    raidDays: 10
+    raidReward: 100
+    raidWonSecurity: 10
+    raidLostSecurity: 30
+    raidLostPopulationShare: 0.1
+    taxMonths: 0300000006000000090000000c000000i
+    taxBase: 200
+    taxShareOfIncome: 0.1
+    taxUnpaidReputation: 10
+    taxUnpaidSecurity: 10
+    winterMonths: 0a0000000b0000000c000000i
+    winterFoodPriceMultiplier: 1.5
+    winterCityHousing: 1
+    winterOrdersMultiplier: 0.7
+    winterDecayMultiplier: 1.5
+    plagueChance: 0.25
+    plagueDays: 30
+    plaguePopulationPerWeek: 3
+    plagueWithHealerPerWeek: 1
+    plagueTavernMultiplier: 0.5
   feed:
     guildFeedLimit: 500
     questFeedKeepDays: 30

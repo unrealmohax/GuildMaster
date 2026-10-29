@@ -41,7 +41,7 @@ namespace GuildMaster.Core
         {
             float perceived = QuestMath.RoundChance(QuestMath.PerceivedSoloOverlap(adventurer, order, ctx.Data), 0f, ctx.Data.Balance.Rounds);
             QuestChoices.OrderScores(adventurer, order, perceived, ctx.World.Treasury.Commission, ctx.Data, scores,
-                RationRules.OwnStock(adventurer, ctx.World.Parties));
+                RationRules.OwnStock(adventurer, ctx.World.Parties), CrisisRules.IsWinter(ctx.World));
             if (ctx.Log.IsOn(SimLogLevel.Trace))
             {
                 StringBuilder line = ctx.Log.Begin(SimLogLevel.Trace);

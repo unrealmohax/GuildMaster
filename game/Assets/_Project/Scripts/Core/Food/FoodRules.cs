@@ -48,15 +48,36 @@ namespace GuildMaster.Core
         public static float AfterMeal(float satiety, MealBalance meal) =>
             Math.Max(satiety, Math.Min(meal.SatietyCap, satiety + meal.SatietyGain));
 
-        /// <summary>Жильё за сутки: город или Общежитие, в целых монетах.</summary>
+        /// <summary>Жильё за сутки: город или Общежитие, в целых монетах (обычная цена, без зимы).</summary>
         public static int HousingCost(Adventurer adventurer, ExpensesBalance expenses) =>
             WalletService.Coins(adventurer.Housing == Housing.Dorm ? expenses.DormHousing : expenses.CityHousing);
 
-        /// <summary>Резерв, который человек не тратит на еду получше: <c>reserveDays</c> × (жильё + приёмы в день × дешёвая).</summary>
-        public static int Reserve(Adventurer adventurer, BalanceSettings balance)
+        /// <summary>Жильё за сутки: город или Общежитие; зимой жильё в городе + <c>winterCityHousing</c> (дрова). В целых монетах.</summary>
+        public static int HousingCost(Adventurer adventurer, BalanceSettings balance, bool winter)
+        {
+            ExpensesBalance expenses = balance.Expenses;
+            if (adventurer.Housing == Housing.Dorm) return WalletService.Coins(expenses.DormHousing);
+            return WalletService.Coins(expenses.CityHousing + (winter ? balance.Crises.WinterCityHousing : 0f));
+        }
+
+        /// <summary>Цена еды или пайка: зимой × <c>winterFoodPriceMultiplier</c>, до целого от нуля (1 → 2, 2 → 3, 5 → 8).</summary>
+        public static int Price(int basePrice, bool winter, CrisesBalance crises) =>
+            winter ? (int)Math.Round(basePrice * crises.WinterFoodPriceMultiplier, MidpointRounding.AwayFromZero) : basePrice;
+
+        /// <summary>Цена приёма пищи этого типа с учётом зимы.</summary>
+        public static int MealPrice(MealTier tier, BalanceSettings balance, bool winter) => Price(balance.Food.Meal(tier).Price, winter, balance.Crises);
+
+        /// <summary>Цена пайка этого типа с учётом зимы.</summary>
+        public static int RationPrice(RationTier tier, BalanceSettings balance, bool winter) => Price(balance.Food.Ration(tier).Price, winter, balance.Crises);
+
+        /// <summary>
+        /// Резерв, который человек не тратит на еду получше: <c>reserveDays</c> × (жильё + приёмы в день × дешёвая); зимой — по зимним
+        /// ценам.
+        /// </summary>
+        public static int Reserve(Adventurer adventurer, BalanceSettings balance, bool winter = false)
         {
             FoodBalance food = balance.Food;
-            return food.ReserveDays * (HousingCost(adventurer, balance.Expenses) + food.MealsPerDay * food.Cheap.Price);
+            return food.ReserveDays * (HousingCost(adventurer, balance, winter) + food.MealsPerDay * MealPrice(MealTier.Cheap, balance, winter));
         }
 
         /// <summary>
@@ -74,20 +95,20 @@ namespace GuildMaster.Core
 
         /// <summary>
         /// Какой тип человек возьмёт в этот приём по своему кошельку; <c>null</c> — нет денег даже на дешёвую, приём пропущен.
-        /// <paramref name="spare"/> — остаток кошелька над резервом.
+        /// <paramref name="spare"/> — остаток кошелька над резервом. Зимой бюджет считается по зимним ценам.
         /// </summary>
-        public static MealTier? Choose(Adventurer adventurer, DataRegistry data, out int spare)
+        public static MealTier? Choose(Adventurer adventurer, DataRegistry data, bool winter, out int spare)
         {
             FoodBalance food = data.Balance.Food;
             int wallet = adventurer.State.Wallet;
-            spare = wallet - Reserve(adventurer, data.Balance);
+            spare = wallet - Reserve(adventurer, data.Balance, winter);
             float days = BudgetDays(adventurer, data);
             for (int i = Vocabulary.MealTierCount - 1; i > 0; i--)
             {
                 var tier = (MealTier)i;
-                if (spare >= food.MealsPerDay * food.Meal(tier).Price * days) return tier;
+                if (spare >= food.MealsPerDay * MealPrice(tier, data.Balance, winter) * days) return tier;
             }
-            return wallet >= food.Cheap.Price ? MealTier.Cheap : (MealTier?)null;
+            return wallet >= MealPrice(MealTier.Cheap, data.Balance, winter) ? MealTier.Cheap : (MealTier?)null;
         }
 
         /// <summary>

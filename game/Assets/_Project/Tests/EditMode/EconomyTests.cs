@@ -588,6 +588,8 @@ namespace GuildMaster.Tests
             string Run(bool withEconomy)
             {
                 List<ISimSystem> systems = SimulationSystems.CreateDefault();
+                // Налог считается от доходов гильдии, а их без экономики меньше: кризисы убраны из обоих прогонов.
+                systems.RemoveAll(s => s is CrisisSystem);
                 if (!withEconomy) systems.RemoveAll(s => s is EconomySystem || s is MonthReportSystem);
                 var simulation = new Simulation(data.Registry, 5u, systems);
                 string log = SimulationLog.Record(simulation, sim => SimulationRun.Days(sim, 120));

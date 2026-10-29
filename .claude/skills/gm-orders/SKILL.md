@@ -105,3 +105,10 @@ accuracy=0.97 profile Str=16.2 … hints=…: текст`. `Info` — событ
   (его зовёт `NoQuests()`).
 - Задание, закончившееся в такт 00:00, засчитывается в следующие сутки. Снятый по сроку важный заказ репутацию не снижает.
 - «Хвастун» прибавляет без убывающей отдачи.
+
+## Траты и кризисы (GM-24, скилл `gm-crises`)
+
+- **Заказ набега** (`Order.IsRaid`): создаёт `CrisisService` через `OrderGenerator.Generate(…, fixedType, fixedDistance: Near)` — тип с флагом
+  `QuestTypeDefinition.isRaid` (Истребление), ранг по году, награда `raidReward` × номер ранга, на доске `raidDays`, мимо Регистратора
+  (`OrderArrived` + `OrderPosted` с `by=raid`), берёт номер на общей доске. Снят по сроку — набег проигран (`CrisisSystem` по `OrderExpired`).
+- **Поток заказов** — `CrisisRules.OrdersPerDay`: обычный + Дорога, зимой × `winterOrdersMultiplier`.

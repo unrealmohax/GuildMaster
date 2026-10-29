@@ -87,6 +87,12 @@ namespace GuildMaster.Debugging
             new MonthColumn("Угроз выполнено", m => m.World.Settlement.Totals.ThreatsDone - m.SettlementFrom.ThreatsDone, SummaryTotal.Sum, "0"),
             new MonthColumn("Угроз упущено", m => m.World.Settlement.Totals.ThreatsMissed - m.SettlementFrom.ThreatsMissed, SummaryTotal.Sum, "0"),
             new MonthColumn("Нападений", m => m.Count(SimEventType.SettlementAttacked), SummaryTotal.Sum, "0"),
+            new MonthColumn("Уровень Арсенала", m => BuildingRules.LevelOf(m.World, m.Game.Data, BuildingFunction.Armory), SummaryTotal.Last, "0"),
+            new MonthColumn("Готовых проектов", m => ReadyProjects(m), SummaryTotal.Last, "0"),
+            new MonthColumn("Набегов отбито", m => m.Count(SimEventType.CrisisEnded, e => IsRaid(e, CrisisOutcome.Won)), SummaryTotal.Sum, "0"),
+            new MonthColumn("Набегов проиграно", m => m.Count(SimEventType.CrisisEnded, e => IsRaid(e, CrisisOutcome.Lost)), SummaryTotal.Sum, "0"),
+            new MonthColumn("Зима", m => CrisisRules.WasWinterAt(m.World, m.World.Time.TotalHours - 1) ? 1 : 0, SummaryTotal.Sum, "0"),
+            new MonthColumn("Мор, дней", PlagueDays, SummaryTotal.Sum, "0"),
             new MonthColumn("Заказов взято", m => m.Count(SimEventType.OrderTaken, e => !IsPromotion(e)), SummaryTotal.Sum, "0"),
             new MonthColumn("Выполнено", m => Quests(m, e => e.TryGet("done", out bool done) && done), SummaryTotal.Sum, "0"),
             new MonthColumn("Не выполнено", m => Quests(m, e => e.TryGet("done", out bool done) && !done), SummaryTotal.Sum, "0"),
@@ -219,6 +225,37 @@ namespace GuildMaster.Debugging
                 count++;
             }
             return count > 0 ? sum / count : 0;
+        }
+
+        /// <summary>Готовых проектов поселения на конец месяца.</summary>
+        private static int ReadyProjects(MonthRecord month)
+        {
+            int count = 0;
+            foreach (Building building in month.World.Buildings.All)
+            {
+                if (building.IsReady && month.Game.Data.TryGet(building.DefinitionId, out BuildingDefinition definition) && definition.SettlementProject) count++;
+            }
+            return count;
+        }
+
+        /// <summary>Событие конца кризиса — набег с этим итогом.</summary>
+        private static bool IsRaid(SimEvent simEvent, CrisisOutcome outcome) =>
+            simEvent.TryGet("kind", out CrisisKind kind) && kind == CrisisKind.Raid && simEvent.TryGet("outcome", out CrisisOutcome value) && value == outcome;
+
+        /// <summary>Сколько суток месяца шёл мор (по часам пересечения с месяцем, вверх).</summary>
+        private static double PlagueDays(MonthRecord month)
+        {
+            int hoursPerDay = month.Game.Calendar.HoursPerDay;
+            long end = month.World.Time.TotalHours;
+            long start = end - (long)month.Days * hoursPerDay;
+            long hours = 0;
+            foreach (Crisis crisis in month.World.Crises.All)
+            {
+                if (crisis.Kind != CrisisKind.Plague || crisis.Status < CrisisStatus.Active) continue;
+                long to = crisis.IsActive ? end : Math.Min(end, crisis.EndsAtHours);
+                hours += Math.Max(0L, to - Math.Max(start, crisis.StartsAtHours));
+            }
+            return (hours + hoursPerDay - 1) / hoursPerDay;
         }
 
         /// <summary>Доля раундов заданий за месяц, где шанс упёрся в потолок шанса раунда, %; раундов не было — 0.</summary>

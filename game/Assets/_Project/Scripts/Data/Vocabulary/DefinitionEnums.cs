@@ -127,6 +127,16 @@
         Infirmary = 4,
         /// <summary>Тренировочный двор: места для тренировки.</summary>
         TrainingYard = 5,
+        /// <summary>Арсенал: снаряжение людей на задании, уровни.</summary>
+        Armory = 6,
+        /// <summary>Частокол поселения: нападения реже и слабее.</summary>
+        Palisade = 7,
+        /// <summary>Дозорная вышка поселения: спад Безопасности медленнее.</summary>
+        Watchtower = 8,
+        /// <summary>Колодец поселения: население и его рост.</summary>
+        Well = 9,
+        /// <summary>Дорога к поселению: население и заказы.</summary>
+        Road = 10,
     }
 
     public enum DecreeScopeKind

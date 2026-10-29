@@ -88,12 +88,13 @@ namespace GuildMaster.Core
 
         /// <summary>Средняя по группе ценность варианта «всей группой» (постоянная группа решает так).</summary>
         public static float MeanGroupValue(Order order, IReadOnlyList<Adventurer> members, bool permanent, float commission,
-            RelationBook relations, DataRegistry data, ProfileCache profiles = null, float safetyMultiplier = 1f, PartyBook parties = null)
+            RelationBook relations, DataRegistry data, ProfileCache profiles = null, float safetyMultiplier = 1f, PartyBook parties = null,
+            bool winter = false)
         {
             if (members.Count == 0) return 0f;
             float sum = 0f;
             foreach (Adventurer member in members)
-                sum += new PartyLens(member, order, permanent, commission, relations, data, profiles, safetyMultiplier, parties).Value(members);
+                sum += new PartyLens(member, order, permanent, commission, relations, data, profiles, safetyMultiplier, parties, winter).Value(members);
             return sum / members.Count;
         }
 
@@ -184,13 +185,16 @@ namespace GuildMaster.Core
         private readonly bool permanent;
         private readonly float commission;
         private readonly int ownRations;
+        private readonly bool winter;
 
         /// <param name="safetyMultiplier">Множитель мотива «Безопасность» в оценке заказа (распоряжения).</param>
         /// <param name="parties">Группы мира — чтобы член постоянной группы учёл свою долю общего запаса пайков; не задано —
         /// только личный запас.</param>
+        /// <param name="winter">Идёт зима: пайки в оценке — по зимним ценам.</param>
         public PartyLens(Adventurer viewer, Order order, bool permanent, float commission, RelationBook relations, DataRegistry data,
-            ProfileCache profiles = null, float safetyMultiplier = 1f, PartyBook parties = null)
+            ProfileCache profiles = null, float safetyMultiplier = 1f, PartyBook parties = null, bool winter = false)
         {
+            this.winter = winter;
             ownRations = RationRules.OwnStock(viewer, parties);
             Viewer = viewer;
             Order = order;
@@ -235,9 +239,9 @@ namespace GuildMaster.Core
         public void Scores(IReadOnlyList<Adventurer> members, float[] result)
         {
             float chance = Chance(members);
-            QuestChoices.OrderScores(Viewer, Order, chance, commission, Data, result, ownRations);
+            QuestChoices.OrderScores(Viewer, Order, chance, commission, Data, result, ownRations, winter);
             float share = PartyMath.ExpectedShare(Order, commission, members, Viewer, permanent);
-            result[(int)Motive.Money] = QuestChoices.MoneyScore(Viewer, Order, share, chance, Data, ownRations);
+            result[(int)Motive.Money] = QuestChoices.MoneyScore(Viewer, Order, share, chance, Data, ownRations, winter);
             result[(int)Motive.Companions] = PartyMath.Companions(Viewer, members, permanent, Relations, Data);
         }
 

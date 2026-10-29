@@ -101,3 +101,12 @@ description: Экономика гильдии GuildMaster — казна Treasu
 
 - Статья `LedgerCategories.SigningBonuses` (`signingBonuses`, расход `IfAffordable`): списывает `AcceptCandidateCommand` при приёме
   кандидата; комментарий — уровень, связанный — человек. Шаблон `ledger.signingBonuses` «Подъёмные». Сводка — «Расход: Подъёмные» (сама).
+
+## Траты и кризисы (GM-24, скилл `gm-crises`)
+
+- Статьи: `Tax` («Налог», обязательный, комментарий — id кризиса), `Projects` («Проекты поселения», только если хватает — стройка проектов).
+  Содержание «за людей» — запись `Upkeep` с комментарием `BuildingService.PeopleUpkeepComment`.
+- Отчёт месяца: в «Деньгах» — `report.money.peopleUpkeep` («Из содержания — за людей»); раздел `report.crises` (набеги, налог, неуплаты, дней
+  зимы и мора) — перед «Репутацией», собирается по `World.Crises.All`.
+- `SettleTavern`: зимой доля гильдии с порции еды × `winterFoodPriceMultiplier` (за прошедшие сутки — `CrisisRules.WasWinterAt`).
+- `CrisisSystem` стоит перед `EconomySystem`: налог — в тот же расчёт банкротства.

@@ -59,6 +59,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: d4005ca432869b34aa5dee276b7f8f64, type: 2}
   - {fileID: 11400000, guid: adbcf068d1dbf3a48bb9fdb0ed4b5722, type: 2}
   - {fileID: 11400000, guid: a5a7d72275b2909438879334fec95987, type: 2}
+  - {fileID: 11400000, guid: a4bff19dc6289a44f8053648a40c5bfc, type: 2}
+  - {fileID: 11400000, guid: d5905a56e2a71a7478af6fc0a183c3a1, type: 2}
+  - {fileID: 11400000, guid: f1f761c1d23f5af48a886f549579f3a4, type: 2}
+  - {fileID: 11400000, guid: c63e0130386a6b34a8e9d5eb3f33ecbd, type: 2}
+  - {fileID: 11400000, guid: 99e755ffe6be21a4c81ef803f736888c, type: 2}
   staffRoles:
   - {fileID: 11400000, guid: 22d6020aee06f8545a516adab15eea5e, type: 2}
   - {fileID: 11400000, guid: 361e83ad7413ab84983bc5e39840db0f, type: 2}

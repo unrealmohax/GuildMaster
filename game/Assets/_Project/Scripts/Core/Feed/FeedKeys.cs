@@ -97,6 +97,19 @@ namespace GuildMaster.Core
         public const string SettlementAbandoningLifted = "guild.settlement.abandoningLifted";
         public const string SettlementGrew = "guild.settlement.grew";
         public const string SettlementShrank = "guild.settlement.shrank";
+        public const string BuildingUpgraded = "guild.building.upgraded";
+        public const string CrisisWarningRaid = "guild.crisis.warning.raid";
+        public const string CrisisWarningTax = "guild.crisis.warning.tax";
+        public const string CrisisWarningWinter = "guild.crisis.warning.winter";
+        public const string CrisisRaid = "guild.crisis.raid";
+        public const string CrisisTax = "guild.crisis.tax";
+        public const string CrisisTaxUnpaid = "guild.crisis.taxUnpaid";
+        public const string CrisisWinter = "guild.crisis.winter";
+        public const string CrisisPlague = "guild.crisis.plague";
+        public const string CrisisRaidWon = "guild.crisis.raidWon";
+        public const string CrisisRaidLost = "guild.crisis.raidLost";
+        public const string CrisisWinterEnded = "guild.crisis.winterEnded";
+        public const string CrisisPlagueEnded = "guild.crisis.plagueEnded";
 
         public const string QuestDeparted = "quest.departed";
         public const string QuestTravel = "quest.travel";
@@ -145,6 +158,8 @@ namespace GuildMaster.Core
             DecreeEnabled, DecreeProhibition, DecreeProhibitionQuiet, DecreeRevoked, DecreeBenefitCancelled, DecreeExpired,
             GuildClosedSettlement, SettlementCalm, SettlementNormalDown, SettlementNormalUp, SettlementAlarmDown, SettlementAlarmUp, SettlementSiege,
             SettlementAttacked, SettlementAbandoning, SettlementAbandoningLifted, SettlementGrew, SettlementShrank,
+            BuildingUpgraded, CrisisWarningRaid, CrisisWarningTax, CrisisWarningWinter, CrisisRaid, CrisisTax, CrisisTaxUnpaid, CrisisWinter,
+            CrisisPlague, CrisisRaidWon, CrisisRaidLost, CrisisWinterEnded, CrisisPlagueEnded,
             QuestDeparted, QuestTravel, QuestCamp, QuestCeiling, QuestDeath, QuestLost, QuestOnlyFugitive, QuestMedicSaved,
             QuestReturnTrip, QuestReturnTripHard, QuestRetreat, QuestFlee, QuestLootHandedIn, QuestLootSkimmed,
             QuestRationsShared, QuestRationsRanOut,
@@ -261,6 +276,10 @@ namespace GuildMaster.Core
                 { SimEventType.SettlementAbandoning, (e, w, d) => SettlementAbandoning },
                 { SimEventType.SettlementAbandoningLifted, (e, w, d) => SettlementAbandoningLifted },
                 { SimEventType.PopulationChanged, (e, w, d) => PopulationKey(e) },
+                { SimEventType.BuildingUpgraded, (e, w, d) => BuildingUpgraded },
+                { SimEventType.CrisisWarning, (e, w, d) => CrisisWarningKey(e) },
+                { SimEventType.CrisisStarted, (e, w, d) => CrisisStartedKey(e) },
+                { SimEventType.CrisisEnded, (e, w, d) => CrisisEndedKey(e) },
             };
 
         /// <summary>Уровень поселения сменился: строка по новому уровню и направлению.</summary>
@@ -284,6 +303,46 @@ namespace GuildMaster.Core
             simEvent.TryGet("from", out int from);
             simEvent.TryGet("to", out int to);
             return to > from ? SettlementGrew : SettlementShrank;
+        }
+
+        /// <summary>Объявлен кризис: строка по виду; у мора объявления нет.</summary>
+        private static string CrisisWarningKey(SimEvent simEvent)
+        {
+            if (!simEvent.TryGet("kind", out CrisisKind kind)) return null;
+            switch (kind)
+            {
+                case CrisisKind.Raid: return CrisisWarningRaid;
+                case CrisisKind.Tax: return CrisisWarningTax;
+                case CrisisKind.Winter: return CrisisWarningWinter;
+                default: return null;
+            }
+        }
+
+        /// <summary>Кризис наступил: строка по виду; налог — уплачен или увёл казну в минус.</summary>
+        private static string CrisisStartedKey(SimEvent simEvent)
+        {
+            if (!simEvent.TryGet("kind", out CrisisKind kind)) return null;
+            switch (kind)
+            {
+                case CrisisKind.Raid: return CrisisRaid;
+                case CrisisKind.Tax: return simEvent.TryGet("unpaid", out bool unpaid) && unpaid ? CrisisTaxUnpaid : CrisisTax;
+                case CrisisKind.Winter: return CrisisWinter;
+                case CrisisKind.Plague: return CrisisPlague;
+                default: return null;
+            }
+        }
+
+        /// <summary>Кризис кончился: набег — отбит или нет, зима и мор — прошли.</summary>
+        private static string CrisisEndedKey(SimEvent simEvent)
+        {
+            if (!simEvent.TryGet("kind", out CrisisKind kind)) return null;
+            switch (kind)
+            {
+                case CrisisKind.Raid: return simEvent.TryGet("outcome", out CrisisOutcome outcome) && outcome == CrisisOutcome.Won ? CrisisRaidWon : CrisisRaidLost;
+                case CrisisKind.Winter: return CrisisWinterEnded;
+                case CrisisKind.Plague: return CrisisPlagueEnded;
+                default: return null;
+            }
         }
 
         /// <summary>Объявлено распоряжение; у Сухого закона — своя строка (с Пьяницей-участником или без).</summary>

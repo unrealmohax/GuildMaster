@@ -162,7 +162,8 @@ namespace GuildMaster.Core
         }
 
         /// <summary>
-        /// Начать задание по взятому заказу этой группой: заказ — «идёт», у людей — занятие задания, путь туда
+        /// Начать задание по взятому заказу этой группой: заказ — «идёт», у людей — занятие задания и снаряжение из Арсенала
+        /// (уровень готового Арсенала), путь туда
         /// (длительность — из заказа; событие в пути, находка — броски сразу, в этом порядке), строка «Выход», пайки на дорогу
         /// (<see cref="RationService.Buy"/>, без бросков). <paramref name="group"/> — группа, которая собралась под заказ (идёт
         /// один — задание без группы). Соперники в одной группе раскрываются.
@@ -176,11 +177,13 @@ namespace GuildMaster.Core
             PartyService.Attach(ctx, run, group, party);
 
             PartyContext context = QuestParty.ContextOf(party.Count);
+            int gear = BuildingRules.LevelOf(ctx.World, ctx.Data, BuildingFunction.Armory);
             foreach (Adventurer member in party)
             {
                 run.AddMember(member.Id);
                 AdventurerState state = member.State;
                 state.QuestRunId = run.Id;
+                state.GearLevel = gear;
                 state.QuestParty = context;
                 state.Activity = Activity.OnQuestTravel;
                 state.PlannedActivity = null;

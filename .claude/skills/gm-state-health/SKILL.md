@@ -210,3 +210,11 @@ GuildMaster → Sandbox → State: `Light Wound First`, `Heavy Wound First`, `St
 
 - Тест с `sulkSkipChance` 1 должен ставить и `sulkSkipChanceMax` 1, иначе ниже границы шанс меньше 1.
 - Ушедший вслед в этом же такте ещё стоит в списке проверки ухода — `CheckLeaving` пропускает тех, кого уже нет среди активных.
+
+## Зима и снаряжение (GM-24, скилл `gm-crises`)
+
+- Пока идёт зима (`CrisisRules.IsWinter`): цены еды и пайков × 1,5 до целого от нуля (`FoodRules.Price/MealPrice/RationPrice`), жильё в городе + 1
+  (`FoodRules.HousingCost(…, balance, winter)`); бюджет на еду, резерв (`Reserve(…, winter)`), покупка пайков (`RationRules.Afford/Cost(…, winter)`),
+  плата семье и оценка заказа (`OrderCost`, `MoneyScore`, `PartyLens(…, winter)`, `DecisionScope.Winter`) — по зимним ценам. `DailyLivingCost`
+  («мерило денег» мотивов) — по обычным.
+- Снаряжение Арсенала — модификатор `GearMultiplier` в `AdventurerStats.TemporaryModifiers`: × (1 + 0,05 × `GearLevel`), пока человек на задании.
