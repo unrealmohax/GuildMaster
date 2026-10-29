@@ -181,6 +181,7 @@ namespace GuildMaster.Debugging
                 }
 
                 if (balance.Rounds.FailureLadder.Count != 5) report.Error(balance, "rounds.failureLadder", "нужно 5 ступеней");
+                CheckGroupWeights(balance);
 
                 SettlementBalance settlement = balance.Settlement;
                 if (!(settlement.AlarmFrom < settlement.NormalFrom && settlement.NormalFrom < settlement.CalmFrom && settlement.CalmFrom <= settlement.MaxSecurity))
@@ -223,6 +224,20 @@ namespace GuildMaster.Debugging
                     report.Error(balance, "economy.defaultCommission", "вне пределов комиссии");
 
                 CheckFood(balance);
+            }
+
+            /// <summary>Веса сложения группы: в 0..1, по убыванию, не меньше, чем людей в группе.</summary>
+            private void CheckGroupWeights(BalanceSettings balance)
+            {
+                RoundsBalance rounds = balance.Rounds;
+                IReadOnlyList<float> weights = rounds.GroupContributionWeights;
+                if (weights.Count < rounds.MaxPartySize)
+                    report.Error(balance, "rounds.groupContributionWeights", $"весов {weights.Count}, а людей в группе до {rounds.MaxPartySize}");
+                for (int i = 0; i < weights.Count; i++)
+                {
+                    if (weights[i] < 0f || weights[i] > 1f) report.Error(balance, $"rounds.groupContributionWeights[{i}]", "вес вне 0..1");
+                    if (i > 0 && weights[i] > weights[i - 1]) report.Error(balance, $"rounds.groupContributionWeights[{i}]", "веса — по убыванию");
+                }
             }
 
             private void CheckFood(BalanceSettings balance)

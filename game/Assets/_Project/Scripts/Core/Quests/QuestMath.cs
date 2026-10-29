@@ -101,8 +101,9 @@ namespace GuildMaster.Core
         }
 
         /// <summary>
-        /// Профиль группы по <see cref="StatId"/>: Σ по присутствующим эффективный параметр × множитель (один — × 1,
-        /// в группе — × Слаженность / 100) × паника × бросок вперёд. У Слаженности — 0 (не ось).
+        /// Профиль группы по <see cref="StatId"/>: вклад каждого присутствующего — эффективный параметр × множитель (один —
+        /// <c>soloProfileMultiplier</c>, в группе — <see cref="GroupMultiplier"/>) × паника × бросок вперёд; вклады складываются
+        /// <see cref="SumContributions"/>. У Слаженности — 0 (не ось).
         /// </summary>
         /// <param name="panicked">Кто в панике в этом раунде (профиль × <c>panicProfileMultiplier</c>); может быть <c>null</c>.</param>
         /// <param name="rushing">Кто бросился вперёд (× <c>rushProfileMultiplier</c>); может быть <c>null</c>.</param>
@@ -111,21 +112,91 @@ namespace GuildMaster.Core
         {
             var profile = new float[Vocabulary.StatCount];
             bool solo = members.Count == 1;
+            RoundsBalance rounds = data.Balance.Rounds;
             TensionBalance tension = data.Balance.Tension;
-            foreach (Adventurer member in members)
+            var parts = new float[members.Count][];
+            for (int k = 0; k < members.Count; k++)
             {
-                float multiplier = solo ? data.Balance.Rounds.SoloProfileMultiplier : member.GetStat(StatId.Cohesion) / 100f;
+                Adventurer member = members[k];
+                float multiplier = solo ? rounds.SoloProfileMultiplier : GroupMultiplier(member, rounds);
                 if (panicked != null && Contains(panicked, member.Id)) multiplier *= tension.PanicProfileMultiplier;
                 if (rushing != null && Contains(rushing, member.Id)) multiplier *= tension.RushProfileMultiplier;
-                for (int i = 0; i < profile.Length; i++)
-                {
-                    var stat = (StatId)i;
-                    if (!Vocabulary.IsDiagramAxis(stat)) continue;
-                    profile[i] += AdventurerStats.Effective(member, stat, data) * multiplier;
-                }
+                parts[k] = Contribution(member, multiplier, data);
             }
+            SumContributions(parts, parts.Length, rounds.GroupContributionWeights, new float[parts.Length], profile);
             return profile;
         }
+
+        /// <summary>
+        /// Множитель вклада человека в группе: <c>cohesionBase</c> + (1 − <c>cohesionBase</c>) × Слаженность / 100. Несыгранный
+        /// человек вкладывает меньше, но не обнуляется.
+        /// </summary>
+        public static float GroupMultiplier(Adventurer member, RoundsBalance rounds) =>
+            rounds.CohesionBase + (1f - rounds.CohesionBase) * member.GetStat(StatId.Cohesion) / 100f;
+
+        /// <summary>Вклад человека по <see cref="StatId"/>: эффективный параметр × множитель на осях диаграммы, на остальных — 0.</summary>
+        public static float[] Contribution(Adventurer member, float multiplier, DataRegistry data)
+        {
+            var part = new float[Vocabulary.StatCount];
+            for (int i = 0; i < part.Length; i++)
+            {
+                var stat = (StatId)i;
+                if (Vocabulary.IsDiagramAxis(stat)) part[i] = AdventurerStats.Effective(member, stat, data) * multiplier;
+            }
+            return part;
+        }
+
+        /// <summary>
+        /// Сложение вкладов первых <paramref name="count"/> участников в профиль группы — одно правило для настоящего расчёта
+        /// и для оценки группы глазами человека. Один — его вклад как есть. В группе на каждой оси вклады идут по убыванию:
+        /// лучший на этой оси — × первый вес, следующий — × второй и так далее (людей больше, чем весов, — × последний вес).
+        /// Каждый следующий добавляет меньше, специалист по-прежнему закрывает свою ось.
+        /// </summary>
+        /// <param name="weights">Веса по месту на оси (<c>groupContributionWeights</c>).</param>
+        /// <param name="scratch">Рабочий буфер не короче <paramref name="count"/>.</param>
+        /// <param name="profile">Куда записать профиль (перезаписывается целиком).</param>
+        public static void SumContributions(IReadOnlyList<float[]> parts, int count, IReadOnlyList<float> weights, float[] scratch, float[] profile)
+        {
+            for (int i = 0; i < profile.Length; i++)
+            {
+                if (count == 0 || !Vocabulary.IsDiagramAxis((StatId)i))
+                {
+                    profile[i] = 0f;
+                    continue;
+                }
+                if (count == 1)
+                {
+                    profile[i] = parts[0][i];
+                    continue;
+                }
+
+                // Вставками по убыванию: людей в группе не больше шести.
+                for (int k = 0; k < count; k++)
+                {
+                    float value = parts[k][i];
+                    int at = k;
+                    while (at > 0 && scratch[at - 1] < value)
+                    {
+                        scratch[at] = scratch[at - 1];
+                        at--;
+                    }
+                    scratch[at] = value;
+                }
+                float sum = 0f;
+                for (int k = 0; k < count; k++) sum += scratch[k] * WeightAt(weights, k);
+                profile[i] = sum;
+            }
+        }
+
+        private static float WeightAt(IReadOnlyList<float> weights, int place) =>
+            weights.Count == 0 ? 1f : weights[Math.Min(place, weights.Count - 1)];
+
+        /// <summary>
+        /// Шанс раунда: перекрытие + синергия, не выше <c>maxRoundChance</c> и не ниже 0 — даже идеальная группа иногда
+        /// спотыкается. Одно правило для раунда, экзамена, события в пути и воспринимаемого шанса.
+        /// </summary>
+        public static float RoundChance(float overlap, float synergy, RoundsBalance rounds) =>
+            Math.Max(0f, Math.Min(rounds.MaxRoundChance, overlap + synergy));
 
         /// <summary>
         /// Синергии каждой пары: друзья, давние напарники, влюблённые (партнёр по черте), соперники (партнёр по черте),

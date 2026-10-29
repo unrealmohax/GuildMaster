@@ -100,6 +100,8 @@ namespace GuildMaster.Debugging
             new MonthColumn("Раскрытий на заданиях", m => m.Count(SimEventType.AxisRevealed, OnQuest) + m.Count(SimEventType.TraitRevealed, OnQuest),
                 SummaryTotal.Sum, "0"),
             new MonthColumn("Шанс раунда", RoundChance, SummaryTotal.Mean),
+            new MonthColumn("Шанс раунда: доля на потолке, %", CappedRoundShare, SummaryTotal.Mean, "0.#"),
+            new MonthColumn("Выполнено угроз, %", ThreatsDoneShare, SummaryTotal.Mean, "0.#"),
             new MonthColumn("Экзаменов сдано", m => m.Count(SimEventType.PromotionExam, e => e.TryGet("passed", out bool passed) && passed), SummaryTotal.Sum, "0"),
             new MonthColumn("Заданий соло", m => Quests(m, e => Departed(e) == 1), SummaryTotal.Sum, "0"),
             new MonthColumn("Заданий в группе", m => Quests(m, e => Departed(e) > 1), SummaryTotal.Sum, "0"),
@@ -217,6 +219,30 @@ namespace GuildMaster.Debugging
                 count++;
             }
             return count > 0 ? sum / count : 0;
+        }
+
+        /// <summary>Доля раундов заданий за месяц, где шанс упёрся в потолок шанса раунда, %; раундов не было — 0.</summary>
+        private static double CappedRoundShare(MonthRecord month)
+        {
+            float cap = month.Game.Data.Balance.Rounds.MaxRoundChance;
+            int capped = 0, count = 0;
+            foreach (SimEvent simEvent in month.Events)
+            {
+                if ((simEvent.Type != SimEventType.RoundSuccess && simEvent.Type != SimEventType.RoundFail) || !simEvent.TryGet("chance", out float chance)) continue;
+                count++;
+                if (chance >= cap - 1e-5f) capped++;
+            }
+            return count > 0 ? 100.0 * capped / count : 0;
+        }
+
+        /// <summary>Доля выполненных среди законченных за месяц заданий-угроз (по флагу типа задания), %; таких не было — 0.</summary>
+        private static double ThreatsDoneShare(MonthRecord month)
+        {
+            DataRegistry data = month.Game.Data;
+            int threats = Quests(month, e => e.TryGet("questType", out string type) && SettlementRules.IsThreat(data, type));
+            int done = Quests(month, e => e.TryGet("questType", out string type) && SettlementRules.IsThreat(data, type)
+                && e.TryGet("done", out bool isDone) && isDone);
+            return threats > 0 ? 100.0 * done / threats : 0;
         }
 
         /// <summary>

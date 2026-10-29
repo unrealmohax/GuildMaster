@@ -39,7 +39,7 @@ namespace GuildMaster.Core
 
         private static void Score(SimContext ctx, Adventurer adventurer, Order order, float[] scores)
         {
-            float perceived = QuestMath.PerceivedSoloOverlap(adventurer, order, ctx.Data);
+            float perceived = QuestMath.RoundChance(QuestMath.PerceivedSoloOverlap(adventurer, order, ctx.Data), 0f, ctx.Data.Balance.Rounds);
             QuestChoices.OrderScores(adventurer, order, perceived, ctx.World.Treasury.Commission, ctx.Data, scores,
                 RationRules.OwnStock(adventurer, ctx.World.Parties));
             if (ctx.Log.IsOn(SimLogLevel.Trace))
