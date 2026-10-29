@@ -108,3 +108,6 @@ description: Лента событий и тексты GuildMaster — FeedSyste
 - Ключи: `guild.adventurer.followedFriend` [В] — `AdventurerLeft` с `cause=FollowedFriend` (выбор ключа в `FeedKeys`), `guild.adventurer.sulking` [О] —
   `SulkingDay`; причина `reason.followedFriend` «уш[ёл|ла]@имя вслед за {друг:т}». `CandidateAcceptRefused` и `ReputationChanged` — без строк.
 - Шаблоны интерфейса `ui.reputation.reason.*` (9 причин) и `ledger.signingBonuses` — в генераторе `.Feed.cs`.
+- Кризисы (скилл `gm-crises`): ключи `guild.crisis.warning.raid|tax|winter`, `guild.crisis.raid|tax|taxUnpaid|winter|plague`,
+  `guild.crisis.raidWon|raidLost|winterEnded|plagueEnded` (по `kind`/`outcome`/`unpaid` событий `CrisisWarning/Started/Ended`), `guild.building.upgraded`
+  (`{число}` — уровень); в `FeedKeys.Fixed`. Метки — `{число}` (дни, ушло жителей), `{сумма}` (налог), `{поселение}`.
