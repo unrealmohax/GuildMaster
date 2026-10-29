@@ -60,7 +60,8 @@ namespace GuildMaster.Core
         internal static void CountTavernDrink(SimContext ctx, int portions = 1) => ctx.World.Treasury.TavernDrinks += portions;
 
         /// <summary>
-        /// Доход таверны за прошедшие сутки (× Сухой закон): еда — порции и пайки каждого типа × доля гильдии с порции этого типа,
+        /// Доход таверны за прошедшие сутки (× Сухой закон): еда — порции и пайки каждого типа × доля гильдии с порции этого типа
+        /// (зимой × <c>winterFoodPriceMultiplier</c>),
         /// выпивка — порции × <c>tavernIncomePerServing</c>. Еда и выпивка — отдельные записи журнала; зачисляются целые монеты,
         /// дробный остаток переносится на следующие сутки.
         /// </summary>
@@ -92,6 +93,8 @@ namespace GuildMaster.Core
                 if (rationCount > 0)
                     comment += string.Format(CultureInfo.InvariantCulture, " rationCheap={0} rationRegular={1}",
                         rations[(int)RationTier.Cheap], rations[(int)RationTier.Regular]);
+                // Зимой еда дороже — и доля гильдии с порции тоже (сутки, за которые считаем, — прошедшие).
+                if (CrisisRules.WasWinterAt(ctx.World, ctx.World.Time.TotalHours - 1)) foodIncome *= ctx.Data.Balance.Crises.WinterFoodPriceMultiplier;
                 treasury.TavernFoodRemainder = Settle(ctx, LedgerCategories.TavernFood, treasury.TavernFoodRemainder + foodIncome * multiplier, comment);
                 Array.Clear(meals, 0, meals.Length);
                 Array.Clear(rations, 0, rations.Length);

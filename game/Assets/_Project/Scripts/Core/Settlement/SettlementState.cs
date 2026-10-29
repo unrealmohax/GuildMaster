@@ -166,9 +166,27 @@ namespace GuildMaster.Core
         public const string NoAnswer = "noAnswer";
         public const string Debug = "debug";
 
+        /// <summary>Набег отбит.</summary>
+        public const string RaidWon = "raidWon";
+
+        /// <summary>Набег не отбит.</summary>
+        public const string RaidLost = "raidLost";
+
+        /// <summary>Налог увёл казну гильдии в минус — лорд недоволен.</summary>
+        public const string TaxUnpaid = "taxUnpaid";
+
         // Население.
         public const string Month = "month";
         public const string Building = "building";
         public const string Attack = "attack";
+
+        /// <summary>Готов проект поселения (Колодец, Дорога).</summary>
+        public const string Project = "project";
+
+        /// <summary>Набег не отбит: часть жителей уходит.</summary>
+        public const string RaidFled = "raidFled";
+
+        /// <summary>Мор.</summary>
+        public const string Plague = "plague";
     }
 }

@@ -59,15 +59,26 @@ namespace GuildMaster.Core
             return count;
         }
 
-        /// <summary>Содержание готовых построек в месяц.</summary>
+        /// <summary>Содержание в месяц: готовые постройки (× уровень) и плата за людей в гильдии.</summary>
         public static int MonthlyUpkeep(WorldState world, DataRegistry data)
         {
-            int total = 0;
+            int total = PeopleUpkeep(world, data);
             foreach (Building building in world.Buildings.All)
             {
-                if (building.IsReady && data.TryGet(building.DefinitionId, out BuildingDefinition definition)) total += definition.UpkeepPerMonth;
+                if (building.IsReady && data.TryGet(building.DefinitionId, out BuildingDefinition definition))
+                    total += definition.UpkeepPerMonth * building.Level;
             }
             return total;
         }
+
+        /// <summary>Содержание за людей в месяц: <c>upkeepPerAdventurer</c> × людей в гильдии.</summary>
+        public static int PeopleUpkeep(WorldState world, DataRegistry data) =>
+            data.Balance.Crises.UpkeepPerAdventurer * world.Adventurers.Active.Count;
+
+        /// <summary>Уровень готовой постройки с назначением; нет такой или не готова — 0.</summary>
+        public static int LevelOf(WorldState world, DataRegistry data, BuildingFunction function) =>
+            IsReady(world, data, function, out BuildingDefinition definition) && world.Buildings.TryGetByDefinition(definition.Id, out Building building)
+                ? building.Level
+                : 0;
     }
 }

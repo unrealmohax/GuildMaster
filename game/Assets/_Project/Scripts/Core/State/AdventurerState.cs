@@ -144,6 +144,12 @@ namespace GuildMaster.Core
         /// </summary>
         public int QuestRunId { get; internal set; }
 
+        /// <summary>
+        /// Уровень снаряжения из Арсенала, выданного при выходе на задание; действует, пока человек на задании
+        /// (<see cref="QuestRunId"/> не 0).
+        /// </summary>
+        public int GearLevel { get; internal set; }
+
         /// <summary>С кем человек на задании: один или в группе; вне задания — <see cref="PartyContext.None"/>.</summary>
         public PartyContext QuestParty { get; internal set; }
 

@@ -86,12 +86,15 @@ namespace GuildMaster.Core
         /// <summary>Хвастун расписал выполненное задание.</summary>
         public const string Braggart = "braggart";
 
+        /// <summary>Налог увёл казну в минус — лорд недоволен.</summary>
+        public const string TaxUnpaid = "taxUnpaid";
+
         public const string Debug = "debug";
 
         /// <summary>Все причины — для подписей интерфейса и проверки шаблонов.</summary>
         public static IReadOnlyList<string> All { get; } = new[]
         {
-            QuestDone, QuestFailed, ImportantFailed, Decay, Death, Left, Fled, Braggart, Debug,
+            QuestDone, QuestFailed, ImportantFailed, Decay, Death, Left, Fled, Braggart, TaxUnpaid, Debug,
         };
     }
 }

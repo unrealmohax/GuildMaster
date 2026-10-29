@@ -59,6 +59,9 @@ namespace GuildMaster.UI
         private BarView settlementBar;
         private TextMeshProUGUI settlementNext;
         private TextMeshProUGUI settlementChanges;
+        private TextMeshProUGUI settlementCrises;
+        private readonly List<(TextMeshProUGUI Label, Button Build)> projectViews = new List<(TextMeshProUGUI, Button)>();
+        private List<ProjectRow> projectRows = new List<ProjectRow>();
 
         private sealed class StaffCandidateView
         {
@@ -334,14 +337,68 @@ namespace GuildMaster.UI
             settlementNext = Factory.Label(page, string.Empty, Theme.FontSize, wrap: true);
             Factory.Label(page, UiStrings.SettlementThreatsHint, Theme.FontSizeSmall, Theme.TextDim, wrap: true);
 
+            Factory.Heading(page, UiStrings.CrisesHeading);
+            settlementCrises = Factory.Label(page, string.Empty, Theme.FontSize, wrap: true);
+
+            Factory.Heading(page, UiStrings.ProjectsHeading);
+            RectTransform projects = UiFactory.Node(page, "Projects");
+            Factory.Vertical(projects, 4);
+            foreach (ProjectRow row in CrisisModel.Projects(Client))
+            {
+                Image panel = Factory.Panel(projects, "Project", Theme.PanelAlt, blocksClicks: true);
+                HorizontalLayoutGroup layout = Factory.Horizontal(panel, 10);
+                layout.padding = new RectOffset(10, 6, 2, 2);
+                UiFactory.Size(panel, height: Theme.RowHeight * 2);
+                TextMeshProUGUI label = Factory.Label(panel.transform, string.Empty, Theme.FontSizeSmall, wrap: true);
+                UiFactory.Size(label, flexWidth: 1);
+                string id = row.DefinitionId;
+                Button build = Factory.Button(panel.transform, string.Empty, () => OrderProject(id), 300, fontSize: Theme.FontSizeSmall);
+                projectViews.Add((label, build));
+            }
+
             Factory.Heading(page, UiStrings.SettlementChanges);
             RectTransform content = Factory.Scroll(page, "SettlementChanges", out ScrollRect scroll, 4);
             UiFactory.Size(scroll, flexWidth: 1, flexHeight: 1);
             settlementChanges = Factory.LinkLabel(content, Context.OnLink);
         }
 
+        /// <summary>Заказать проект поселения (та же стройка, что у построек гильдии).</summary>
+        public void OrderProject(string definitionId)
+        {
+            foreach (ProjectRow row in projectRows)
+            {
+                if (row.DefinitionId != definitionId || !row.CanOrder) continue;
+                BuildingActions.Order(Client, definitionId);
+                Refresh();
+                return;
+            }
+        }
+
+        /// <summary>Строки проектов поселения после последней перерисовки.</summary>
+        public IReadOnlyList<ProjectRow> ProjectRows => projectRows;
+
+        private void RefreshProjects()
+        {
+            string dim = UiTheme.ToHex(Theme.TextDim);
+            List<string> crises = CrisisModel.Lines(Client);
+            settlementCrises.text = crises.Count > 0 ? string.Join("\n", crises) : $"<color={dim}>{UiStrings.CrisesNone}</color>";
+
+            projectRows = CrisisModel.Projects(Client);
+            for (int i = 0; i < projectViews.Count && i < projectRows.Count; i++)
+            {
+                ProjectRow row = projectRows[i];
+                projectViews[i].Label.text = $"<b>{row.Name}</b> — <color={dim}>{row.State}</color>\n{row.Effect}";
+                projectViews[i].Build.interactable = row.CanOrder;
+                Factory.SetButtonColors(projectViews[i].Build, row.CanOrder);
+                projectViews[i].Build.GetComponentInChildren<TextMeshProUGUI>().text = row.CanOrder
+                    ? string.Format(UiStrings.ProjectBuildFormat, UiFormat.Money(row.Cost), row.BuildDays)
+                    : row.State;
+            }
+        }
+
         private void RefreshSettlement()
         {
+            RefreshProjects();
             SettlementModel model = SettlementModel.Build(Client);
             Color level = TopBarView.LevelColor(Theme, model.Level);
             string dim = UiTheme.ToHex(Theme.TextDim);
@@ -393,7 +450,7 @@ namespace GuildMaster.UI
                 RefreshBuildings();
             });
 
-            buildButton = Factory.Button(page, UiStrings.SelectBuilding, OrderSelectedBuilding, 620);
+            buildButton = Factory.Button(page, UiStrings.SelectBuilding, OrderSelectedBuilding, 900);
 
             RectTransform queueHeader = UiFactory.Node(page, "QueueHeader");
             Factory.Horizontal(queueHeader, 12);
@@ -419,12 +476,14 @@ namespace GuildMaster.UI
         /// <summary>Строки вкладки «Постройки» после последней перерисовки.</summary>
         public IReadOnlyList<BuildingRow> BuildingRows => buildingRows;
 
-        /// <summary>Заказать выбранную постройку, если её можно заказать.</summary>
+        /// <summary>Заказать выбранную постройку или её улучшение, если можно.</summary>
         public void OrderSelectedBuilding()
         {
             BuildingRow row = SelectedBuildingRow();
-            if (row == null || !row.CanOrder) return;
-            BuildingActions.Order(Client, row.DefinitionId);
+            if (row == null) return;
+            if (row.CanOrder) BuildingActions.Order(Client, row.DefinitionId);
+            else if (row.CanUpgrade) BuildingActions.Upgrade(Client, row.Id);
+            else return;
             Refresh();
         }
 
@@ -454,12 +513,14 @@ namespace GuildMaster.UI
             }
 
             BuildingRow selected = SelectedBuildingRow();
-            bool canOrder = selected != null && selected.CanOrder;
+            bool canOrder = selected != null && (selected.CanOrder || selected.CanUpgrade);
             buildButton.interactable = canOrder;
             Factory.SetButtonColors(buildButton, canOrder);
-            buildButton.GetComponentInChildren<TextMeshProUGUI>().text = canOrder
-                ? string.Format(UiStrings.BuildFormat, selected.Name, UiFormat.Money(selected.Cost), selected.BuildDays)
-                : selected != null ? selected.Name + " — " + selected.State : UiStrings.SelectBuilding;
+            buildButton.GetComponentInChildren<TextMeshProUGUI>().text = selected == null ? UiStrings.SelectBuilding
+                : selected.CanOrder ? string.Format(UiStrings.BuildFormat, selected.Name, UiFormat.Money(selected.Cost), selected.BuildDays)
+                : selected.CanUpgrade ? string.Format(UiStrings.UpgradeFormat, selected.Name, selected.NextLevel, UiFormat.Money(selected.UpgradeCost),
+                    selected.UpgradeDays, selected.NextEffect)
+                : selected.Name + " — " + selected.State;
 
             RefreshQueue();
         }

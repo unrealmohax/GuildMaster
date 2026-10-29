@@ -47,5 +47,11 @@
 
         /// <summary>Безопасность поселения на нуле: жители собираются уходить.</summary>
         SettlementAbandoning,
+
+        /// <summary>Объявлен кризис по календарю (набег, налог, зима).</summary>
+        CrisisWarning,
+
+        /// <summary>Кризис наступил: набег, налог, зима, мор.</summary>
+        CrisisStarted,
     }
 }

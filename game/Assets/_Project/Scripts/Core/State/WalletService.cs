@@ -123,12 +123,12 @@ namespace GuildMaster.Core
             IsBelowWeeklyExpenses(adventurer, balance) ? balance.State.LowWalletMoneyMultiplier : 1f;
 
         /// <summary>
-        /// Жильё за сутки (00:00). Жильцы Общежития платят гильдии — плата в казну (<see cref="LedgerCategories.Dormitory"/>).
+        /// Жильё за сутки (00:00; зимой в городе дороже). Жильцы Общежития платят гильдии — плата в казну (<see cref="LedgerCategories.Dormitory"/>).
         /// Возвращает, сколько заплачено.
         /// </summary>
         internal static int PayDaily(SimContext ctx, Adventurer adventurer)
         {
-            int paid = Pay(ctx, adventurer, FoodRules.HousingCost(adventurer, ctx.Data.Balance.Expenses));
+            int paid = Pay(ctx, adventurer, FoodRules.HousingCost(adventurer, ctx.Data.Balance, CrisisRules.IsWinter(ctx.World)));
             if (adventurer.Housing == Housing.Dorm) TreasuryService.Credit(ctx, LedgerCategories.Dormitory, paid, "dormitory", adventurer.Id);
             return paid;
         }

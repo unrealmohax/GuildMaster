@@ -14,7 +14,8 @@ namespace GuildMaster.Tests
     /// не зависит от зерна. Обращений по умолчанию нет (система обращений убрана): их ответы по сроку меняли бы довольство,
     /// кошельки и состав гильдии; тесты обращений включают её — <c>dilemmas: true</c>. Поселения тоже нет (его система убрана):
     /// суточный спад Безопасности без заданий закрыл бы гильдию, а доход таверны от жителей менял бы казну; тесты поселения
-    /// включают её — <c>settlement: true</c>.
+    /// включают её — <c>settlement: true</c>. Кризисов по календарю тоже нет (налог, зима и мор сдвигали бы казну, цены и население);
+    /// тесты кризисов включают их — <c>crises: true</c>.
     /// </summary>
     internal sealed class StateWorld : IDisposable
     {
@@ -22,13 +23,14 @@ namespace GuildMaster.Tests
         public const int NeutralStaffLevel = 50;
 
         public StateWorld(uint seed = 7u, IInfirmary infirmary = null, ISimSystem beforeState = null, SimLogger log = null, bool dilemmas = false,
-            bool settlement = false)
+            bool settlement = false, bool crises = false)
         {
             Data = new PeopleData();
             List<ISimSystem> systems = SimulationSystems.CreateDefault();
             systems.RemoveAll(s => s is OrderSystem);
             if (!dilemmas) systems.RemoveAll(s => s is DilemmaSystem);
             if (!settlement) systems.RemoveAll(s => s is SettlementSystem);
+            if (!crises) systems.RemoveAll(s => s is CrisisSystem);
             if (infirmary != null)
             {
                 systems[systems.FindIndex(s => s is HealthSystem)] = new HealthSystem(infirmary);

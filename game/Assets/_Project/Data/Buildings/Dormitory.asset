@@ -29,5 +29,7 @@ MonoBehaviour:
   builtAtStart: 0
   function: 3
   staffRole: {fileID: 11400000, guid: 78794f5881502b04eb129eadcce36383, type: 2}
+  settlementProject: 0
+  maxLevel: 1
   levelCostMultiplier: 1.5
   levelTimeMultiplier: 1.5

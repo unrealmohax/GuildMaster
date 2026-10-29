@@ -3,13 +3,19 @@ using GuildMaster.Core;
 namespace GuildMaster.UI
 {
     /// <summary>
-    /// Что показывает верхняя панель: дата и фаза дня, скорость, казна, репутация, люди, поселение (название, жители, Безопасность,
-    /// уровень, отсчёт покидания), банкротство.
+    /// Что показывает верхняя панель: дата, время года и фаза дня, скорость, казна, репутация, люди, поселение (название, жители,
+    /// Безопасность, уровень, отсчёт покидания), ближайший кризис, банкротство.
     /// </summary>
     public sealed class TopBarModel
     {
         public string Date { get; private set; }
         public string Phase { get; private set; }
+
+        /// <summary>Время года: «весна».</summary>
+        public string Season { get; private set; }
+
+        /// <summary>Ближайший объявленный или идущий кризис: «Налог через 12 дн.: ~1 400»; пусто — нет.</summary>
+        public string Crisis { get; private set; }
         public int Money { get; private set; }
         public bool MoneyNegative => Money < 0;
         public int Reputation { get; private set; }
@@ -40,6 +46,8 @@ namespace GuildMaster.UI
             {
                 Date = UiFormat.Date(world.Time),
                 Phase = UiFormat.Phase(client.Rhythm.PhaseAt(world.Time)),
+                Season = CrisisModel.SeasonOf(client),
+                Crisis = CrisisModel.TopLine(client),
                 Money = world.Treasury.Money,
                 Reputation = (int)System.Math.Round(world.Guild.Reputation),
                 Headcount = $"{world.Adventurers.Active.Count} / {client.Data.Balance.Guild.MaxAdventurers}",

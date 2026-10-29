@@ -57,7 +57,7 @@ namespace GuildMaster.Core
         {
             OrdersBalance balance = ctx.Data.Balance.Orders;
             OrderBoard board = ctx.World.Orders;
-            float perDay = OrderGenerator.OrdersPerDay(balance, ctx.World.Guild.Reputation, ctx.World.Settlement.Population);
+            float perDay = CrisisRules.OrdersPerDay(ctx.World, ctx.Data);
             int count = (int)Math.Floor(perDay);
             if (ctx.RollChance(perDay - count, "extra-order", null, "reputation", ctx.World.Guild.Reputation)) count++;
 

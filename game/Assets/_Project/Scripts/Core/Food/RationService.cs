@@ -33,6 +33,7 @@ namespace GuildMaster.Core
             bool permanent = group != null && group.IsPermanent && run.IsPermanentParty && run.PartyId == group.Id;
 
             var members = new List<Adventurer>();
+            bool winter = CrisisRules.IsWinter(ctx.World);
             int bought = 0, cost = 0;
             bool shortage = false;
             foreach (Adventurer person in going)
@@ -43,8 +44,8 @@ namespace GuildMaster.Core
                     continue;
                 }
                 int wanted = Math.Max(0, RationRules.Need(person, meals, food) - person.Rations.Total);
-                (RationTier tier, int count) = RationRules.Afford(person, wanted, ctx.Data.Balance);
-                int paid = Purchase(ctx, person, person.Rations, tier, count);
+                (RationTier tier, int count) = RationRules.Afford(person, wanted, ctx.Data.Balance, winter);
+                int paid = Purchase(ctx, person, person.Rations, tier, count, winter);
                 WriteBuy(ctx, run, person, wanted, tier, count, paid, person.Rations);
                 bought += count;
                 cost += paid;
@@ -59,14 +60,14 @@ namespace GuildMaster.Core
                 for (int i = 0; i < members.Count; i++)
                 {
                     int part = PartOf(wanted, members.Count, i);
-                    if (RationRules.Afford(members[i], part, ctx.Data.Balance).Tier != RationTier.Regular && part > 0) tier = RationTier.Cheap;
+                    if (RationRules.Afford(members[i], part, ctx.Data.Balance, winter).Tier != RationTier.Regular && part > 0) tier = RationTier.Cheap;
                 }
-                int price = food.Ration(tier).Price;
+                int price = FoodRules.RationPrice(tier, ctx.Data.Balance, winter);
                 for (int i = 0; i < members.Count; i++)
                 {
                     int part = PartOf(wanted, members.Count, i);
                     int count = price > 0 ? Math.Min(part, members[i].State.Wallet / price) : part;
-                    int paid = Purchase(ctx, members[i], group.Rations, tier, count);
+                    int paid = Purchase(ctx, members[i], group.Rations, tier, count, winter);
                     WriteBuy(ctx, run, members[i], part, tier, count, paid, group.Rations);
                     bought += count;
                     cost += paid;
@@ -85,10 +86,10 @@ namespace GuildMaster.Core
         /// <summary>Доля <paramref name="index"/>-го из <paramref name="parts"/>: поровну, остаток — первым.</summary>
         private static int PartOf(int total, int parts, int index) => total / parts + (index < total % parts ? 1 : 0);
 
-        private static int Purchase(SimContext ctx, Adventurer payer, RationStock into, RationTier tier, int count)
+        private static int Purchase(SimContext ctx, Adventurer payer, RationStock into, RationTier tier, int count, bool winter)
         {
             if (count <= 0) return 0;
-            int paid = WalletService.Pay(ctx, payer, RationRules.Cost(tier, count, ctx.Data.Balance.Food));
+            int paid = WalletService.Pay(ctx, payer, RationRules.Cost(tier, count, ctx.Data.Balance, winter));
             into.Add(tier, count);
             TreasuryService.CountTavernRations(ctx, tier, count);
             return paid;

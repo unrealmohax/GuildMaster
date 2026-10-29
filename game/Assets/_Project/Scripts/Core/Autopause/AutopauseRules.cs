@@ -30,6 +30,8 @@ namespace GuildMaster.Core
                 { SimEventType.SettlementLevelDropped, AutopauseKind.SettlementAlarm },
                 { SimEventType.SettlementAttacked, AutopauseKind.SettlementAttack },
                 { SimEventType.SettlementAbandoning, AutopauseKind.SettlementAbandoning },
+                { SimEventType.CrisisWarning, AutopauseKind.CrisisWarning },
+                { SimEventType.CrisisStarted, AutopauseKind.CrisisStarted },
             };
     }
 }

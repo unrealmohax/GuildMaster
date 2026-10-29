@@ -29,6 +29,12 @@ namespace GuildMaster.Data
         [Tooltip("Какая должность здесь работает (пусто — никакая)")]
         [SerializeField, OptionalReference] private StaffRoleDefinition staffRole;
 
+        [Tooltip("Проект поселения: строится той же стройкой, показывается на вкладке поселения")]
+        [SerializeField] private bool settlementProject;
+
+        [Tooltip("Наибольший уровень; 1 — без улучшений")]
+        [SerializeField, Min(1)] private int maxLevel = 1;
+
         [Tooltip("Улучшение уровня: цена ×")]
         [SerializeField, Min(1f)] private float levelCostMultiplier = 1f;
 
@@ -43,6 +49,8 @@ namespace GuildMaster.Data
         public bool BuiltAtStart => builtAtStart;
         public BuildingFunction Function => function;
         public StaffRoleDefinition StaffRole => staffRole;
+        public bool SettlementProject => settlementProject;
+        public int MaxLevel => maxLevel;
         public float LevelCostMultiplier => levelCostMultiplier;
         public float LevelTimeMultiplier => levelTimeMultiplier;
     }

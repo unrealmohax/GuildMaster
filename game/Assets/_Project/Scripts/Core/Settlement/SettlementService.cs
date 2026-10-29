@@ -94,6 +94,14 @@ namespace GuildMaster.Core
             ChangePopulation(ctx, ctx.Data.Balance.Settlement.PopulationPerBuilding, SettlementReasons.Building);
         }
 
+        /// <summary>Готов проект поселения: Колодец и Дорога прибавляют жителей.</summary>
+        internal static void ProjectReady(SimContext ctx, BuildingFunction function)
+        {
+            CrisesBalance crises = ctx.Data.Balance.Crises;
+            int people = function == BuildingFunction.Well ? crises.WellPopulation : function == BuildingFunction.Road ? crises.RoadPopulation : 0;
+            if (people > 0) ChangePopulation(ctx, people, SettlementReasons.Project);
+        }
+
         /// <summary>
         /// Население в начале месяца по уровню: спокойно — растёт, норма — держится, тревога и осада — убывает. Доля округляется
         /// от нуля: ненулевая доля даёт не меньше одного человека.
@@ -101,21 +109,23 @@ namespace GuildMaster.Core
         internal static void MonthlyPopulation(SimContext ctx)
         {
             SettlementState settlement = ctx.World.Settlement;
-            int delta = SettlementRules.MonthlyPopulationChange(settlement.Population, settlement.Level, ctx.Data.Balance.Settlement);
+            int delta = SettlementRules.MonthlyPopulationChange(settlement.Population, settlement.Level, ctx.Data.Balance.Settlement,
+                CrisisRules.ExtraCalmGrowth(ctx.World, ctx.Data));
             ChangePopulation(ctx, delta, SettlementReasons.Month);
         }
 
         /// <summary>
         /// Нападение на поселение: гибнут жители (бросок диапазона), каждому человеку гильдии, кто не на задании, — стресс
-        /// (с множителями черт), казне — ущерб (бросок диапазона, обязательный расход, может увести в минус). Событие
+        /// (с множителями черт), казне — ущерб (бросок диапазона, обязательный расход, может увести в минус). С Частоколом погибших
+        /// и ущерб — × <c>palisadeDamageMultiplier</c>. Событие
         /// <see cref="SimEventType.SettlementAttacked"/> [В] — участники — люди, получившие стресс.
         /// </summary>
         internal static void Attack(SimContext ctx)
         {
             SettlementState settlement = ctx.World.Settlement;
             SettlementBalance balance = ctx.Data.Balance.Settlement;
-            int killed = ctx.Rng.RangeInclusive(balance.AttackKilled.Min, balance.AttackKilled.Max);
-            int damage = ctx.Rng.RangeInclusive(balance.AttackDamage.Min, balance.AttackDamage.Max);
+            int killed = CrisisRules.AttackLoss(ctx.Rng.RangeInclusive(balance.AttackKilled.Min, balance.AttackKilled.Max), ctx.World, ctx.Data);
+            int damage = CrisisRules.AttackLoss(ctx.Rng.RangeInclusive(balance.AttackDamage.Min, balance.AttackDamage.Max), ctx.World, ctx.Data);
 
             int actualKilled = -ChangePopulation(ctx, -killed, SettlementReasons.Attack);
 
@@ -138,14 +148,14 @@ namespace GuildMaster.Core
         }
 
         /// <summary>
-        /// Доход таверны от жителей за прошедшие сутки: население × <c>localsTavernIncome</c> × множитель уровня × Сухой закон.
+        /// Доход таверны от жителей за прошедшие сутки: население × <c>localsTavernIncome</c> × множитель уровня × Сухой закон × мор.
         /// Зачисляются целые монеты, дробный остаток переносится на следующие сутки.
         /// </summary>
         internal static void SettleLocalsTavern(SimContext ctx)
         {
             SettlementState settlement = ctx.World.Settlement;
             double income = SettlementRules.LocalsTavernIncome(settlement, ctx.Data.Balance.Settlement)
-                * DecreeRules.TavernIncomeMultiplier(ctx.World, ctx.Data);
+                * DecreeRules.TavernIncomeMultiplier(ctx.World, ctx.Data) * CrisisRules.LocalsTavernMultiplier(ctx.World, ctx.Data);
             double total = settlement.TavernRemainder + income;
             int coins = (int)Math.Floor(total + 1e-9);
             TreasuryService.Credit(ctx, LedgerCategories.TavernLocals, coins,

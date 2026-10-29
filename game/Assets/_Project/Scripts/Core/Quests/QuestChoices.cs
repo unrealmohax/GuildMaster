@@ -37,11 +37,11 @@ namespace GuildMaster.Core
         /// <c>promotionSafety</c>: он без ран), Отдых = 1 − усталость/100 − <c>orderRestOffset</c>; Товарищи и Утешение — 0 (соло).
         /// </summary>
         public static void OrderScores(Adventurer adventurer, Order order, float perceived, float commission, DataRegistry data, float[] scores,
-            int ownRations)
+            int ownRations, bool winter = false)
         {
             DecisionsBalance decisions = data.Balance.Decisions;
             float share = ExpectedShare(order, commission, 1);
-            scores[(int)Motive.Money] = MoneyScore(adventurer, order, share, perceived, data, ownRations);
+            scores[(int)Motive.Money] = MoneyScore(adventurer, order, share, perceived, data, ownRations, winter);
             float glory = Math.Min(1f, QuestMath.RankNumber(order.Rank) / (float)QuestMath.RankNumber(adventurer.GuildRank));
             scores[(int)Motive.Glory] = order.IsPromotion ? glory + decisions.PromotionGloryBonus : glory;
             scores[(int)Motive.Safety] = order.IsPromotion ? decisions.PromotionSafety : perceived * perceived;
@@ -52,9 +52,10 @@ namespace GuildMaster.Core
         /// Оценка «Деньги» заказа: min(1, (доля − цена пайков) / расходы) × p, не ниже 0. Цена пайков — сколько человеку стоит
         /// докупить пайки на ожидаемое задание сверх своего запаса (<see cref="RationRules.OrderCost"/>).
         /// </summary>
-        public static float MoneyScore(Adventurer adventurer, Order order, float share, float perceived, DataRegistry data, int ownRations)
+        public static float MoneyScore(Adventurer adventurer, Order order, float share, float perceived, DataRegistry data, int ownRations,
+            bool winter = false)
         {
-            float net = Math.Max(0f, share - RationRules.OrderCost(adventurer, order, data, ownRations));
+            float net = Math.Max(0f, share - RationRules.OrderCost(adventurer, order, data, ownRations, winter));
             return Math.Min(1f, net / ExpenseScale(adventurer, data)) * perceived;
         }
 

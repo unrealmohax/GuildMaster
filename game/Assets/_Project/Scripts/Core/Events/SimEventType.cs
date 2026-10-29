@@ -456,5 +456,27 @@
 
         /// <summary>Человек не в духе и сегодня не работает (заказов не берёт до ночи): <c>contentment</c>. [О].</summary>
         SulkingDay,
+
+        /// <summary>Улучшение постройки готово: <c>building</c>, <c>definition</c>, <c>level</c> — новый уровень. [З].</summary>
+        BuildingUpgraded,
+
+        /// <summary>
+        /// Объявлен кризис по календарю: <c>crisis</c> (id), <c>kind</c> (<see cref="CrisisKind"/>), <c>startsAt</c>, <c>count</c> — дней до
+        /// начала; налог — <c>amount</c> (по доходам на этот момент), набег — <c>rank</c>. [В], автопауза
+        /// <see cref="AutopauseKind.CrisisWarning"/>.
+        /// </summary>
+        CrisisWarning,
+
+        /// <summary>
+        /// Кризис наступил: <c>crisis</c>, <c>kind</c>; набег — <c>order</c>, <c>rank</c>, <c>reward</c>; налог — <c>amount</c>, <c>unpaid</c>
+        /// (казна ушла в минус); зима и мор — <c>endsAt</c>. [В], автопауза <see cref="AutopauseKind.CrisisStarted"/>.
+        /// </summary>
+        CrisisStarted,
+
+        /// <summary>
+        /// Кризис кончился: <c>crisis</c>, <c>kind</c>, <c>outcome</c> (<see cref="CrisisOutcome"/>); набег — <c>order</c>, при поражении
+        /// <c>count</c> — ушло жителей. Набег — [В], зима и мор — [З].
+        /// </summary>
+        CrisisEnded,
     }
 }

@@ -81,7 +81,7 @@ namespace GuildMaster.Core
         {
             if (adventurer.Housing == Housing.Dorm) return;
             DecreeDefinition decree = DecreeRules.Find(ctx.Data, DecreeEffect.FreeLodgingForNewcomers);
-            TreasuryService.Debit(ctx, LedgerCategories.Decrees, FoodRules.HousingCost(adventurer, ctx.Data.Balance.Expenses), decree.Id,
+            TreasuryService.Debit(ctx, LedgerCategories.Decrees, FoodRules.HousingCost(adventurer, ctx.Data.Balance, CrisisRules.IsWinter(ctx.World)), decree.Id,
                 adventurer.Id);
         }
 

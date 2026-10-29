@@ -37,6 +37,9 @@ namespace GuildMaster.ClaudeSandbox
         [MenuItem(Menu + "10 Years Seeds 1-5 Passive Bot")]
         private static void FivePassive() => Run(5, PlayerBots.Passive);
 
+        [MenuItem(Menu + "10 Years Seeds 1-5 Smart Bot")]
+        private static void FiveSmart() => Run(5, PlayerBots.Smart);
+
         private sealed class Year
         {
             public readonly int[] PeopleByRank = new int[5];
@@ -51,6 +54,7 @@ namespace GuildMaster.ClaudeSandbox
             public int Population, WorstLevel, Attacks, ThreatsDone, ThreatsMissed;
             public int Quests, Done, Brilliant, SoloQuests, SoloDone, GroupQuests, GroupDone, GroupMembers, PermanentQuests, PermanentDone;
             public int Rounds, CappedRounds, ThreatQuests, ThreatQuestsDone;
+            public int RaidsWon, RaidsLost, NegativeMonths, Tax, Projects, ArmoryLevel;
         }
 
         private static void Run(int runs, Func<PlayerBot> bot = null)
@@ -183,8 +187,9 @@ namespace GuildMaster.ClaudeSandbox
                         WorldState world = simulation.World;
                         current.MinSecurity = Math.Min(current.MinSecurity, world.Settlement.Security);
                         current.WorstLevel = Math.Max(current.WorstLevel, (int)world.Settlement.Level);
+                        if (world.Time.Day == 1 && world.Time.Hour == 0 && world.Treasury.Money < 0) current.NegativeMonths++;
                         if (world.Time.TotalHours % (simulation.Calendar.HoursPerDay * 360) != 0) return;
-                        Close(current, world);
+                        Close(current, world, simulation);
                         years.Add(current);
                         current = new Year();
                     };
@@ -197,7 +202,7 @@ namespace GuildMaster.ClaudeSandbox
                 WorldState end = result.Simulation.World;
                 if (current != null && result.GuildClosed)
                 {
-                    Close(current, end);
+                    Close(current, end, result.Simulation);
                     years.Add(current);
                 }
                 string closed = result.GuildClosed ? $"{end.Treasury.ClosedCause} at {end.Time}" : "no";
@@ -232,6 +237,16 @@ namespace GuildMaster.ClaudeSandbox
                         year.ThreatQuests++;
                         if (isDone) year.ThreatQuestsDone++;
                     }
+                    break;
+                case SimEventType.CrisisEnded:
+                    if (e.TryGet("kind", out CrisisKind crisis) && crisis == CrisisKind.Raid && e.TryGet("outcome", out CrisisOutcome outcome))
+                    {
+                        if (outcome == CrisisOutcome.Won) year.RaidsWon++;
+                        else year.RaidsLost++;
+                    }
+                    break;
+                case SimEventType.CrisisStarted:
+                    if (e.TryGet("kind", out CrisisKind started) && started == CrisisKind.Tax && e.TryGet("amount", out int tax)) year.Tax += tax;
                     break;
                 case SimEventType.RoundSuccess:
                 case SimEventType.RoundFail:
@@ -288,7 +303,7 @@ namespace GuildMaster.ClaudeSandbox
             }
         }
 
-        private static void Close(Year year, WorldState world)
+        private static void Close(Year year, WorldState world, ISimulationClient game)
         {
             IReadOnlyList<Adventurer> active = world.Adventurers.Active;
             year.People = active.Count;
@@ -305,6 +320,9 @@ namespace GuildMaster.ClaudeSandbox
             year.Reputation = world.Guild.Reputation;
             year.Security = world.Settlement.Security;
             year.Population = world.Settlement.Population;
+            year.ArmoryLevel = BuildingRules.LevelOf(world, game.Data, BuildingFunction.Armory);
+            foreach (Building building in world.Buildings.All)
+                if (building.IsReady && game.Data.TryGet(building.DefinitionId, out BuildingDefinition definition) && definition.SettlementProject) year.Projects++;
         }
 
         private static string Yearly(List<Year> years)
@@ -313,7 +331,8 @@ namespace GuildMaster.ClaudeSandbox
             text.Append("Год,Людей,Пришло,Ушло,Погибло,Повышений,Сила,Сила max,Казна,Репутация,"
                 + "Безопасность,Безопасность min,Худший уровень,Население,Нападений,Угроз выполнено,Угроз упущено,"
                 + "Заданий,Выполнено всего,Блестяще,Соло,Соло выполнено,В группе,В группе выполнено,Людей в группах,Постоянной группой,Постоянной выполнено,"
-                + "Раундов,Раундов на потолке,Заданий-угроз,Угроз выполнено заданий");
+                + "Раундов,Раундов на потолке,Заданий-угроз,Угроз выполнено заданий,"
+                + "Набегов отбито,Набегов проиграно,Месяцев в минусе,Налог,Проектов,Уровень Арсенала");
             foreach (string prefix in new[] { "Люди ", "Заказы ", "Задания ", "Выполнено ", "Награда ср. " })
                 foreach (GuildRank rank in Ranks) text.Append(',').Append(prefix).Append(rank);
             text.Append('\n');
@@ -328,6 +347,7 @@ namespace GuildMaster.ClaudeSandbox
                 text.Append(string.Format(inv, ",{0},{1},{2},{3},{4},{5},{6},{7},{8},{9}", r.Quests, r.Done, r.Brilliant, r.SoloQuests, r.SoloDone,
                     r.GroupQuests, r.GroupDone, r.GroupMembers, r.PermanentQuests, r.PermanentDone));
                 text.Append(string.Format(inv, ",{0},{1},{2},{3}", r.Rounds, r.CappedRounds, r.ThreatQuests, r.ThreatQuestsDone));
+                text.Append(string.Format(inv, ",{0},{1},{2},{3},{4},{5}", r.RaidsWon, r.RaidsLost, r.NegativeMonths, r.Tax, r.Projects, r.ArmoryLevel));
                 foreach (int v in r.PeopleByRank) text.Append(',').Append(v);
                 foreach (int v in r.OrdersByRank) text.Append(',').Append(v);
                 foreach (int v in r.QuestsByRank) text.Append(',').Append(v);

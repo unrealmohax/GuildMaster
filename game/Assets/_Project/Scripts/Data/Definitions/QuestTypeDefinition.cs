@@ -32,6 +32,9 @@ namespace GuildMaster.Data
         [Tooltip("Угроза поселению: выполненный заказ поднимает Безопасность сильнее, упущенный — снижает")]
         [SerializeField] private bool isThreat;
 
+        [Tooltip("Тип заказа «Отразить набег»: по нему кризис набега создаёт заказ (такой тип — один)")]
+        [SerializeField] private bool isRaid;
+
         [Tooltip("Ключ строк ленты: раунд удался")]
         [SerializeField] private string roundSuccessFeedKey;
 
@@ -45,6 +48,7 @@ namespace GuildMaster.Data
         public IReadOnlyList<StatCeiling> StatCeilings => statCeilings;
         public float GenerationWeight => generationWeight;
         public bool IsThreat => isThreat;
+        public bool IsRaid => isRaid;
         public string RoundSuccessFeedKey => roundSuccessFeedKey;
         public string RoundFailFeedKey => roundFailFeedKey;
     }

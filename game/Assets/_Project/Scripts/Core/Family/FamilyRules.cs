@@ -69,13 +69,13 @@ namespace GuildMaster.Core
         /// Сколько человек отправит домой при <paramref name="norm"/>: Семейный — первым, норма × (1 + <c>familyExtraShare</c>), сколько
         /// есть в кошельке; обычный — только сверх резерва на жильё и еду (<see cref="FoodRules.Reserve"/>), не больше нормы.
         /// </summary>
-        public static int Payment(Adventurer adventurer, int norm, DataRegistry data)
+        public static int Payment(Adventurer adventurer, int norm, DataRegistry data, bool winter = false)
         {
             if (norm <= 0) return 0;
             int wallet = adventurer.State.Wallet;
             if (IsFamilial(adventurer, data))
                 return Math.Min(wallet, WalletService.Coins(norm * (1f + data.Balance.Family.FamilyExtraShare)));
-            return Math.Max(0, Math.Min(norm, wallet - FoodRules.Reserve(adventurer, data.Balance)));
+            return Math.Max(0, Math.Min(norm, wallet - FoodRules.Reserve(adventurer, data.Balance, winter)));
         }
 
         /// <summary>Шанс заболеть в этом месяце по роли.</summary>

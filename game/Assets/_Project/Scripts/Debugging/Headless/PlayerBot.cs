@@ -77,6 +77,7 @@ namespace GuildMaster.Debugging
         public const string PassiveName = "Пассивный";
         public const string SimpleName = "Простой";
         public const string RecklessName = "Безрассудный";
+        public const string SmartName = "Умный";
         public const string ScenarioName = "Сценарий";
 
         public static readonly IReadOnlyList<BotPreset> Presets = new[]
@@ -84,6 +85,7 @@ namespace GuildMaster.Debugging
             new BotPreset(PassiveName, Passive),
             new BotPreset(SimpleName, Simple),
             new BotPreset(RecklessName, Reckless),
+            new BotPreset(SmartName, Smart),
         };
 
         /// <summary>Ничего не делает: мир живёт сам.</summary>
@@ -130,6 +132,35 @@ namespace GuildMaster.Debugging
                 new BuildWithReserveRule(0, BuildingFunction.Dormitory, BuildingFunction.Infirmary, BuildingFunction.TrainingYard),
                 new HireBestCandidateRule(), new AnswerDilemmasRandomlyRule());
 
+        /// <summary>Бот «Умный» принимает кандидатов, только пока людей меньше, чем заказов в день × это число.</summary>
+        public const int SmartPeoplePerDailyOrder = 8;
+
+        /// <summary>Бот «Умный» ставит доплату на заказы-угрозы, пока Безопасность ниже этого.</summary>
+        public const float SmartSurchargeBelowSecurity = 50f;
+
+        /// <summary>Доплата бота «Умный» на заказ-угрозу — эта доля награды.</summary>
+        public const float SmartSurchargeShare = 0.25f;
+
+        /// <summary>
+        /// Готовится к кризисам: правила «Простого» (комиссия 20%, Регистратор, важные заказы и событийные задания, найм, обращения),
+        /// но кандидатов принимает, только пока людей меньше, чем заказов в день × 8; строит Общежитие → Лазарет → Тренировочный двор →
+        /// Дозорную вышку → Частокол → Колодец → Арсенал → Дорогу, затем улучшает Арсенал, — только если после стройки в казне остаётся
+        /// ближайший налог и три месяца расходов; пока Безопасность ниже 50, ставит доплату 25% награды на заказы-угрозы на доске
+        /// (с тем же запасом).
+        /// </summary>
+        public static PlayerBot Smart() =>
+            new PlayerBot(SmartName, new SetCommissionOnceRule(SimpleCommission),
+                new AcceptCandidatesWithReserveRule(SimpleCandidateReserveMonths, SimpleMinPeople, SmartPeopleLimit),
+                new RegistrarUpToTopRankRule(), new AnswerImportantOrdersByRankRule(), new AnswerEventQuestsBySourceRankRule(),
+                new BuildWithTaxReserveRule(SimpleReserveMonths, BuildingFunction.Dormitory, BuildingFunction.Infirmary, BuildingFunction.TrainingYard,
+                    BuildingFunction.Watchtower, BuildingFunction.Palisade, BuildingFunction.Well, BuildingFunction.Armory, BuildingFunction.Road),
+                new SurchargeThreatsRule(SmartSurchargeBelowSecurity, SmartSurchargeShare, SimpleReserveMonths),
+                new HireBestCandidateRule(), new AnswerDilemmasRandomlyRule());
+
+        /// <summary>Предел людей бота «Умный»: заказов в день сейчас × <see cref="SmartPeoplePerDailyOrder"/>, вниз.</summary>
+        public static int SmartPeopleLimit(WorldState world, DataRegistry data) =>
+            (int)(CrisisRules.OrdersPerDay(world, data) * SmartPeoplePerDailyOrder);
+
         /// <summary>Повторяет команды сценария в их такты.</summary>
         public static PlayerBot Scenario(ScenarioScript script) => new PlayerBot(ScenarioName, new ScenarioRule(script));
     }
@@ -172,11 +203,14 @@ namespace GuildMaster.Debugging
     {
         private readonly int reserveMonths;
         private readonly int minPeople;
+        private readonly Func<WorldState, DataRegistry, int> peopleLimit;
 
-        public AcceptCandidatesWithReserveRule(int reserveMonths, int minPeople = 0)
+        /// <param name="peopleLimit">Предел людей в гильдии (с принятыми в этот ход); не задан — без предела.</param>
+        public AcceptCandidatesWithReserveRule(int reserveMonths, int minPeople = 0, Func<WorldState, DataRegistry, int> peopleLimit = null)
         {
             this.reserveMonths = reserveMonths;
             this.minPeople = minPeople;
+            this.peopleLimit = peopleLimit;
         }
 
         public void Act(BotTurn turn)
@@ -188,7 +222,8 @@ namespace GuildMaster.Debugging
             long money = turn.World.Treasury.Money;
             int reserve = BuildWithReserveRule.Reserve(turn.World, data, reserveMonths);
             int people = turn.World.Adventurers.Active.Count;
-            for (int i = 0; i < candidates.Count; i++)
+            int limit = peopleLimit?.Invoke(turn.World, data) ?? int.MaxValue;
+            for (int i = 0; i < candidates.Count && people < limit; i++)
             {
                 int bonus = RecruitSystem.SigningBonus(data, candidates[i]);
                 if (money - bonus < (people < minPeople ? 0 : reserve)) continue;
@@ -297,6 +332,100 @@ namespace GuildMaster.Debugging
         /// <summary>Запас: <paramref name="months"/> месяцев расходов — зарплаты и содержание готовых построек.</summary>
         public static int Reserve(WorldState world, DataRegistry data, int months) =>
             months * (StaffRules.MonthlySalaries(world) + BuildingRules.MonthlyUpkeep(world, data));
+    }
+
+    /// <summary>
+    /// Стройка с запасом на налог: постройки по порядку (одна за раз, следующая — когда нет стройки и очереди), потом улучшение
+    /// построек с уровнями (Арсенал) до наибольшего; только если после цены в казне остаются ближайший налог и
+    /// <c>reserveMonths</c> месяцев расходов.
+    /// </summary>
+    public sealed class BuildWithTaxReserveRule : IBotRule
+    {
+        private readonly int reserveMonths;
+        private readonly BuildingFunction[] order;
+
+        public BuildWithTaxReserveRule(int reserveMonths, params BuildingFunction[] order)
+        {
+            this.reserveMonths = reserveMonths;
+            this.order = order ?? Array.Empty<BuildingFunction>();
+        }
+
+        public void Act(BotTurn turn)
+        {
+            WorldState world = turn.World;
+            DataRegistry data = turn.Game.Data;
+            if (!data.HasDefinitions || world.Buildings.Current != null || world.Buildings.Queue.Count > 0) return;
+
+            int reserve = Reserve(world, data, reserveMonths);
+            foreach (BuildingFunction function in order)
+            {
+                BuildingDefinition definition = data.BuildingWith(function);
+                if (definition == null || world.Buildings.TryGetByDefinition(definition.Id, out _)) continue;
+                if (world.Treasury.Money >= definition.Cost + reserve) turn.Send(new StartBuildingCommand(definition.Id));
+                return;
+            }
+
+            foreach (BuildingFunction function in order)
+            {
+                BuildingDefinition definition = data.BuildingWith(function);
+                if (definition == null || !world.Buildings.TryGetByDefinition(definition.Id, out Building building) || !building.IsReady
+                    || building.Level >= definition.MaxLevel) continue;
+                if (world.Treasury.Money >= BuildingService.CostFor(definition, building.Level + 1) + reserve)
+                    turn.Send(new UpgradeBuildingCommand(building.Id));
+                return;
+            }
+        }
+
+        /// <summary>Запас: ближайший налог (объявленный — его сумма, иначе по доходам последних трёх месяцев) и месяцы расходов.</summary>
+        public static int Reserve(WorldState world, DataRegistry data, int months) =>
+            NextTax(world, data) + BuildWithReserveRule.Reserve(world, data, months);
+
+        /// <summary>Ближайший налог: объявленный — его сумма; не объявлен — по доходам гильдии за последние три месяца.</summary>
+        public static int NextTax(WorldState world, DataRegistry data)
+        {
+            foreach (Crisis crisis in world.Crises.All)
+            {
+                if (crisis.Kind == CrisisKind.Tax && crisis.Status == CrisisStatus.Warned) return crisis.Amount;
+            }
+            long now = world.Time.TotalHours;
+            long quarter = 3L * data.Balance.Time.DaysPerMonth * data.Balance.Time.HoursPerDay;
+            return CrisisRules.Tax(CrisisRules.IncomeSince(world, Math.Max(0L, now - quarter)), data.Balance.Crises);
+        }
+    }
+
+    /// <summary>
+    /// Пока Безопасность ниже порога — доплата (доля награды) на заказы-угрозы на доске без доплаты, если после неё в казне остаются
+    /// ближайший налог и месяцы расходов.
+    /// </summary>
+    public sealed class SurchargeThreatsRule : IBotRule
+    {
+        private readonly float belowSecurity;
+        private readonly float share;
+        private readonly int reserveMonths;
+
+        public SurchargeThreatsRule(float belowSecurity, float share, int reserveMonths)
+        {
+            this.belowSecurity = belowSecurity;
+            this.share = share;
+            this.reserveMonths = reserveMonths;
+        }
+
+        public void Act(BotTurn turn)
+        {
+            WorldState world = turn.World;
+            DataRegistry data = turn.Game.Data;
+            if (!data.HasDefinitions || world.Settlement.Security >= belowSecurity) return;
+
+            long money = world.Treasury.Money - BuildWithTaxReserveRule.Reserve(world, data, reserveMonths);
+            foreach (Order order in world.Orders.Open)
+            {
+                if (order.Status != OrderStatus.OnBoard || order.Surcharge > 0 || order.IsPromotion || !SettlementRules.IsThreat(data, order.TypeId)) continue;
+                int amount = (int)Math.Round(order.Reward * share, MidpointRounding.AwayFromZero);
+                if (amount <= 0 || money < amount) continue;
+                money -= amount;
+                turn.Send(new SetSurchargeCommand(order.Id, amount));
+            }
+        }
     }
 
     /// <summary>Вакансия с кандидатами: предложить кандидату с высшим уровнем (при равенстве — пришедшему раньше) просимую зарплату.</summary>

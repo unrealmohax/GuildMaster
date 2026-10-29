@@ -101,6 +101,7 @@ namespace GuildMaster.Tests
                 typeof(DecreeBook), typeof(ActiveDecree), typeof(DecreeSpan),
                 typeof(DilemmaBook), typeof(Dilemma), typeof(AdventurerMemory), typeof(MemoryEntry),
                 typeof(SettlementState), typeof(SettlementChange), typeof(SettlementTotals), typeof(SettlementSnapshot),
+                typeof(CrisisBook), typeof(Crisis), typeof(CrisisTotals),
             };
             foreach (Type type in stateTypes)
             {

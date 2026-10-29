@@ -27,6 +27,44 @@ namespace GuildMaster.UI
         public const string SettlementDefaultName = "Поселение";
         public const string SettlementTopFormat = "{0} · {1} · Безопасность {2}";
         public const string SettlementLeavingFormat = "Уходят через {0} дн.";
+
+        // Время года и кризисы
+        public const string SeasonSpring = "весна";
+        public const string SeasonSummer = "лето";
+        public const string SeasonAutumn = "осень";
+        public const string SeasonWinter = "зима";
+        public const string CrisisRaid = "Набег";
+        public const string CrisisTax = "Налог";
+        public const string CrisisWinter = "Зима";
+        public const string CrisisPlague = "Мор";
+        public const string CrisisSoonFormat = "{0} через {1} дн.";
+        public const string CrisisSoonTaxFormat = "Налог через {0} дн.: ~{1}";
+        public const string CrisisActiveFormat = "{0}: ещё {1} дн.";
+        public const string CrisisRaidActiveFormat = "Набег: заказ «Отразить набег» на доске, ещё {0} дн. Не отбит — Безопасность −{1}, нападение, уходит {2} жителей";
+        public const string CrisisWinterActiveFormat = "Зима, ещё {0} дн.: еда и пайки {1}, жильё в городе +{2} в сутки, заказов {3}, спад Безопасности {4}";
+        public const string CrisisPlagueActiveFormat = "Мор, ещё {0} дн.: жителей −{1} в неделю (с Лазаретом и Лекарем −{2})";
+        public const string CrisisRaidSoonFormat = "Набег через {0} дн.: заказ ранга {1} появится на доске";
+        public const string CrisisTaxSoonFormat = "Налог через {0} дн.: ~{1}. Казна уйдёт в минус — репутация −{2}, Безопасность −{3}";
+        public const string CrisisWinterSoonFormat = "Зима через {0} дн.: еда и дрова подорожают, заказов станет меньше";
+        public const string CrisesHeading = "Кризисы";
+        public const string CrisesNone = "Кризисов не объявлено";
+        public const string ProjectsHeading = "Проекты";
+        public const string ProjectBuildFormat = "Строить — {0}, {1} дн.";
+        public const string ProjectPalisadeFormat = "Нападение в осаде — только при Безопасности ниже {0}; ущерб и погибшие {1}";
+        public const string ProjectWatchtowerFormat = "Суточный спад Безопасности −{0}";
+        public const string ProjectWellFormat = "Жителей +{0}, рост в спокойствии +{1} в месяц";
+        public const string ProjectRoadFormat = "Жителей +{0}, заказов в день +{1}";
+        public const string ArmoryEffectFormat = "профиль на задании +{0}";
+        public const string BuildingLevelFormat = "{0}, уровень {1} ({2})";
+        public const string BuildingUpgradingFormat = "улучшается до уровня {0}: {1} дн.";
+        public const string BuildingUpgradeQueuedFormat = "улучшение до уровня {0} в очереди";
+        public const string UpgradeFormat = "Улучшить: {0} до уровня {1} — {2}, {3} дн. ({4})";
+        public const string QueueUpgradeFormat = "{0} → уровень {1}";
+        public const string CalendarTaxFormat = "Налог: ~{0}";
+        public const string CalendarRaidDueFormat = "{0}: срок заказа";
+        public const string CalendarCrisisEndsFormat = "{0} (идёт): конец";
+        public const string LedgerPeopleUpkeepFormat = "за людей: {0} чел.";
+        public const string LedgerTax = "лорду за квартал";
         public const string SettlementAbandonFormat = "Безопасность на нуле: если ничего не изменится, через {0} дн. жители покинут поселение";
         public const string SettlementPopulationFormat = "Население: {0} ({1} с начала месяца)";
         public const string SettlementSecurityFormat = "Безопасность {0} — {1}";
@@ -126,6 +164,8 @@ namespace GuildMaster.UI
             { AutopauseKind.SettlementAlarm, "Тревога в поселении" },
             { AutopauseKind.SettlementAttack, "Нападение на поселение" },
             { AutopauseKind.SettlementAbandoning, "Жители покидают поселение" },
+            { AutopauseKind.CrisisWarning, "Объявлен кризис" },
+            { AutopauseKind.CrisisStarted, "Начало кризиса" },
         };
 
         public static string AutopauseKindName(AutopauseKind kind) => AutopauseKinds.TryGetValue(kind, out string name) ? name : kind.ToString();

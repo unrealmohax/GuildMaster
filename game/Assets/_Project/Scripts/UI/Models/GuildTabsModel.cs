@@ -67,9 +67,22 @@ namespace GuildMaster.UI
 
         /// <summary>В очереди (стройка не начата) — её можно двигать и снять.</summary>
         public bool Queued;
+
+        /// <summary>Готова, есть следующий уровень и улучшение не заказано — её можно улучшить.</summary>
+        public bool CanUpgrade;
+
+        public int NextLevel;
+        public int UpgradeCost;
+        public int UpgradeDays;
+
+        /// <summary>Эффект следующего уровня словами (Арсенал); пусто — нет.</summary>
+        public string NextEffect;
     }
 
-    /// <summary>Вкладка «Постройки»: все постройки из данных — построенные, стройка, очередь, не начатые.</summary>
+    /// <summary>
+    /// Вкладка «Постройки»: постройки гильдии из данных — построенные, стройка, очередь, не начатые; у построек с уровнями (Арсенал) —
+    /// уровень, эффект и улучшение. Проекты поселения — на вкладке «Поселение» (<see cref="CrisisModel.Projects"/>).
+    /// </summary>
     public static class BuildingsModel
     {
         public static List<BuildingRow> Build(ISimulationClient client)
@@ -79,6 +92,7 @@ namespace GuildMaster.UI
             long now = world.Time.TotalHours;
             foreach (BuildingDefinition definition in client.Data.All<BuildingDefinition>())
             {
+                if (definition.SettlementProject) continue;
                 var row = new BuildingRow
                 {
                     Name = definition.DisplayName,
@@ -98,6 +112,7 @@ namespace GuildMaster.UI
                     {
                         case BuildingState.Ready:
                             row.State = UiText.Render(client.Data, UiTextKeys.BuildingReady);
+                            if (definition.MaxLevel > 1) Levels(client, definition, building, row);
                             break;
                         case BuildingState.UnderConstruction:
                             int days = UiFormat.DaysLeft(building.ConstructionEndsAtHours, now, client.Calendar);
@@ -121,6 +136,26 @@ namespace GuildMaster.UI
             return rows;
         }
 
+        /// <summary>Уровень и эффект готовой постройки с уровнями, идущее улучшение или что даст следующее.</summary>
+        private static void Levels(ISimulationClient client, BuildingDefinition definition, Building building, BuildingRow row)
+        {
+            row.State = string.Format(UiStrings.BuildingLevelFormat, row.State, building.Level, CrisisModel.ArmoryEffect(client.Data, building.Level));
+            if (building.IsUpgrading)
+            {
+                row.State += client.World.Buildings.Current == building
+                    ? "; " + string.Format(UiStrings.BuildingUpgradingFormat, building.UpgradingToLevel,
+                        UiFormat.DaysLeft(building.ConstructionEndsAtHours, client.World.Time.TotalHours, client.Calendar))
+                    : "; " + string.Format(UiStrings.BuildingUpgradeQueuedFormat, building.UpgradingToLevel);
+                return;
+            }
+            if (building.Level >= definition.MaxLevel) return;
+            row.CanUpgrade = true;
+            row.NextLevel = building.Level + 1;
+            row.UpgradeCost = BuildingService.CostFor(definition, row.NextLevel);
+            row.UpgradeDays = BuildingService.DaysFor(definition, row.NextLevel);
+            row.NextEffect = CrisisModel.ArmoryEffect(client.Data, row.NextLevel);
+        }
+
         /// <summary>Сколько мест занято: жильцы Общежития, пациенты Лазарета, тренирующиеся на дворе.</summary>
         private static int Occupied(WorldState world, BuildingDefinition definition)
         {
@@ -142,7 +177,7 @@ namespace GuildMaster.UI
         public string Details;
     }
 
-    /// <summary>Действия игрока с постройками: заказать стройку, порядок очереди, снять из очереди. Все — командами.</summary>
+    /// <summary>Действия игрока с постройками: заказать стройку или улучшение, порядок очереди, снять из очереди. Все — командами.</summary>
     public static class BuildingActions
     {
         public static List<QueueRow> Queue(ISimulationClient client)
@@ -151,8 +186,10 @@ namespace GuildMaster.UI
             foreach (Building building in client.World.Buildings.Queue)
             {
                 string name = client.Data.TryGet(building.DefinitionId, out BuildingDefinition definition) ? definition.DisplayName : building.DefinitionId;
+                int level = building.IsUpgrading ? building.UpgradingToLevel : 1;
+                if (building.IsUpgrading) name = string.Format(UiStrings.QueueUpgradeFormat, name, level);
                 string details = definition != null
-                    ? $"{UiFormat.Money(definition.Cost)}, {string.Format(UiStrings.DaysFormat, definition.BuildDays)}"
+                    ? $"{UiFormat.Money(BuildingService.CostFor(definition, level))}, {string.Format(UiStrings.DaysFormat, BuildingService.DaysFor(definition, level))}"
                     : string.Empty;
                 rows.Add(new QueueRow { Id = building.Id, Name = name, Details = details });
             }
@@ -160,6 +197,9 @@ namespace GuildMaster.UI
         }
 
         public static void Order(ISimulationClient client, string definitionId) => client.Send(new StartBuildingCommand(definitionId));
+
+        /// <summary>Заказать улучшение готовой постройки с уровнями (Арсенал).</summary>
+        public static void Upgrade(ISimulationClient client, int buildingId) => client.Send(new UpgradeBuildingCommand(buildingId));
 
         public static void Cancel(ISimulationClient client, int buildingId) => client.Send(new CancelBuildingCommand(buildingId));
 

@@ -470,6 +470,14 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("report.settlement.threatsMissed", O, None, "Угроз упущено"));
             t.Add(Guild("report.settlement.attacks", O, None, "Нападений"));
             t.Add(Guild("report.settlement.damage", O, None, "Ущерб от нападений"));
+            t.Add(Guild("report.money.peopleUpkeep", O, None, "Из содержания — за людей"));
+            t.Add(Guild("report.crises", O, None, "Кризисы"));
+            t.Add(Guild("report.crises.raidWon", O, None, "Набег отбит"));
+            t.Add(Guild("report.crises.raidLost", O, None, "Набег не отбит"));
+            t.Add(Guild("report.crises.tax", O, None, "Налог лорду"));
+            t.Add(Guild("report.crises.taxUnpaid", O, None, "Налог увёл казну в минус, раз"));
+            t.Add(Guild("report.crises.winterDays", O, None, "Дней зимы"));
+            t.Add(Guild("report.crises.plagueDays", O, None, "Дней мора"));
             // Названия статей журнала казны.
             // Правка (GM-18): доход таверны — еда и выпивка отдельно.
             t.Add(Guild("ledger.tavernFood", O, None, "Таверна: еда"));
@@ -495,6 +503,8 @@ namespace GuildMaster.ClaudeSandbox
             // Новое (GM-21, 💡): доход от жителей поселения и ущерб от нападений.
             t.Add(Guild("ledger.tavernLocals", O, None, "Таверна: жители"));
             t.Add(Guild("ledger.attackDamage", O, None, "Ущерб от нападений"));
+            t.Add(Guild("ledger.tax", O, None, "Налог"));
+            t.Add(Guild("ledger.projects", O, None, "Проекты поселения"));
             // Новое (GM-22, ❔): подъёмные новичку при приёме.
             t.Add(Guild("ledger.signingBonuses", O, None, "Подъёмные"));
             // Новое (GM-14): деньги, добавленные и снятые отладочной панелью.
@@ -543,6 +553,9 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("ui.settlement.reason.player", O, None, "отклонён вами"));
             t.Add(Guild("ui.settlement.reason.noAnswer", O, None, "остался без ответа"));
             t.Add(Guild("ui.settlement.reason.debug", O, None, "отладка"));
+            t.Add(Guild("ui.settlement.reason.raidWon", O, None, "набег отбит"));
+            t.Add(Guild("ui.settlement.reason.raidLost", O, None, "набег не отбит"));
+            t.Add(Guild("ui.settlement.reason.taxUnpaid", O, None, "налог увёл казну в минус"));
 
             // Причины изменения репутации — блок «Репутация» на экране «Казна».
             t.Add(Guild("ui.reputation.reason.questDone", O, None, "выполнено"));
@@ -553,6 +566,7 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("ui.reputation.reason.left", O, None, "уход из гильдии"));
             t.Add(Guild("ui.reputation.reason.fled", O, None, "бегство с задания"));
             t.Add(Guild("ui.reputation.reason.braggart", O, None, "хвастовство"));
+            t.Add(Guild("ui.reputation.reason.taxUnpaid", O, None, "налог не уплачен"));
             t.Add(Guild("ui.reputation.reason.debug", O, None, "отладка"));
 
             t.Add(Guild("guild.decree.enabled", O, None, "Объявлено: {распоряжение}"));
@@ -565,6 +579,36 @@ namespace GuildMaster.ClaudeSandbox
             t.Add(Guild("guild.building.started", O, None, "Начали строить {постройка:в}"));
             // Правка: род постройки из данных — «Общежитие готово».
             t.Add(Guild("guild.building.ready", Z, None, "{постройка} готов[|а|о|ы]@постройка"));
+            t.Add(Guild("guild.building.upgraded", Z, None, "{постройка} улучшен[|а|о|ы]@постройка: уровень {число}"));
+
+            // Кризисы по календарю (TechJob/24-spending-crises.md).
+            t.Add(Guild("guild.crisis.warning.raid", V, None,
+                "Пастухи видели чужих у границ {поселение:р}: через {число} дн. ждут набега. Нужна сильная группа",
+                "В {поселение:п} говорят о бандах на дорогах: набег — через {число} дн."));
+            t.Add(Guild("guild.crisis.warning.tax", V, None,
+                "Сборщик лорда приедет через {число} дн. Налог — около {сумма} монет",
+                "Через {число} дн. — налог лорду, около {сумма} монет"));
+            t.Add(Guild("guild.crisis.warning.winter", V, None,
+                "Зима близко: через {число} дн. похолодает. Еда и дрова подорожают, заказов станет меньше"));
+            t.Add(Guild("guild.crisis.raid", V, None,
+                "Набег! На доске — заказ отразить его. Награду платит {поселение}",
+                "Банды у {поселение:р}. Отразить набег — заказ на доске"));
+            t.Add(Guild("guild.crisis.tax", V, None,
+                "Сборщик лорда забрал налог — {сумма} монет",
+                "Уплачен налог лорду: {сумма} монет"));
+            t.Add(Guild("guild.crisis.taxUnpaid", V, None,
+                "Сборщик лорда забрал {сумма} монет, и казна ушла в минус. Лорд недоволен"));
+            t.Add(Guild("guild.crisis.winter", V, None,
+                "Пришла зима. Еда и дрова дорожают, заказов меньше, голодные звери выходят к {поселение:д}"));
+            t.Add(Guild("guild.crisis.plague", V, None,
+                "В {поселение:п} мор. Люди гильдии не болеют, но жители умирают — нужен Лазарет и Лекарь"));
+            t.Add(Guild("guild.crisis.raidWon", V, None,
+                "Набег отбит! {поселение} может спать спокойно",
+                "Банды разбиты, набег отбит"));
+            t.Add(Guild("guild.crisis.raidLost", V, None,
+                "Набег не отбили: банды прошли по {поселение:д}, ушло жителей — {число}"));
+            t.Add(Guild("guild.crisis.winterEnded", Z, None, "Зима кончилась: еда и дрова дешевеют, заказов снова больше"));
+            t.Add(Guild("guild.crisis.plagueEnded", Z, None, "Мор в {поселение:п} отступил"));
 
             // Правка: «…» → {доход}, {расход}.
             t.Add(Guild("guild.month.summary", Z, None, "Прошёл месяц. Заработано {доход}, потрачено {расход}, погибших — {число}"));

@@ -359,6 +359,7 @@ namespace GuildMaster.ClaudeSandbox
             Set(asset, "statCeilings", new List<StatCeiling>());
             Set(asset, "generationWeight", weight);
             Set(asset, "isThreat", ThreatQuestTypes.Contains(asset.name));
+            Set(asset, "isRaid", asset.name == "Extermination"); // набег — Истребление (TechJob/24-spending-crises.md)
             Set(asset, "roundSuccessFeedKey", "quest.round.success." + feedSuffix);
             Set(asset, "roundFailFeedKey", "quest.round.fail." + feedSuffix);
         }
@@ -434,7 +435,8 @@ namespace GuildMaster.ClaudeSandbox
 
         // ---------- Постройки и персонал ----------
 
-        private static readonly string[] BuildingIds = { "GuildHall", "Tavern", "Dormitory", "Infirmary", "TrainingYard" };
+        private static readonly string[] BuildingIds =
+            { "GuildHall", "Tavern", "Dormitory", "Infirmary", "TrainingYard", "Armory", "Palisade", "Watchtower", "Well", "Road" };
         private static readonly string[] StaffIds = { "Registrar", "Innkeeper", "Healer", "Warden" };
 
         private static void FillBuildings(Dictionary<string, BuildingDefinition> b, Dictionary<string, StaffRoleDefinition> s)
@@ -444,6 +446,27 @@ namespace GuildMaster.ClaudeSandbox
             Building(b["Dormitory"], BuildingFunction.Dormitory, "Общежитие", N, cost: 1500, days: 10, upkeep: 120, capacity: 10, atStart: false, s["Warden"]);
             Building(b["Infirmary"], BuildingFunction.Infirmary, "Лазарет", M, cost: 2500, days: 14, upkeep: 150, capacity: 4, atStart: false, s["Healer"]);
             Building(b["TrainingYard"], BuildingFunction.TrainingYard, "Тренировочный двор", M, cost: 1200, days: 7, upkeep: 80, capacity: 6, atStart: false, null);
+
+            // Арсенал и проекты поселения (numbers.md → «Траты и кризисы», TechJob/24-spending-crises.md).
+            Building(b["Armory"], BuildingFunction.Armory, "Арсенал", M, cost: 1500, days: 10, upkeep: 60, capacity: 0, atStart: false, null);
+            Set(b["Armory"], "nameForms", new NounForms("Арсенал", "Арсенала", "Арсеналу", "Арсенал", "Арсеналом", "Арсенале", M));
+            Set(b["Armory"], "maxLevel", 3);
+            Project(b["Palisade"], BuildingFunction.Palisade, new NounForms("Частокол", "Частокола", "Частоколу", "Частокол", "Частоколом", "Частоколе", M),
+                cost: 2000, days: 20, upkeep: 20);
+            Project(b["Watchtower"], BuildingFunction.Watchtower,
+                new NounForms("Дозорная вышка", "Дозорной вышки", "Дозорной вышке", "Дозорную вышку", "Дозорной вышкой", "Дозорной вышке", F),
+                cost: 1500, days: 14, upkeep: 30);
+            Project(b["Well"], BuildingFunction.Well, new NounForms("Колодец", "Колодца", "Колодцу", "Колодец", "Колодцем", "Колодце", M),
+                cost: 1000, days: 10, upkeep: 0);
+            Project(b["Road"], BuildingFunction.Road, new NounForms("Дорога", "Дороги", "Дороге", "Дорогу", "Дорогой", "Дороге", F),
+                cost: 3000, days: 30, upkeep: 30);
+        }
+
+        private static void Project(BuildingDefinition asset, BuildingFunction function, NounForms name, int cost, int days, int upkeep)
+        {
+            Building(asset, function, name.Nominative, name.Gender, cost, days, upkeep, capacity: 0, atStart: false, role: null);
+            Set(asset, "nameForms", name);
+            Set(asset, "settlementProject", true);
         }
 
         private static void Building(BuildingDefinition asset, BuildingFunction function, string name, GrammaticalGender gender, int cost, int days, int upkeep, int capacity, bool atStart, StaffRoleDefinition role)
@@ -459,6 +482,8 @@ namespace GuildMaster.ClaudeSandbox
             Set(asset, "staffRole", role);
             Set(asset, "levelCostMultiplier", 1.5f);
             Set(asset, "levelTimeMultiplier", 1.5f);
+            Set(asset, "settlementProject", false);
+            Set(asset, "maxLevel", 1);
         }
 
         private static void FillStaff(Dictionary<string, StaffRoleDefinition> s, Dictionary<string, BuildingDefinition> b)

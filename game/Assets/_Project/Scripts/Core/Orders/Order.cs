@@ -130,6 +130,12 @@ namespace GuildMaster.Core
         /// <summary>Событийное задание из находки: ранг назначает игрок, награду платит гильдия.</summary>
         public bool IsEventQuest { get; internal set; }
 
+        /// <summary>
+        /// Заказ «Отразить набег»: сразу на доске, награду платит поселение (комиссия как обычно); его итог решает кризис набега,
+        /// а не обычный сдвиг Безопасности за заказ.
+        /// </summary>
+        public bool IsRaid { get; internal set; }
+
         /// <summary>Событийное задание: ранг задания, в котором сделана находка (подсказка игроку).</summary>
         public GuildRank SourceRank { get; internal set; }
 

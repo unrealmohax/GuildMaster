@@ -75,7 +75,7 @@ namespace GuildMaster.Core
             IntRange range = drunkard ? expenses.DrunkardEveningDrinks : expenses.EveningDrinks;
             int wanted = ctx.Rng.RangeInclusive(range.Min, range.Max)
                 + (int)Math.Floor(Math.Max(0f, state.Stress - expenses.DrinkStressThreshold) / expenses.DrinkStressStep);
-            int budget = drunkard ? state.Wallet : Math.Max(0, state.Wallet - FoodRules.Reserve(adventurer, ctx.Data.Balance));
+            int budget = drunkard ? state.Wallet : Math.Max(0, state.Wallet - FoodRules.Reserve(adventurer, ctx.Data.Balance, CrisisRules.IsWinter(ctx.World)));
             int price = ctx.Rng.RangeInclusive(expenses.Drink.Min, expenses.Drink.Max);
             int portions = price > 0 ? Math.Min(wanted, budget / price) : wanted;
             state.DrankToday = true;

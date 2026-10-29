@@ -27,7 +27,7 @@ namespace GuildMaster.Core
             }
 
             int walletBefore = state.Wallet;
-            int sent = WalletService.SendHome(adventurer, FamilyRules.Payment(adventurer, norm, ctx.Data));
+            int sent = WalletService.SendHome(adventurer, FamilyRules.Payment(adventurer, norm, ctx.Data, CrisisRules.IsWinter(ctx.World)));
             bool full = sent >= norm;
             if (ctx.Log.IsOn(SimLogLevel.Debug))
             {

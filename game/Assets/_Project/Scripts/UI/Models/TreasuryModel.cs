@@ -139,8 +139,11 @@ namespace GuildMaster.UI
                 Adventurer person = EventTextSource.FindPerson(world, entry.RelatedId);
                 return person != null ? person.Name : string.Empty;
             }
-            if (category == LedgerCategories.Construction || category == LedgerCategories.Upkeep)
+            if (category == LedgerCategories.Upkeep && entry.Comment == BuildingService.PeopleUpkeepComment)
+                return string.Format(UiStrings.LedgerPeopleUpkeepFormat, entry.RelatedId);
+            if (category == LedgerCategories.Construction || category == LedgerCategories.Upkeep || category == LedgerCategories.Projects)
                 return data.TryGet(entry.Comment, out BuildingDefinition building) ? building.DisplayName : string.Empty;
+            if (category == LedgerCategories.Tax) return UiStrings.LedgerTax;
             if (category == LedgerCategories.TavernFood)
             {
                 string text = string.Format(UiStrings.LedgerTavernFoodFormat, Portions(entry.Comment, "cheap"), Portions(entry.Comment, "simple"),

@@ -15,8 +15,9 @@ namespace GuildMaster.Core
         /// <summary>Сгенерировать заказ. <paramref name="fixedRank"/> — ранг без смеси и без «сложного не по времени».</summary>
         /// <param name="errors">Ошибки подстановки в описании (метка без значения и т.п.).</param>
         /// <param name="fixedType">Тип задан заранее — без броска типа; <c>null</c> — по весам.</param>
+        /// <param name="fixedDistance">Расстояние задано заранее — без броска; <c>null</c> — бросок <c>farChance</c>.</param>
         public static Order Generate(Rng rng, DataRegistry data, float reputation, int id, long now, GuildRank? fixedRank, List<string> errors,
-            QuestTypeDefinition fixedType = null)
+            QuestTypeDefinition fixedType = null, OrderDistance? fixedDistance = null)
         {
             OrdersBalance balance = data.Balance.Orders;
 
@@ -38,7 +39,7 @@ namespace GuildMaster.Core
             }
 
             QuestTypeDefinition type = fixedType ?? PickType(rng, data);
-            OrderDistance distance = rng.Chance(balance.FarChance) ? OrderDistance.Far : OrderDistance.Near;
+            OrderDistance distance = fixedDistance ?? (rng.Chance(balance.FarChance) ? OrderDistance.Far : OrderDistance.Near);
 
             var order = new Order(id, type.Id, rank, distance)
             {

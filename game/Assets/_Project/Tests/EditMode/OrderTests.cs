@@ -323,7 +323,8 @@ namespace GuildMaster.Tests
             simulation.Send(new SetRegistrarRulesCommand(new[] { "Hunt", "Delivery" }, GuildRank.G, 40));
             List<SimEvent> events = SimulationRun.Collect(simulation, sim => SimulationRun.Days(sim, 120));
 
-            List<SimEvent> posted = events.Where(e => e.Type == SimEventType.OrderPosted).ToList();
+            // Заказ набега вешает на доску кризис, мимо Регистратора, — здесь только повешенные Регистратором.
+            List<SimEvent> posted = events.Where(e => e.Type == SimEventType.OrderPosted && e.TryGet("by", out string by) && by == "registrar").ToList();
             List<SimEvent> declined = events.Where(e => e.Type == SimEventType.OrderDeclinedByRegistrar).ToList();
             Assert.IsNotEmpty(posted);
             Assert.IsNotEmpty(declined);
@@ -615,6 +616,7 @@ namespace GuildMaster.Tests
             string Run(bool withOrders)
             {
                 List<ISimSystem> systems = SimulationSystems.CreateDefault();
+                systems.RemoveAll(s => s is CrisisSystem); // заказ набега берёт номер на доске: его номер законно зависит от потока заказов
                 if (!withOrders) systems.RemoveAll(s => s is OrderSystem);
                 var simulation = new Simulation(data.Registry, 5u, systems);
                 string log = SimulationLog.Record(simulation, sim => SimulationRun.Days(sim, 120));

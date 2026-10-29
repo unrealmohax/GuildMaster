@@ -29,6 +29,7 @@ namespace GuildMaster.Core
             WoundedQuestMultiplier,
             HungerMultiplier,
             SulkMultiplier,
+            GearMultiplier,
         };
 
         /// <summary>Базовое × постоянные модификаторы, не ниже естественного минимума. По нему считается архетип.</summary>
@@ -74,6 +75,12 @@ namespace GuildMaster.Core
         /// <summary>Усталость выше <c>fatigueProfileThreshold</c>: весь профиль × <c>fatigueProfileMultiplier</c> (0,8).</summary>
         private static float FatigueMultiplier(Adventurer adventurer, StatId stat, DataRegistry data) =>
             StateRules.IsFatigueLowersProfile(adventurer.State, data.Balance.State) ? data.Balance.State.FatigueProfileMultiplier : 1f;
+
+        /// <summary>Снаряжение из Арсенала на задании: весь профиль × (1 + <c>armoryProfilePerLevel</c> × уровень снаряжения).</summary>
+        private static float GearMultiplier(Adventurer adventurer, StatId stat, DataRegistry data) =>
+            adventurer.State.QuestRunId != 0 && adventurer.State.GearLevel > 0
+                ? CrisisRules.GearMultiplier(adventurer.State.GearLevel, data.Balance.Crises)
+                : 1f;
 
         /// <summary>Не в духе (довольство ниже <c>sulkContentment</c>): весь профиль × <c>sulkProfileMultiplier</c> (0,9).</summary>
         private static float SulkMultiplier(Adventurer adventurer, StatId stat, DataRegistry data) =>

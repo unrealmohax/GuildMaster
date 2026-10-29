@@ -7,8 +7,9 @@ using UnityEngine.UI;
 namespace GuildMaster.UI
 {
     /// <summary>
-    /// Верхняя панель (видна всегда): дата и фаза дня (клик — окно «Время»), скорость ⏸ ×1 ×2 ×4, казна (красным при минусе;
-    /// клик — экран «Казна»), репутация, люди, поселение (цвет по уровню, отсчёт покидания красным; клик — вкладка «Поселение»),
+    /// Верхняя панель (видна всегда): дата и фаза дня, под ними время года и ближайший кризис (клик — окно «Время»), скорость
+    /// ⏸ ×1 ×2 ×4, казна (красным при минусе; клик — экран «Казна»), репутация, люди, поселение (цвет по уровню, отсчёт покидания
+    /// красным; клик — вкладка «Поселение»),
     /// таймер банкротства (клик — «Казна»; гильдия закрыта — окно итогов), уведомления
     /// со счётчиком.
     /// </summary>
@@ -39,13 +40,13 @@ namespace GuildMaster.UI
             ColorBlock colors = dateButton.colors;
             colors.normalColor = Theme.Panel;
             dateButton.colors = colors;
-            date = Factory.Label(dateButton.transform, string.Empty, Theme.FontSizeLarge);
+            date = Factory.Label(dateButton.transform, string.Empty, Theme.FontSize);
             UiFactory.Stretch(date.rectTransform, 6, 0, 6, 0);
-            UiFactory.Size(dateButton, 470, Theme.TopBarHeight - 16);
+            UiFactory.Size(dateButton, 410, Theme.TopBarHeight - 16);
 
             RectTransform speedGroup = UiFactory.Node(bar.transform, "Speed");
             Factory.Horizontal(speedGroup, 4);
-            UiFactory.Size(speedGroup, 250);
+            UiFactory.Size(speedGroup, 240);
             pause = Factory.Button(speedGroup, UiStrings.Pause, () => Context.Clock?.TogglePause(), 52);
             if (Context.Clock != null)
             {
@@ -56,14 +57,14 @@ namespace GuildMaster.UI
                 }
             }
 
-            money = ClickableStat(bar.transform, "Treasury", 230, () => Context.Navigator.ShowScreen(ScreenId.Treasury));
-            reputation = ClickableStat(bar.transform, "Reputation", 190, () => Context.Navigator.ShowScreen(ScreenId.Treasury));
-            headcount = Stat(bar.transform, 150);
+            money = ClickableStat(bar.transform, "Treasury", 200, () => Context.Navigator.ShowScreen(ScreenId.Treasury));
+            reputation = ClickableStat(bar.transform, "Reputation", 160, () => Context.Navigator.ShowScreen(ScreenId.Treasury));
+            headcount = Stat(bar.transform, 140);
             settlement = ClickableStat(bar.transform, "Settlement", -1, () => Context.Navigator.Go(Destination.ToGuild(GuildTab.Settlement)));
             bankruptcy = ClickableStat(bar.transform, "Bankruptcy", 260, OnBankruptcy);
             bankruptcy.color = Theme.Danger;
 
-            notificationsButton = Factory.Button(bar.transform, UiStrings.Notifications, () => openNotifications(), 240);
+            notificationsButton = Factory.Button(bar.transform, UiStrings.Notifications, () => openNotifications(), 190);
             notificationsLabel = notificationsButton.GetComponentInChildren<TextMeshProUGUI>();
         }
 
@@ -109,7 +110,9 @@ namespace GuildMaster.UI
         public override void Refresh()
         {
             TopBarModel model = TopBarModel.Build(Client, Context.Clock);
-            date.text = $"{model.Date} · <color={UiTheme.ToHex(Theme.Accent)}>{model.Phase}</color>";
+            // Вторая строка — время года и ближайший кризис (клик по дате открывает «Время» — там они же в календаре).
+            string crisis = string.IsNullOrEmpty(model.Crisis) ? string.Empty : $"  <color={UiTheme.ToHex(Theme.Accent)}>{model.Crisis}</color>";
+            date.text = $"{model.Date} · <color={UiTheme.ToHex(Theme.Accent)}>{model.Phase}</color>\n<size={Theme.FontSizeSmall}>{model.Season}{crisis}</size>";
 
             Factory.SetButtonColors(pause, model.Paused);
             for (int i = 0; i < speeds.Count; i++) Factory.SetButtonColors(speeds[i], !model.Paused && model.SpeedIndex == i);
@@ -126,6 +129,7 @@ namespace GuildMaster.UI
 
             string extra = model.DebugSpeed ? $"<color={UiTheme.ToHex(Theme.Accent)}>{UiStrings.DebugSpeed}</color>  " : string.Empty;
             bankruptcy.text = extra + model.Bankruptcy;
+            bankruptcy.transform.parent.gameObject.SetActive(bankruptcy.text.Length > 0); // пустое место отдаётся поселению
 
             notifications.Refresh(Client);
             int count = notifications.Items.Count;

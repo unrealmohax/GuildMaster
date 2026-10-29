@@ -55,5 +55,8 @@ namespace GuildMaster.Core
 
         /// <summary>Поселение рядом с гильдией: Безопасность, население, уровень, отсчёт покидания.</summary>
         public SettlementState Settlement { get; } = new SettlementState();
+
+        /// <summary>Кризисы по календарю: набег, налог, зима, мор.</summary>
+        public CrisisBook Crises { get; } = new CrisisBook();
     }
 }

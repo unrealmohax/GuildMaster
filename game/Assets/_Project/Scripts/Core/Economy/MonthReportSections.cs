@@ -94,6 +94,8 @@ namespace GuildMaster.Core
     /// <item>«Персонал»: кто нанят, кто ушёл сам и кто уволен за месяц, кому гильдия должна жалованье.</item>
     /// <item>«Распоряжения»: какие действовали за месяц (сколько дней и сколько стоили) и расходы на них всего.</item>
     /// <item>«Поселение»: Безопасность и население было → стало, угроз выполнено и упущено, нападений и ущерб — из счётчиков.</item>
+    /// <item>«Кризисы»: набеги отбиты и не отбиты, налог (и сколько раз увёл казну в минус), дней зимы и мора за месяц — только то,
+    /// что было.</item>
     /// <item>«Репутация»: было → стало.</item>
     /// </list>
     /// </summary>
@@ -104,6 +106,9 @@ namespace GuildMaster.Core
         public const string MoneyIncome = "report.money.income";
         public const string MoneyExpense = "report.money.expense";
         public const string MoneyEnd = "report.money.end";
+
+        /// <summary>Из расходов «Содержание» — плата за людей в гильдии (сумма за месяц).</summary>
+        public const string MoneyPeopleUpkeep = "report.money.peopleUpkeep";
 
         public const string PeopleTitle = "report.people";
         public const string PeopleJoined = "report.people.joined";
@@ -166,6 +171,14 @@ namespace GuildMaster.Core
         public const string SettlementAttacks = "report.settlement.attacks";
         public const string SettlementDamage = "report.settlement.damage";
 
+        public const string CrisesTitle = "report.crises";
+        public const string CrisesRaidWon = "report.crises.raidWon";
+        public const string CrisesRaidLost = "report.crises.raidLost";
+        public const string CrisesTax = "report.crises.tax";
+        public const string CrisesTaxUnpaid = "report.crises.taxUnpaid";
+        public const string CrisesWinterDays = "report.crises.winterDays";
+        public const string CrisesPlagueDays = "report.crises.plagueDays";
+
         public const string ReputationTitle = "report.reputation";
         public const string ReputationChange = "report.reputation.change";
 
@@ -174,7 +187,7 @@ namespace GuildMaster.Core
 
         public static IReadOnlyList<MonthReportSection> Default { get; } = new[]
         {
-            new MonthReportSection(MoneyTitle, new[] { MoneyStart, MoneyIncome, MoneyExpense, MoneyEnd }, BuildMoney),
+            new MonthReportSection(MoneyTitle, new[] { MoneyStart, MoneyIncome, MoneyExpense, MoneyPeopleUpkeep, MoneyEnd }, BuildMoney),
             new MonthReportSection(PeopleTitle,
                 new[] { PeopleJoined, PeopleLeft, PeopleDied, PeopleDisappeared, PeopleExpelled, PeopleFled, PeopleRevealed, AxisBalanced, PeopleFamilyIll, PeopleFamilyDied },
                 BuildPeople),
@@ -188,6 +201,8 @@ namespace GuildMaster.Core
             new MonthReportSection(SettlementTitle,
                 new[] { SettlementSecurity, SettlementPopulation, SettlementThreatsDone, SettlementThreatsMissed, SettlementAttacks, SettlementDamage },
                 BuildSettlement),
+            new MonthReportSection(CrisesTitle,
+                new[] { CrisesRaidWon, CrisesRaidLost, CrisesTax, CrisesTaxUnpaid, CrisesWinterDays, CrisesPlagueDays }, BuildCrises),
             new MonthReportSection(ReputationTitle, new[] { ReputationChange }, BuildReputation),
         };
 
@@ -233,8 +248,67 @@ namespace GuildMaster.Core
             AddCategories(lines, totals, LedgerFlow.Income);
             lines.Add(ReportLine.Money(MoneyExpense, expense, signed: true));
             AddCategories(lines, totals, LedgerFlow.Expense);
+            int people = PeopleUpkeep(period);
+            if (people != 0) lines.Add(ReportLine.Money(MoneyPeopleUpkeep, people, signed: true));
             lines.Add(ReportLine.Money(MoneyEnd, period.MoneyAtEnd, signed: false));
             return lines;
+        }
+
+        /// <summary>Содержание за людей за период — записи «Содержание» с комментарием «за людей», со знаком.</summary>
+        private static int PeopleUpkeep(ReportPeriod period)
+        {
+            int sum = 0;
+            IReadOnlyList<LedgerEntry> ledger = period.World.Treasury.Ledger;
+            for (int i = period.LedgerFrom; i < period.LedgerTo; i++)
+            {
+                LedgerEntry entry = ledger[i];
+                if (entry.Category == LedgerCategories.Upkeep && entry.Comment == BuildingService.PeopleUpkeepComment) sum += entry.Amount;
+            }
+            return sum;
+        }
+
+        private static List<ReportLine> BuildCrises(ReportPeriod period)
+        {
+            int won = 0, lost = 0, tax = 0, unpaid = 0;
+            long winter = 0, plague = 0;
+            foreach (Crisis crisis in period.World.Crises.All)
+            {
+                switch (crisis.Kind)
+                {
+                    case CrisisKind.Raid when crisis.IsOver && period.Contains(crisis.EndsAtHours):
+                        if (crisis.Outcome == CrisisOutcome.Won) won++;
+                        else lost++;
+                        break;
+                    case CrisisKind.Tax when crisis.IsOver && period.Contains(crisis.StartsAtHours):
+                        tax += crisis.Amount;
+                        if (crisis.Outcome == CrisisOutcome.Unpaid) unpaid++;
+                        break;
+                    case CrisisKind.Winter when crisis.Status >= CrisisStatus.Active:
+                        winter += Overlap(period, crisis);
+                        break;
+                    case CrisisKind.Plague when crisis.Status >= CrisisStatus.Active:
+                        plague += Overlap(period, crisis);
+                        break;
+                }
+            }
+
+            var lines = new List<ReportLine>();
+            if (won > 0) lines.Add(ReportLine.Number(CrisesRaidWon, won));
+            if (lost > 0) lines.Add(ReportLine.Number(CrisesRaidLost, lost));
+            if (tax > 0) lines.Add(ReportLine.Money(CrisesTax, -tax, signed: true));
+            if (unpaid > 0) lines.Add(ReportLine.Number(CrisesTaxUnpaid, unpaid));
+            int hoursPerDay = period.Calendar.HoursPerDay;
+            if (winter > 0) lines.Add(ReportLine.Number(CrisesWinterDays, (int)((winter + hoursPerDay - 1) / hoursPerDay)));
+            if (plague > 0) lines.Add(ReportLine.Number(CrisesPlagueDays, (int)((plague + hoursPerDay - 1) / hoursPerDay)));
+            return lines;
+        }
+
+        /// <summary>Сколько часов идущий или прошедший кризис пересекается с периодом (у идущего — до конца периода).</summary>
+        private static long Overlap(ReportPeriod period, Crisis crisis)
+        {
+            long end = crisis.IsActive ? period.ToHours : Math.Min(crisis.EndsAtHours, period.ToHours);
+            long start = Math.Max(crisis.StartsAtHours, period.FromHours);
+            return Math.Max(0L, end - start);
         }
 
         private static void AddCategories(List<ReportLine> lines, List<KeyValuePair<LedgerCategory, int>> totals, LedgerFlow flow)
