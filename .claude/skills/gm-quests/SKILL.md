@@ -15,7 +15,7 @@ description: Задания GuildMaster — QuestSystem (шаг 4: выход, �
 | `QuestSystem.cs` | шаг 4, свой поток: `Tick`, `Departures`, `Depart`, `StartLeg`, `StartReturn`, `Advance`, `AddStraggler`, `LeaveQuest` |
 | `QuestRun.cs` | `QuestPhase` (TravelOut → AtSite → TravelBack → Returned), `QuestResult` (скрытый уровень), `QuestDiscovery`/`DiscoveryState`, `QuestRun` (участники, `Members`/`Departed`/`TurnedBack`/`Fled`/`Dead`, `Panicked`, `Rushing`, `Round`, `FailedRounds`, `BonusLost`, `LootLost`, `Retreated`, `Completed`, `Log`), `QuestBook` (`Active`, `Finished`, `Stragglers`), `Straggler` |
 | `TravelPlan.cs` | без бросков: `WorkHours` (туда + раунд + назад), `CalendarHours` (с ночлегами), `MealsDuring`, `ExpectedMeals` (с часа выхода; без часа — с утра, кеш в заказе), `RoundHours` |
-| `QuestMath.cs` | без побочных эффектов: `Overlap`, `GroupProfile`, `Synergy`, `CeilingHit`, `RiskPerception`, `PerceivedRequirements`, `PerceivedSoloOverlap`, `RealOverlap`, `EncounterProfile`, `ShiftRank`, `RankNumber` |
+| `QuestMath.cs` | без побочных эффектов: `Overlap`, `GroupProfile`, `GroupMultiplier`, `Contribution`, `SumContributions` (сложение группы — одно для раунда и оценки групп), `RoundChance` (потолок шанса), `Synergy`, `CeilingHit`, `RiskPerception`, `PerceivedRequirements`, `PerceivedSoloOverlap`, `RealOverlap`, `EncounterProfile`, `ShiftRank`, `RankNumber` |
 | `QuestParty.cs` | `Present`, `Leader` (решающий), `Shield` (принимает удар), `MostWounded`, `Best`, `PartyName`, `Publish` (событие задания со всеми данными для строк), `ContextOf` |
 | `QuestRounds.cs` | `Resolve` (раунд на месте), `StepFor`, `Wound`, увечье, Лекарь, `Kill` |
 | `QuestTension.cs` | `Moment`, `PanicChance`, `TraitChance`, `TryHero`, `Flee` |
@@ -43,14 +43,17 @@ description: Задания GuildMaster — QuestSystem (шаг 4: выход, �
 
 ## Раунд (`QuestRounds.Resolve`)
 
-Шанс = `QuestMath.Overlap` (площадь пересечения фигуры группы и требований на 13 осях `StatCatalog.RadarOrder`, по секторам) +
-синергии пар (в пределах потолка), в 0..1. Профиль группы = Σ эффективных параметров × (один — 1, группа — Слаженность/100) ×
-паника 0,5 × бросок вперёд 1,3. Потолок (`CeilingHit`: людей больше потолка или ось выше потолка оси) — провал сам.
+Шанс = `QuestMath.RoundChance(перекрытие, синергия)` = min(`maxRoundChance` 0,95, `QuestMath.Overlap` + синергии пар), не ниже 0.
+Перекрытие — площадь пересечения фигуры группы и требований на 13 осях `StatCatalog.RadarOrder`, по секторам; синергии — в пределах
+`maxTotalSynergy`. **Профиль группы** (`GroupProfile`): вклад каждого = эффективный параметр × множитель (один — `soloProfileMultiplier`,
+в группе — `GroupMultiplier` = `cohesionBase` 0,7 + 0,3 × Слаженность / 100) × паника 0,5 × бросок вперёд 1,3; вклады складывает
+`SumContributions`: один — как есть, в группе **на каждой оси** по убыванию × `groupContributionWeights` (1; 0,6; 0,45; 0,35; 0,3; 0,25) —
+лучший на оси целиком, каждый следующий меньше. Потолок задания (`CeilingHit`: людей больше потолка или ось выше потолка оси) — провал сам.
 
 Успех → цель выполнена, путь назад. Провал → ступень `FailureLadder` (стресс, время, бонус, раны — «щит» или бросившийся вперёд,
 геройство, Лекарь, снаряжение, добыча, гибель самого тяжело раненого с шансом спасения Лекарем, гибель всех) → моменты
 напряжения по каждому → решение группы (`DecideAfterFailure`: решающий — высший ранг, потом Хладнокровие; продолжить или
-отступить; «сомнение»/«спор» по разнице ценностей). Экзамен — один раунд без синергий, потолков, лестницы и решений.
+отступить; «сомнение»/«спор» по разнице ценностей). Экзамен — один раунд без синергий, потолков задания, лестницы и решений; потолок шанса — есть (перекрытие 1 → шанс 0,95).
 **Порядок бросков** — в комментарии `QuestRounds`: раунд, бонус, рана, увечье, геройство, Лекарь, снаряжение, потеря пайков
 (ступени `food.rationLossFailures`, если у группы есть пайки), добыча, гибель, момент напряжения по каждому, решение группы.
 
@@ -108,6 +111,14 @@ description: Задания GuildMaster — QuestSystem (шаг 4: выход, �
 - Тестовый мир — `QuestWorld` (`AddOrder`, `Start`, `StartParty`, `AtSite`, `RunToEnd`, `DoEvents`), скилл `gm-testing`.
 
 ## Ловушки
+
+- **Риск (GM-23)**: шанс любой проверки — только через `QuestMath.RoundChance` (раунд, экзамен, событие и находка в пути, отладочный
+  шанс, воспринимаемый шанс взятия заказа, решения после провала и у находки); профиль группы — только через `GroupProfile` /
+  `SumContributions`, иначе оценка глазами человека разойдётся с настоящим раундом (тест `RealCalculation_AndViewerEstimate_GiveSameOverlap`).
+  Перекрытие для раскрытий (Хвастун, Семейный) — без потолка. Тест, который ждал «перекрытие 1 — успех наверняка», теперь проваливается в 5%
+  случаев: шанс не выше 0,95. Сводка — «Шанс раунда: доля на потолке, %», «Выполнено угроз, %».
+- Размер группы теперь задаёт в основном «сколько людей до потолка шанса»: дальше шанс не растёт, а доля уменьшается. Разница характеров
+  (жадный меньше командного) видна только у порога — тесты групп берут требование у порога.
 
 - Люди сами берут стартовые заказы. Тесты механик, которым задания мешают, — `PeopleData.NoQuests()`.
 - Взятый заказ уходит с доски сразу; не смог выйти — `ReturnToOpen`.

@@ -96,3 +96,6 @@ description: Слой данных GuildMaster — ScriptableObject-опреде
 - Поселение (скилл `gm-settlement`): раздел `Settlement` (`SettlementBalance`), `Orders.populationPerOrder`; флаг `QuestTypeDefinition.isThreat`
   (генератор: Охота, Истребление); `NameList.settlementNames` — все 6 падежей и род (валидатор `CheckNames`); `CheckBalance` проверяет
   порядок порогов уровней. Значения по умолчанию в коде для потока заказов приведены к ассету: 1 + население / 40 + репутация / 33.
+- Риск в заданиях (GM-23): в `RoundsBalance` — `cohesionBase` (вклад в группе × (это + (1 − это) × Слаженность / 100)), `groupContributionWeights`
+  (`List<float>`, веса по месту на оси) и `maxRoundChance` (потолок шанса). Валидатор `CheckGroupWeights`: весов не меньше `maxPartySize`, каждый
+  в 0..1, по убыванию. Переопределение элемента списка в зонде Balance — путь `rounds.groupContributionWeights.Array.data[1]`.

@@ -16,7 +16,7 @@ description: Группы GuildMaster — Party и PartyBook (группы по�
 | Файл | Что |
 |---|---|
 | `Party.cs` | `Party` (`Rations` — общий запас пайков постоянной группы, `IsPermanent`, `Name`, `MemberIds`, `InitiatorId`, `OrderId`, `JointQuests`, `JointSuccesses`, `GetQuestsTogether`, `GetGuestSuccesses`), `PartyBook` (`Active`, `TryGetParty`, `GetPermanentCount`, `IsNameUsed`, счётчики, свой счётчик id) |
-| `PartyMath.cs` | `PartyMath` (обёртки), `PartyLens` (взгляд одного на один заказ: `Overlap`, `Chance`, `Scores`, `Value`), `ProfileCache` (`Solo`, `Grouped`), `PresumedParty` (`Values`, `MinimumAbove`), `Companions`, `ExpectedShare`, `PartnerScore`, `BestPartner`, `Presume`, `MeanGroupValue` |
+| `PartyMath.cs` | `PartyMath` (обёртки), `PartyLens` (взгляд одного на один заказ: `Overlap` — вклады из кэша, сложение `QuestMath.SumContributions`; `Chance` — с потолком `QuestMath.RoundChance`; `Scores`, `Value`), `ProfileCache` (вклады: `Solo` — × `soloProfileMultiplier`, `Grouped` — × `QuestMath.GroupMultiplier`), `PresumedParty` (`Values`, `MinimumAbove`), `Companions`, `ExpectedShare`, `PartnerScore`, `BestPartner`, `Presume`, `MeanGroupValue` |
 | `PartyService.cs` | `StartGathering`, `Release`, `Attach`, `AfterQuest`, `TryForm`, `Form`, `CheckQuarrels`, `GroupLoyalty`, `OnRetired`, `Members`, `NameValue`, `NameOf`; поток названий `NameStream = "Parties"` |
 | `PartyReasons.cs` | `InvitationRefusal`, `Of`, `Text`, `Keys` (`reason.invite.*`) |
 | `DecisionSystem.Parties.cs` | `AddSeekParty`, `Gather`, `InviteWhileValueGrows`, `Invite`, `PermanentPartiesDecide`, запись в лог |
@@ -90,6 +90,11 @@ description: Группы GuildMaster — Party и PartyBook (группы по�
   Без `parties` — только личный запас (так зовут из тестов и песочницы).
 
 ## Ловушки
+
+- **Одно сложение с раундом (GM-23)**: `PartyLens.Overlap` складывает вклады той же `QuestMath.SumContributions`, что `GroupProfile` в раунде
+  (по каждой оси по убыванию с весами), шанс — с тем же потолком. Своё сложение в оценке не писать — люди начнут ошибаться не по своей вине.
+  Убывающая отдача: прирост перекрытия от следующего напарника меньше, шанс упирается в потолок 0,95 — после этого `Presume` никого не зовёт.
+  Постоянные группы смысл сохранили (выполнено ~98,6% против ~98,2% у разовых), их доля ~29% заданий.
 
 - Пока группа невозможна (один свободный человек), код групп **не тратит бросков** — тест `NoPartyPossible_NoRolls_SameLogAsWithoutParties`.
   Любая правка, которая бросает «на всякий случай», сдвинет мир.

@@ -59,7 +59,7 @@ description: Отладка и прогоны GuildMaster без интерфе�
 | Adventurers → Log Roster / Accept/Reject First Candidate / Preview Start Lineups | люди, кандидаты, стартовые шестёрки | Play Mode / без |
 | State → Light/Heavy Wound First / Stress +50 First / Preview 90 Days | раны, стресс, 90 дней | Play Mode / без |
 | Headless → Year Seed 1 Debug / Trace / Year Seeds 1-10 Info / Year Seeds 1-10 Info With Decrees | год в файлы (последний — «Простой» + все четыре распоряжения с первого такта) | без |
-| Balance → 10 Years Seeds 1-3 / 1-5 / Apply Overrides To Assets | замер баланса за 10 лет (годовая сводка по рангам), переопределения чисел в памяти из `Logs/Balance/overrides.txt` | без |
+| Balance → 10 Years Seeds 1-3 / 1-5 / Apply Overrides To Assets | замер баланса за 10 лет (годовая сводка по рангам; с GM-23 — ещё задания всего, выполнено, «блестяще», соло / в группе / постоянной группой и их выполнено, людей в группах, раундов и раундов на потолке шанса, заданий-угроз и их выполнено), переопределения чисел в памяти из `Logs/Balance/overrides.txt` | без |
 | Feed → Dump Templates / Year Feed Seed 1 | вычитка текстов | без |
 | Quests → Order Preferences 10 Years | кто какие заказы берёт (~10 с) | без |
 | Parties → Groups 10 Years / Chronicle Year Seed 1 / Trace Counts / Cost Benchmark / Year Time With And Without Parties | группы | без |
@@ -118,3 +118,13 @@ description: Отладка и прогоны GuildMaster без интерфе�
   `reason=…`.
 - **Замер 10 лет** (ассеты): «Простой» жив во всех 5 зёрнах, к 5-му году казна ~185 тыс., население ~330; «Безрассудный» к 5-му году ~44 тыс.
   и население ~40, покинут в 2 из 3 зёрен. Таблица — `docs/content/numbers.md` → «Люди и репутация».
+
+## Риск в заданиях (GM-23)
+
+- **Сводка**: «Шанс раунда: доля на потолке, %» (раунды `RoundSuccess`/`RoundFail` с `chance` ≥ `maxRoundChance` − 1e-5) и «Выполнено угроз, %»
+  (законченные задания, у типа которых флаг угрозы; экзамены не в счёт). Оба — среднее по месяцам, месяц без раундов или угроз даёт 0 —
+  точные доли за год считать по годовой сводке зонда Balance. Потолок читается из `month.Game.Data`.
+- **Лог**: строка раунда (`Debug`) по-прежнему `quest #N round K: overlap=… synergy=…`, бросок `round` — с шансом после потолка; бросок
+  экзамена `exam` — тоже с потолком, в данных броска — перекрытие.
+- **Замер 10 лет** (ассеты): «Простой» — выполнено 95,5%, «блестяще» 90,6% выполненных, групповых 38%, к 5-му году казна ~133 тыс., население
+  ~257 (зерно 2 едва не покинуто на 1-м году); «Безрассудный» — покинуто в 3 из 3. Таблица — `docs/content/numbers.md` → «Расчёт раунда».

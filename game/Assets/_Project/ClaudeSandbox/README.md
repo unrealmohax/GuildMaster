@@ -136,6 +136,9 @@
   в неделю» — в `docs/content/balance-runs.md`.
   GM-22: `10 Years Seeds 1-3 Reckless Bot` — то же ботом «Безрассудный» (3 зерна). Сам бот уехал из зонда в код проекта —
   `PlayerBots.Reckless` (`Scripts/Debugging/Headless/PlayerBot.cs`), зонд только вызывает его.
+  GM-23: в `yearly_N.csv` — ещё «Заданий», «Выполнено всего», «Блестяще», «Соло» / «В группе» / «Постоянной группой» и их выполнено,
+  «Людей в группах» (средний размер группы = людей / заданий в группе), «Раундов» и «Раундов на потолке» (шанс = `maxRoundChance`),
+  «Заданий-угроз» и «Угроз выполнено заданий». Элемент списка в переопределении — `rounds.groupContributionWeights.Array.data[1] 0.75`.
 
 - **Переопределения**: `Logs/Balance/overrides.txt`, строка `balance путь значение` или `IdОпределения путь значение`
   (путь — как у `SerializedProperty`, например `ranks.ranks.Array.data[4].reward.max 240`, `Dormitory cost 1500`, `#` — комментарий).
