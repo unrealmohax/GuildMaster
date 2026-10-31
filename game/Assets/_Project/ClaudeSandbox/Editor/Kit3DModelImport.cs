@@ -12,6 +12,16 @@ namespace GuildMaster.ClaudeSandbox
     {
         private const string Models = "Assets/_Project/ClaudeSandbox/Kit3D/Models/";
 
+        /// <summary>
+        /// Сетки модулей читаемы: генератор копирует их и сдвигает развёртку. Нечитаемая сетка после выгрузки и повторной
+        /// загрузки остаётся без данных на процессоре, и копия падает при чтении развёртки.
+        /// </summary>
+        private void OnPreprocessModel()
+        {
+            if (!assetPath.StartsWith(Models)) return;
+            ((ModelImporter)assetImporter).isReadable = true;
+        }
+
         private static void OnPostprocessAllAssets(string[] imported, string[] deleted, string[] moved, string[] movedFrom)
         {
             if (!imported.Any(path => path.StartsWith(Models))) return;
