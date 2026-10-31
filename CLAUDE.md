@@ -133,6 +133,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **`read_console` по умолчанию не показывает `Debug.Log`.** С `types: ["all"]` обычные логи видны (GM-02).
   Но `Debug.LogWarning`/`LogError` с объектом-контекстом (`Debug.LogWarning(текст, ассет)`) не видны ни с каким
   фильтром — полный отчёт в таких случаях читать через вывод теста (`run_tests` с `include_details`).
+- **`manage_scene save` сохраняет активную сцену, а не ту, что в `scene_name`** (замечено 2026-10-31: при активной Main с
+  `scene_name: KitTest` сохранилась Main). Перед сохранением сделать нужную сцену активной (`set_active_scene`) и вызывать `save` без имени.
 - `manage_asset move` может вернуть ошибку, хотя перенос прошёл — проверять по диску и Build Settings.
 - **Play Mode не крутит кадры, пока окно Unity не в фокусе** (GM-03): `runInBackground` в проекте выключен,
   `EditorApplication.QueuePlayerLoopUpdate` в Play Mode не помогает. **Обход:** GuildMaster → Sandbox → Time →
