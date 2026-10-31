@@ -30,6 +30,7 @@
 
 - URP переводится на **3D**: новый ассет Universal Renderer (Forward) становится рендерером по умолчанию в `UniversalRP.asset`; 2D Renderer
   убирается из списка. 2D-пакеты в этом ТЗ не трогаются.
+  ✅ Уже сделано (2026-10-31): `Assets/Settings/UniversalRenderer.asset`, 2D Renderer убран из списка.
 - В `Main.unity`: `Global Light 2D` заменяется направленным светом (солнце) с мягкими тенями; добавляется корень `World` — камера с её
   держателем, сцена поселения, глобальный `Volume` (постобработка). Canvas интерфейса остаётся поверх (Screen Space – Overlay).
 - **Постобработка** (профиль `Volume` в `Assets/_Project/Data/View/`):
