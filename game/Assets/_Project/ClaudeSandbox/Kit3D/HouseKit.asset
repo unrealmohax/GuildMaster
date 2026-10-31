@@ -23,8 +23,38 @@ MonoBehaviour:
     model: {fileID: 919132149155446097, guid: 7311a2622f805c54cb5704f303e5d469, type: 3}
   - name: chimney_d6
     model: {fileID: 919132149155446097, guid: 77075fa9d85366e4cabb3e484e8d9fa0, type: 3}
+  - name: chimney_d7
+    model: {fileID: 919132149155446097, guid: c9a4c33f5255e5e4b868db06d8e25fdd, type: 3}
+  - name: chimney_d8
+    model: {fileID: 919132149155446097, guid: 96732081276a8c148a5f4b2886a8471e, type: 3}
   - name: corner_post
     model: {fileID: 919132149155446097, guid: dfc7f8afce64106459cc905b170f9ce5, type: 3}
+  - name: door_grime
+    model: {fileID: 919132149155446097, guid: 5529add8423b46041a54168d9dfac04f, type: 3}
+  - name: door_grime_arch
+    model: {fileID: 919132149155446097, guid: edddc07958e35a54c8341d572d089f3d, type: 3}
+  - name: door_hood
+    model: {fileID: 919132149155446097, guid: 95532f250d364d54aa347294d95934fc, type: 3}
+  - name: dormer_big_d4
+    model: {fileID: 919132149155446097, guid: 314cba6e00cc6034299a9019d38431f8, type: 3}
+  - name: dormer_big_d5
+    model: {fileID: 919132149155446097, guid: 21f23038c8c02bd489648592e7d0c7d9, type: 3}
+  - name: dormer_big_d6
+    model: {fileID: 919132149155446097, guid: 4916fd8fdf1b4f143bbf0c4334308d6a, type: 3}
+  - name: dormer_big_d7
+    model: {fileID: 919132149155446097, guid: be8b7a3a7da381e468880736e65c0216, type: 3}
+  - name: dormer_big_d8
+    model: {fileID: 919132149155446097, guid: f5b73e2d26900df4a99b971bf6ebdbbe, type: 3}
+  - name: dormer_small_d4
+    model: {fileID: 919132149155446097, guid: 0d7b9ac279c9a884ab9e66f74b9608db, type: 3}
+  - name: dormer_small_d5
+    model: {fileID: 919132149155446097, guid: d7212c90093695e47bc3d37237552ee9, type: 3}
+  - name: dormer_small_d6
+    model: {fileID: 919132149155446097, guid: b5cb28866122c89468873e2e0affa5e7, type: 3}
+  - name: dormer_small_d7
+    model: {fileID: 919132149155446097, guid: 643f3472c97240043aea7d400b663ca8, type: 3}
+  - name: dormer_small_d8
+    model: {fileID: 919132149155446097, guid: ce193a2f74e21ad40805405d20f8e90b, type: 3}
   - name: gable_d3
     model: {fileID: 919132149155446097, guid: 47440cb0f59123545b079f74c8ca153a, type: 3}
   - name: gable_d4
@@ -33,22 +63,78 @@ MonoBehaviour:
     model: {fileID: 919132149155446097, guid: ffd66dfaee48aac4aa2de6f6bf98b7f5, type: 3}
   - name: gable_d6
     model: {fileID: 919132149155446097, guid: 464be4f0bb13e0545b9a4d1a368f888f, type: 3}
+  - name: gable_d7
+    model: {fileID: 919132149155446097, guid: f257bd0b3e37bb343b37665e15b65791, type: 3}
+  - name: gable_d8
+    model: {fileID: 919132149155446097, guid: 5cf1f82cc66fa9c4a9d657357f0439c5, type: 3}
+  - name: jetty_bracket
+    model: {fileID: 919132149155446097, guid: 22b965754aed1ab45b2d25d9c540c73c, type: 3}
+  - name: joists_1
+    model: {fileID: 919132149155446097, guid: 2edd001af2b054e4cb194d6a3587c9fb, type: 3}
+  - name: lean_to
+    model: {fileID: 919132149155446097, guid: 7a0ee36b9a114d942a1a642b4d034a60, type: 3}
+  - name: lean_to_post
+    model: {fileID: 919132149155446097, guid: 96dde467d9d4c8344bd7d52a303e18a5, type: 3}
+  - name: lean_to_post_l
+    model: {fileID: 919132149155446097, guid: c954eef9877ea104dbf157d43a3037c1, type: 3}
+  - name: lean_to_post_r
+    model: {fileID: 919132149155446097, guid: 0197a95c33433fe43b82ba24f9214664, type: 3}
   - name: plinth
     model: {fileID: 919132149155446097, guid: 7e772ecdf3725224e8ccefc73ac00daf, type: 3}
+  - name: plinth_cellar
+    model: {fileID: 919132149155446097, guid: 90df3ff05c86fad459df2a515eddbbb3, type: 3}
   - name: plinth_corner
     model: {fileID: 919132149155446097, guid: 3ae960cd725442d42bd065b7e428c950, type: 3}
   - name: post
     model: {fileID: 919132149155446097, guid: b3cefbadb29868a41924a07c8e5007d9, type: 3}
   - name: prop
     model: {fileID: 919132149155446097, guid: 7436ed8fffdb75640b4d320baee7fd22, type: 3}
+  - name: quoin
+    model: {fileID: 919132149155446097, guid: d0d53f1054830464b871cc1319341b1c, type: 3}
+  - name: render_door
+    model: {fileID: 919132149155446097, guid: f52fd4e8ea5218d40a504e3d851ceace, type: 3}
+  - name: render_plain
+    model: {fileID: 919132149155446097, guid: 7df17a56def2b524cac8f05ec68d0afa, type: 3}
+  - name: render_window
+    model: {fileID: 919132149155446097, guid: b06c585f94ccd5c4dbe922f84434db03, type: 3}
+  - name: render_window_small
+    model: {fileID: 919132149155446097, guid: 98fe00ac95b25854ebde68260a5473a2, type: 3}
   - name: roof_d3
     model: {fileID: 919132149155446097, guid: 446bc3aa825d9904b848fa98618a221e, type: 3}
+  - name: roof_d3_b
+    model: {fileID: 919132149155446097, guid: aff7fcb240196f04c824ec4f132950ac, type: 3}
+  - name: roof_d3_c
+    model: {fileID: 919132149155446097, guid: 7cf525d620b8a644697c16ecc90ce248, type: 3}
   - name: roof_d4
     model: {fileID: 919132149155446097, guid: 0622a1c210e83734c9cb67864665837f, type: 3}
+  - name: roof_d4_b
+    model: {fileID: 919132149155446097, guid: aa6503cd4ad836749bf80a6650b424d5, type: 3}
+  - name: roof_d4_c
+    model: {fileID: 919132149155446097, guid: 69255141177bf8a47be5a6449de11296, type: 3}
   - name: roof_d5
     model: {fileID: 919132149155446097, guid: 368ef015845dbde41a85b01cf5b852c2, type: 3}
+  - name: roof_d5_b
+    model: {fileID: 919132149155446097, guid: f4a349f49d3ae0f4983b0577c21f3eb6, type: 3}
+  - name: roof_d5_c
+    model: {fileID: 919132149155446097, guid: 0e3c42ae93d2507448223f943ab3aa58, type: 3}
   - name: roof_d6
     model: {fileID: 919132149155446097, guid: 246a4fa6a89474c4b8a583a5912d381c, type: 3}
+  - name: roof_d6_b
+    model: {fileID: 919132149155446097, guid: cc9bb57f8b077e8439564df9c6f06943, type: 3}
+  - name: roof_d6_c
+    model: {fileID: 919132149155446097, guid: 0baad0de95563cb4786cdea738262eb6, type: 3}
+  - name: roof_d7
+    model: {fileID: 919132149155446097, guid: bbdc54e90a8e0854494958d42d729285, type: 3}
+  - name: roof_d7_b
+    model: {fileID: 919132149155446097, guid: 868d74d794c4db64287795197d36a21b, type: 3}
+  - name: roof_d7_c
+    model: {fileID: 919132149155446097, guid: f2c36dda6d180054595960a940dc4a4d, type: 3}
+  - name: roof_d8
+    model: {fileID: 919132149155446097, guid: d5fadca91176dad4c97d8033f222c549, type: 3}
+  - name: roof_d8_b
+    model: {fileID: 919132149155446097, guid: 3f7f25b508ccf8e45b75324222915ce7, type: 3}
+  - name: roof_d8_c
+    model: {fileID: 919132149155446097, guid: 47858a77a63a9524f88173d22271f914, type: 3}
   - name: roof_hole_d3
     model: {fileID: 919132149155446097, guid: 5532a048eb21fc243972a17ba07cdd6d, type: 3}
   - name: roof_hole_d4
@@ -57,6 +143,10 @@ MonoBehaviour:
     model: {fileID: 919132149155446097, guid: 5386d47938c6d2f44bc088b7b94f6e2c, type: 3}
   - name: roof_hole_d6
     model: {fileID: 919132149155446097, guid: 2a314426fe4850d488f688f1c0d1604c, type: 3}
+  - name: roof_hole_d7
+    model: {fileID: 919132149155446097, guid: 041b1ee0150e1be46a3d084f4fd2aeca, type: 3}
+  - name: roof_hole_d8
+    model: {fileID: 919132149155446097, guid: 11f52998f6235764284014bc7acdc4ee, type: 3}
   - name: roof_ovh_d3
     model: {fileID: 919132149155446097, guid: c19ef5fccec26ab469db4d6874111899, type: 3}
   - name: roof_ovh_d4
@@ -65,12 +155,74 @@ MonoBehaviour:
     model: {fileID: 919132149155446097, guid: a9966a02802733047ae1a655766461f9, type: 3}
   - name: roof_ovh_d6
     model: {fileID: 919132149155446097, guid: 173862ec09116914abc5447abaf694ba, type: 3}
+  - name: roof_ovh_d7
+    model: {fileID: 919132149155446097, guid: a9effbf00b0be7d49b2fda49ac31411a, type: 3}
+  - name: roof_ovh_d8
+    model: {fileID: 919132149155446097, guid: 874e5e1b441b9094994d60e34d6cf65c, type: 3}
+  - name: roof_ovhr_d3
+    model: {fileID: 919132149155446097, guid: 7fd1cb3918a1e884e8770378df0e5a33, type: 3}
+  - name: roof_ovhr_d4
+    model: {fileID: 919132149155446097, guid: 2d17f59e1f7d3e04790f6058102b3fbd, type: 3}
+  - name: roof_ovhr_d5
+    model: {fileID: 919132149155446097, guid: 70b179092e267c142960a0a76222c5d6, type: 3}
+  - name: roof_ovhr_d6
+    model: {fileID: 919132149155446097, guid: e4ceda920525e3f4c8feacc78edf3d92, type: 3}
+  - name: roof_ovhr_d7
+    model: {fileID: 919132149155446097, guid: cbee944f6cd77aa41a8d5170f6b65c3a, type: 3}
+  - name: roof_ovhr_d8
+    model: {fileID: 919132149155446097, guid: c3fb19a8afaf10140809f364ea7b9d3f, type: 3}
   - name: rope_1
     model: {fileID: 919132149155446097, guid: 46f8c68f9a0dd7a4d9dcf14a146f411c, type: 3}
   - name: scaffold_1
     model: {fileID: 919132149155446097, guid: 6dd3d9cb2b98ae846bda8c5e3914e004, type: 3}
   - name: stake
     model: {fileID: 919132149155446097, guid: a6d5cb550e020d94886a736e90f6ca3f, type: 3}
+  - name: steps
+    model: {fileID: 919132149155446097, guid: 135d64c9c7b83cf46a1a56b001254c3a, type: 3}
+  - name: stone_door
+    model: {fileID: 919132149155446097, guid: e93ecb34fbf33a244b703e77e6653abe, type: 3}
+  - name: stone_plain
+    model: {fileID: 919132149155446097, guid: b84dd3d8b68980945be85fef1e01d4b0, type: 3}
+  - name: stone_window
+    model: {fileID: 919132149155446097, guid: 13beb5137b989394a8388e5ee6453334, type: 3}
+  - name: stone_window_small
+    model: {fileID: 919132149155446097, guid: 9249c1f8c46bffc42bf3b2a94c962df0, type: 3}
+  - name: thatch_d3
+    model: {fileID: 919132149155446097, guid: 4976255774c23074d884dd95d376c8f6, type: 3}
+  - name: thatch_d4
+    model: {fileID: 919132149155446097, guid: 201f547451edd1444a94ebc709d49a74, type: 3}
+  - name: thatch_d5
+    model: {fileID: 919132149155446097, guid: c86d038c36a853749afe99bab83c3f2c, type: 3}
+  - name: thatch_d6
+    model: {fileID: 919132149155446097, guid: f2a65b38f210e8d4398facafe48cb5ca, type: 3}
+  - name: thatch_d7
+    model: {fileID: 919132149155446097, guid: 7bf430d6b28bf304dab1cd20ae5aa443, type: 3}
+  - name: thatch_d8
+    model: {fileID: 919132149155446097, guid: 576e0494acd2baf45be83ac106fa93e9, type: 3}
+  - name: thatch_hole_d3
+    model: {fileID: 919132149155446097, guid: a29aa70922badf545a1cb8db5839e46d, type: 3}
+  - name: thatch_hole_d4
+    model: {fileID: 919132149155446097, guid: 6ae0e7d567411a34690f13aba36c3922, type: 3}
+  - name: thatch_hole_d5
+    model: {fileID: 919132149155446097, guid: 71615b04c3eaf7146a569d6b82828539, type: 3}
+  - name: thatch_hole_d6
+    model: {fileID: 919132149155446097, guid: 208ec25f4ee2aea44979fe6b0f4af47b, type: 3}
+  - name: thatch_hole_d7
+    model: {fileID: 919132149155446097, guid: f3243ae636fde1446b6f9c359ad0f1e3, type: 3}
+  - name: thatch_hole_d8
+    model: {fileID: 919132149155446097, guid: 872d3e5ab28ddfb46acb29efe4d736a8, type: 3}
+  - name: thatch_ovh_d3
+    model: {fileID: 919132149155446097, guid: b5095be7ba10da04da53700366d3c743, type: 3}
+  - name: thatch_ovh_d4
+    model: {fileID: 919132149155446097, guid: fe894f97698869241ba83bc8cb4ccee9, type: 3}
+  - name: thatch_ovh_d5
+    model: {fileID: 919132149155446097, guid: daf73b27327939649a40e829f5581f4a, type: 3}
+  - name: thatch_ovh_d6
+    model: {fileID: 919132149155446097, guid: 88a70ebe3ff42cd47b355859438a0f97, type: 3}
+  - name: thatch_ovh_d7
+    model: {fileID: 919132149155446097, guid: 4d7469fc3f05fe944a930c134c756653, type: 3}
+  - name: thatch_ovh_d8
+    model: {fileID: 919132149155446097, guid: 908ce87dd11800249b806716dff03560, type: 3}
   - name: wall_broken
     model: {fileID: 919132149155446097, guid: 5bfdb1a4b71d87149b69556e4b677789, type: 3}
   - name: wall_door
@@ -79,9 +231,25 @@ MonoBehaviour:
     model: {fileID: 919132149155446097, guid: 67b92f958a79f1a4099f9d22d1f2b831, type: 3}
   - name: wall_plain_b
     model: {fileID: 919132149155446097, guid: 4608d9f5b953aef4aa296741b763e4fa, type: 3}
+  - name: wall_plain_c
+    model: {fileID: 919132149155446097, guid: a94594e0b80980e44a12e49eb60e2440, type: 3}
+  - name: wall_plain_x
+    model: {fileID: 919132149155446097, guid: 3809518a0ac6ad34a8567106c163073b, type: 3}
   - name: wall_plank
     model: {fileID: 919132149155446097, guid: dff24d3430e733c45b0c9069feea98d8, type: 3}
   - name: wall_window
     model: {fileID: 919132149155446097, guid: 427db59c40ecd2d4a9387376701a8a45, type: 3}
   - name: wall_window_boarded
     model: {fileID: 919132149155446097, guid: 8a49c82ede44d964bb6661cf43ac9fd0, type: 3}
+  - name: wall_window_closed
+    model: {fileID: 919132149155446097, guid: 060157f5fcfc753409f994382086c196, type: 3}
+  - name: wall_window_hood
+    model: {fileID: 919132149155446097, guid: 1a15b7b040efc944a9469badfd9494c1, type: 3}
+  - name: wall_window_ribbon
+    model: {fileID: 919132149155446097, guid: 3acfdd26022199f489cef9830dfb72d9, type: 3}
+  - name: wall_window_small
+    model: {fileID: 919132149155446097, guid: 97ea36c605101b449951d7ce3c65ab94, type: 3}
+  plasters:
+  - {fileID: 2100000, guid: 3ffa24cab5e24224d98f41f13200c003, type: 2}
+  - {fileID: 2100000, guid: a4b2481fb2adb1f49ac46f34822cd442, type: 2}
+  floor: {fileID: 2100000, guid: 860b99a99ca6a104ba48b3dc6950b1c1, type: 2}

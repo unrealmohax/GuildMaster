@@ -20,9 +20,25 @@ namespace GuildMaster.ClaudeSandbox.Kit3D
 
         [SerializeField] private List<Entry> modules = new List<Entry>();
 
+        [Tooltip("Варианты побелки: первый стоит в модулях, дому выпадает один из них")]
+        [SerializeField] private List<Material> plasters = new List<Material>();
+
+        [Tooltip("Пол этажей: доски внутри дома")]
+        [SerializeField] private Material floor;
+
         private Dictionary<string, GameObject> byName;
 
         public IReadOnlyList<Entry> Modules => modules;
+
+        public IReadOnlyList<Material> Plasters => plasters;
+
+        public bool IsPlaster(Material material) => plasters.Contains(material);
+
+        public void SetPlasters(List<Material> materials) => plasters = materials;
+
+        public Material Floor => floor;
+
+        public void SetFloor(Material material) => floor = material;
 
         public GameObject Get(string name)
         {

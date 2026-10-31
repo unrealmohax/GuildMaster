@@ -73,6 +73,14 @@ namespace GuildMaster.ClaudeSandbox
         [MenuItem("GuildMaster/Sandbox/Kit3D/Build Test Scene")]
         public static void BuildTestScene()
         {
+            // Новая сцена закрывает открытые без вопроса — несохранённые правки в них пропали бы.
+            for (var i = 0; i < UnityEngine.SceneManagement.SceneManager.sceneCount; i++)
+            {
+                if (!UnityEngine.SceneManagement.SceneManager.GetSceneAt(i).isDirty) continue;
+                File.WriteAllText("Temp/kit3d_scene.txt", "refused: an open scene has unsaved changes");
+                return;
+            }
+
             var scene = UnityEditor.SceneManagement.EditorSceneManager.NewScene(
                 UnityEditor.SceneManagement.NewSceneSetup.EmptyScene, UnityEditor.SceneManagement.NewSceneMode.Single);
 
@@ -104,26 +112,52 @@ namespace GuildMaster.ClaudeSandbox
             var rotation = Quaternion.Euler(55, 225, 0);
             cam.transform.SetPositionAndRotation(target - rotation * Vector3.forward * 70, rotation);
 
+            AddTestHouses(kit);
+            Kit3DLighting.Apply(scene);
+            UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene, Root + "/KitTest.unity");
+        }
+
+        /// <summary>
+        /// Заново расставляет дома пробной сцены в активной сцене: убирает ряд стадий и квартал и ставит их по текущим размерам.
+        /// Остальное — земля, свет, камеры — не трогается. Сцену не сохраняет.
+        /// </summary>
+        [MenuItem("GuildMaster/Sandbox/Kit3D/Re-lay Test Houses")]
+        public static void RelayTestHouses()
+        {
+            var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+            foreach (var go in scene.GetRootGameObjects())
+            {
+                if (go.name.StartsWith("Stage ") || go.name.StartsWith("House ")) Object.DestroyImmediate(go);
+            }
+
+            AddTestHouses(AssetDatabase.LoadAssetAtPath<HouseKit>(KitPath));
+            UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(scene);
+        }
+
+        /// <summary>
+        /// Ряд домов во всех стадиях (6 × 6 клеток) и квартал случайных домов по сидам: 5–10 клеток вдоль конька, 5–7 в глубину,
+        /// как у настоящих домов. Шаг квартала — по самому большому дому с навесом сбоку и крыльцом спереди.
+        /// </summary>
+        private static void AddTestHouses(HouseKit kit)
+        {
             var stages = new[] { HouseStage.Planned, HouseStage.Construction, HouseStage.Ready, HouseStage.Ready, HouseStage.Abandoned };
             for (var i = 0; i < stages.Length; i++)
             {
-                AddHouse(kit, $"Stage {stages[i]}", new Vector3(-i * 7, 0, 0), 4, 4, i == 3 ? 2 : 1, 10 + i, stages[i]);
+                AddHouse(kit, $"Stage {stages[i]}", new Vector3(-i * 9, 0, 0), 6, 6, i == 3 ? 2 : 1, 10 + i, stages[i]);
             }
 
             var rng = new System.Random(7);
             for (var row = 0; row < 3; row++)
             {
-                for (var col = 0; col < 5; col++)
+                for (var col = 0; col < 4; col++)
                 {
-                    var w = rng.Next(3, 7);
-                    var d = rng.Next(3, 6);
+                    var w = rng.Next(5, 11);
+                    var d = rng.Next(5, 8);
                     var floors = rng.Next(1, 3);
                     var stage = rng.NextDouble() < 0.15 ? HouseStage.Abandoned : HouseStage.Ready;
-                    AddHouse(kit, $"House {row}-{col}", new Vector3(-col * 7.5f, 0, 9 + row * 8), w, d, floors, 100 + row * 10 + col, stage);
+                    AddHouse(kit, $"House {row}-{col}", new Vector3(-col * 12.5f, 0, 12 + row * 11), w, d, floors, 100 + row * 10 + col, stage);
                 }
             }
-
-            UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene, Root + "/KitTest.unity");
         }
 
         private static void AddHouse(HouseKit kit, string name, Vector3 position, int w, int d, int floors, int seed, HouseStage stage)
@@ -142,6 +176,8 @@ namespace GuildMaster.ClaudeSandbox
         {
             foreach (var house in Object.FindObjectsByType<HouseGenerator>(FindObjectsInactive.Exclude))
             {
+                // Пристройку пересобирает основной дом; уже снесённую его пересборкой — пропустить.
+                if (house == null || house.IsWing) continue;
                 house.Rebuild();
             }
         }

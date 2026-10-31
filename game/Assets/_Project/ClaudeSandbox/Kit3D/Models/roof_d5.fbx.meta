@@ -3,7 +3,87 @@ guid: 368ef015845dbde41a85b01cf5b852c2
 ModelImporter:
   serializedVersion: 24600
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GM_Daub
+    second: {fileID: 2100000, guid: 3ffa24cab5e24224d98f41f13200c003, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GM_Door
+    second: {fileID: 2100000, guid: f5c86678b9c68514aa19a720379ca3f9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GM_Grime
+    second: {fileID: 2100000, guid: 0dd0c63b315c0324baca67799f0eaf15, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GM_Lead
+    second: {fileID: 2100000, guid: 89033d5116fb546409a739feab027e38, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GM_Mortar
+    second: {fileID: 2100000, guid: dad7bd8fe2f0a39429d80d83d1b3f621, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GM_Plank
+    second: {fileID: 2100000, guid: 009af681a20044b4ab417ddebe2610fe, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GM_Rock
+    second: {fileID: 2100000, guid: e32a582a0ddec5344b35f10a5cf32112, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GM_Roof
+    second: {fileID: 2100000, guid: 6584186f97fe64c4c9994df2b6b45913, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GM_Rope
+    second: {fileID: 2100000, guid: dde9d3e4c766e8e449a8c5313f9a8e5b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GM_Sash
+    second: {fileID: 2100000, guid: 4261b0f2d31f8994e94c8a7273ac0958, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GM_Soot
+    second: {fileID: 2100000, guid: b07b547e65dc39f47ad0d98b8e84bf6d, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GM_Stone
+    second: {fileID: 2100000, guid: dce422f775b57084899d1bdb6b73d813, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GM_Thatch
+    second: {fileID: 2100000, guid: c137d3c758093d84e9f493a406b0bfaf, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GM_Timber
+    second: {fileID: 2100000, guid: 59b04dec4785c094aa5f0ab8a2ea49c9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GM_Wattle
+    second: {fileID: 2100000, guid: bf0bd2635c220ad4caef43665b47ae46, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GM_Window
+    second: {fileID: 2100000, guid: c5d5d38897ba1654aaeffd855391cb18, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
